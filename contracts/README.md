@@ -149,6 +149,57 @@ The script deploys SY, the `ERC3643BondStrategy`, PT/YT/tokenizer, the AMM, and
 the orderbook, and logs every address. Wire them into the web SDK via
 `NEXT_PUBLIC_*` variables.
 
+## Testnet integration check (ERC-3643 end to end)
+
+`script/VerifyERC3643Testnet.s.sol` is a **testnet-only** harness that proves the
+real bond path on a live Hedera network. It deploys the production contracts
+(`ERC3643Bond`, `ERC3643BondStrategy`, the SY vault, tokenizer, PT/YT, AMM and
+orderbook) and uses the `test/mocks/` doubles only for the cash denomination,
+identity registry and compliance module that a real issuer would supply. It is
+not the production deploy path and ships no mocks in `src/`.
+
+Phase A deploys and exercises the pre-maturity flow (permissioned purchase via
+the strategy, deposit → split, an issuer-funded coupon claimed into the strategy,
+AMM liquidity + swap, orderbook order); phase B runs after maturity and completes
+redemption (freeze, claim YT surplus, redeem PT, redeem SY for cash).
+
+```bash
+export PRIVATE_KEY=0x...
+RPC=https://testnet.hashio.io/api
+
+# Phase A — deploys and exercises; writes deployments/erc3643-testnet.json.
+forge script script/VerifyERC3643Testnet.s.sol:VerifyERC3643Testnet \
+  --sig "deployAndExercise()" --rpc-url $RPC \
+  --broadcast --slow --gas-estimate-multiplier 200
+
+# Wait until MATURITY has passed, then Phase B.
+forge script script/VerifyERC3643Testnet.s.sol:VerifyERC3643Testnet \
+  --sig "verifyMaturity()" --rpc-url $RPC \
+  --broadcast --slow --gas-estimate-multiplier 200
+```
+
+Verified on Hedera testnet (chain 296):
+
+| Role | Address |
+|---|---|
+| cash (test ERC-20) | `0xE8deE17f695Eefb415A21C17b9B7da4301a6aefa` |
+| identity registry | `0x33a2721054Aeb0156f0F380E443f748410c16EbB` |
+| compliance | `0x7E77B929e397AdB55f22390953c0eD7fd7eAd867` |
+| bond | `0x0C8B33cbAEE61Aec6C1FF4505a8A2b3d277FEcfb` |
+| sy | `0x1380AaE24fA295b17f5F87f908be36DB5aeeECFa` |
+| strategy | `0xF8FF14DD20EB4EDA7dED59ebFD7860cBB3986C5b` |
+| pt | `0x6DE94a7740B97BF1a09C5666c944f094b095c071` |
+| yt | `0x815EcFE4778a028338560E0f832490Cf25643B84` |
+| tokenizer | `0xbF814f1F6d5B47bB1D34003BBD856E062afE3781` |
+| amm | `0x8d1Af434a9AB76F12e86cB8aeA33e1AE61C4C580` |
+| orderbook | `0x521B23080Fb52c4bD6a9EB4Dc86Ebc63B6e74a23` |
+
+Outcome: the strategy bought the permissioned bond (517,911 units for 500,000
+cash), a 2% issuer coupon was funded and claimed into the strategy raising the SY
+rate from `1.0000` to `1.0210`, the rate froze at maturity at `1.0276`, and the
+matured position redeemed to `2,256,924` cash against a `500,000` deposit.
+`accountedBonds` tracked the strategy's real bond balance exactly throughout.
+
 ## License
 
 Apache-2.0. See `./LICENSE`.

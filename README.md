@@ -209,6 +209,10 @@ pnpm --filter @sidereal/app run typecheck && pnpm --filter @sidereal/app test
 pnpm --filter @sidereal/app run test:e2e   # Playwright smoke
 ```
 
+The contracts also carry a live testnet integration harness that proves the
+ERC-3643 path end to end; see
+[`contracts/README.md`](contracts/README.md#testnet-integration-check-erc-3643-end-to-end).
+
 ## Design notes
 
 - **Decimals.** All protocol tokens are 18-decimal; `WAD = 1e18`. Constants like
