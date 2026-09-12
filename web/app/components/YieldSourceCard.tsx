@@ -25,6 +25,7 @@ export function YieldSourceCard({
   market,
   bond,
   strategy,
+  assetDecimals = 18,
 }: {
   source: YieldSourceConfig;
   market: MarketState | null;
@@ -32,8 +33,11 @@ export function YieldSourceCard({
   bond?: BondInfo | null;
   /** Strategy adapter behind the SY vault; omit or null while loading. */
   strategy?: StrategyInfo | null;
+  /** Cash-denomination decimals for bond cash values (par). Defaults to 18. */
+  assetDecimals?: number;
 }) {
   const status = sourceStatus(source);
+  const par = 10n ** BigInt(assetDecimals);
   const underlying = market?.underlying ?? source.underlyingAddress;
   const bondAddress = bond?.address ?? source.bondAddress;
 
@@ -76,7 +80,7 @@ export function YieldSourceCard({
               <dt className="label-data">Bond discount</dt>
               <dd className="tabular-nums text-amber">
                 <LiveValue
-                  value={bond ? bpsToPercent(bondDiscountBps(bond.valuePerUnit)) : ""}
+                  value={bond ? bpsToPercent(bondDiscountBps(bond.valuePerUnit, par)) : ""}
                   loading={!bond}
                   className="w-16"
                 />
@@ -85,13 +89,13 @@ export function YieldSourceCard({
             <div className="flex justify-between gap-4">
               <dt className="label-data">Bond value / unit</dt>
               <dd className="tabular-nums text-paper">
-                {bond ? formatTokenAmount(bond.valuePerUnit, 18, 4) : "n/a"}
+                {bond ? formatTokenAmount(bond.valuePerUnit, assetDecimals, 4) : "n/a"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="label-data">Strategy assets</dt>
               <dd className="tabular-nums text-paper">
-                {strategy ? formatTokenAmount(strategy.totalAssets, 18, 4) : "n/a"}
+                {strategy ? formatTokenAmount(strategy.totalAssets, assetDecimals, 4) : "n/a"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">

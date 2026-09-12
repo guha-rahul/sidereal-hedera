@@ -80,11 +80,18 @@ const MESSAGES: Record<ErrorContext, Record<string, string>> = {
   },
   bond: {
     InvalidAmount: "Enter a valid amount.",
+    InvalidTerms: "The bond terms are invalid.",
+    InvalidSchedule: "The coupon schedule is invalid (record < execution <= maturity).",
     NotMatured: "The bond has not matured yet.",
     Matured: "The bond has already matured.",
     InsufficientLiquidity: "The bond has insufficient liquidity.",
+    CouponNotDue: "This coupon has not reached its execution date yet.",
+    CouponAlreadyClaimed: "You have already claimed this coupon.",
+    NothingToClaim: "There is nothing to claim for this coupon.",
     CouponWithNoHolders: "No bondholders to distribute the coupon to.",
     NotIssuer: "Only the bond issuer can perform this action.",
+    NotVerified: "This wallet is not identity-verified for the permissioned bond.",
+    TransferNotCompliant: "Compliance blocked this transfer for one of the wallets.",
     UpstreamPaused: "The bond issuer has paused operations.",
     NotInitialized: "The bond is not initialized.",
     AlreadyInitialized: "The bond is already initialized.",
@@ -107,6 +114,16 @@ export function describeError(err: unknown, ctx: ErrorContext): string {
     }
     return err.raw;
   }
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+/**
+ * Message for a read failure where no single contract context applies. Returns
+ * the decoded custom-error name when present, otherwise the raw reason.
+ */
+export function describeReadError(err: unknown): string {
+  if (isContractError(err) && err.errorName) return `read failed (${err.errorName})`;
   if (err instanceof Error) return err.message;
   return String(err);
 }

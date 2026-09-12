@@ -9,6 +9,7 @@ import { appConfig } from "@/lib/config";
 import { useSlideRect } from "@/lib/useSlideRect";
 
 const TABS = [
+  { href: "/journey", label: "Journey", tour: undefined },
   { href: "/strategy", label: "Strategy", tour: undefined },
   { href: "/mint", label: "Mint", tour: "nav-mint" },
   { href: "/trade", label: "Trade", tour: "nav-trade" },

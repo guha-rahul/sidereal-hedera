@@ -13,6 +13,7 @@ import {
   TESTNET_NETWORK,
   TESTNET_RPC,
 } from "../lib/config";
+import { TESTNET_DEPLOYMENT } from "../lib/deployments";
 
 const contractEnv = {
   NEXT_PUBLIC_SY_ADDRESS: "0xSY",
@@ -24,6 +25,8 @@ const contractEnv = {
   NEXT_PUBLIC_BOND_ADDRESS: "0xBOND",
   NEXT_PUBLIC_STRATEGY_ADDRESS: "0xSTRATEGY",
   NEXT_PUBLIC_UNDERLYING_ADDRESS: "0xUNDERLYING",
+  NEXT_PUBLIC_REGISTRY_ADDRESS: "0xREGISTRY",
+  NEXT_PUBLIC_COMPLIANCE_ADDRESS: "0xCOMPLIANCE",
 };
 
 const yieldSourceEnvNames = [
@@ -61,11 +64,13 @@ describe("appConfig", () => {
       bond: "0xBOND",
       strategy: "0xSTRATEGY",
       underlying: "0xUNDERLYING",
+      registry: "0xREGISTRY",
+      compliance: "0xCOMPLIANCE",
     });
     expect(isDeployed(cfg)).toBe(true);
   });
 
-  it("uses testnet defaults and remains undeployed when addresses are empty", () => {
+  it("uses testnet defaults and falls back to the checked-in deployment when addresses are empty", () => {
     vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", "");
     vi.stubEnv("NEXT_PUBLIC_HEDERA_RPC_URL", "");
     vi.stubEnv("NEXT_PUBLIC_HEDERA_RPC_FALLBACK_URLS", "");
@@ -83,10 +88,16 @@ describe("appConfig", () => {
     expect(cfg.rpcUrl).toBe(TESTNET_RPC);
     expect(cfg.rpcFallbackUrls).toEqual([]);
     expect(cfg.networkPassphrase).toBe(TESTNET_NETWORK);
-    expect(cfg.marketId).toBe("bond-usdc-q3");
+    expect(cfg.marketId).toBe("hedera-bond-q4");
     expect(cfg.decimals).toBe(18);
+    expect(cfg.underlyingDecimals).toBe(18);
+    expect(cfg.shareDecimals).toBe(18);
     expect(cfg.yieldSource.kind).toBe("mock");
-    expect(isDeployed(cfg)).toBe(false);
+    // The public demo works from a fresh clone with no env: the checked-in
+    // testnet deployment fills every address.
+    expect(cfg.contracts.sy).toBe(TESTNET_DEPLOYMENT.contracts.sy);
+    expect(cfg.contracts.bond).toBe(TESTNET_DEPLOYMENT.contracts.bond);
+    expect(isDeployed(cfg)).toBe(true);
   });
 
   it("derives mainnet defaults from the configured chain id", () => {
@@ -105,6 +116,9 @@ describe("appConfig", () => {
     expect(cfg.rpcUrl).toBe(MAINNET_RPC);
     expect(cfg.networkPassphrase).toBe(MAINNET_NETWORK);
     expect(cfg.yieldSource.kind).toBe("bond");
+    // Mainnet never falls back to the testnet demo deployment.
+    expect(cfg.contracts.sy).toBe("");
+    expect(isDeployed(cfg)).toBe(false);
   });
 
   it("reads bond yield-source metadata from static environment references", () => {

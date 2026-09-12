@@ -37,6 +37,7 @@ function sdkPosition(overrides: Partial<Position>): Position {
     ytBalance: 0n,
     claimableYield: 0n,
     claimableYieldNet: 0n,
+    availableYieldSurplus: 0n,
     yieldFeeBps: 0n,
     lpBalance: 0n,
     ...overrides,

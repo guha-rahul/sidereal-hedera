@@ -171,7 +171,11 @@ export default function PoolPage() {
         <MaturityBadge maturity={market?.maturity ?? null} />
       </header>
 
-      <PositionCard position={position} decimals={cfg.decimals} />
+      <PositionCard
+        position={position}
+        decimals={cfg.shareDecimals}
+        assetDecimals={cfg.underlyingDecimals}
+      />
 
       <div className="grid gap-10 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-7">
@@ -305,7 +309,13 @@ export default function PoolPage() {
         </div>
 
         <aside className="space-y-8 lg:col-span-5">
-          <YieldSourceCard source={cfg.yieldSource} market={market} bond={bond} strategy={strategy} />
+          <YieldSourceCard
+            source={cfg.yieldSource}
+            market={market}
+            bond={bond}
+            strategy={strategy}
+            assetDecimals={cfg.underlyingDecimals}
+          />
 
           <p className="label-data">Pool status</p>
           <dl className="card space-y-px p-6">

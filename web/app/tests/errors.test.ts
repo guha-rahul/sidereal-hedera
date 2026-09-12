@@ -2,7 +2,7 @@
 
 import { ContractError } from "@sidereal/sdk";
 import { describe, expect, it } from "vitest";
-import { describeError } from "../lib/errors";
+import { describeError, describeReadError } from "../lib/errors";
 
 function revert(name: string): ContractError {
   return new ContractError(name, [], `reverted with ${name}`);
@@ -44,10 +44,29 @@ describe("describeError", () => {
     expect(describeError(revert("NotIssuer"), "bond")).toBe(
       "Only the bond issuer can perform this action.",
     );
+    expect(describeError(revert("CouponNotDue"), "bond")).toBe(
+      "This coupon has not reached its execution date yet.",
+    );
+    expect(describeError(revert("NotVerified"), "bond")).toBe(
+      "This wallet is not identity-verified for the permissioned bond.",
+    );
   });
 
   it("falls back to the raw reason for unknown or missing error names", () => {
     expect(describeError(new ContractError(null, [], "boom"), "amm")).toBe("boom");
     expect(describeError(revert("SomethingNew"), "amm")).toBe("Transaction failed (SomethingNew).");
+  });
+});
+
+describe("describeReadError", () => {
+  it("surfaces the decoded read error name", () => {
+    expect(describeReadError(new ContractError("MarketNotSeeded", [], "x"))).toBe(
+      "read failed (MarketNotSeeded)",
+    );
+  });
+
+  it("falls back to the raw reason for transport failures", () => {
+    expect(describeReadError(new Error("fetch failed"))).toBe("fetch failed");
+    expect(describeReadError("nope")).toBe("nope");
   });
 });

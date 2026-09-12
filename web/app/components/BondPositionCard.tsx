@@ -30,7 +30,9 @@ export function BondPositionCard({
     return null;
   }
 
-  const discount = bpsToPercent(bondDiscountBps(bond.valuePerUnit));
+  // Par is one whole unit in the cash denomination's base units (WAD here).
+  const par = 10n ** BigInt(decimals);
+  const discount = bpsToPercent(bondDiscountBps(bond.valuePerUnit, par));
   const maturity = new Date(bond.maturity * 1000).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
@@ -67,7 +69,7 @@ export function BondPositionCard({
         <div>
           <p className="label-data">Yield source backing SY</p>
           <p className="mt-2 text-3xl font-light tabular-nums text-paper">
-            {formatTokenAmount(bond.valuePerUnit, 18, 4)}
+            {formatTokenAmount(bond.valuePerUnit, decimals, 4)}
             <span className="ml-2 text-xl text-graphite">value / unit</span>
           </p>
         </div>
@@ -91,13 +93,13 @@ export function BondPositionCard({
         <div className="flex justify-between gap-4">
           <dt className="text-ash">Face value / unit</dt>
           <dd className="tabular-nums text-paper">
-            {formatTokenAmount(bond.faceValuePerUnit, 18, 4)}
+            {formatTokenAmount(bond.faceValuePerUnit, decimals, 4)}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-ash">Strategy assets</dt>
           <dd className="tabular-nums text-paper">
-            {strategy ? formatTokenAmount(strategy.totalAssets, 18, 4) : "n/a"}
+            {strategy ? formatTokenAmount(strategy.totalAssets, decimals, 4) : "n/a"}
           </dd>
         </div>
       </dl>

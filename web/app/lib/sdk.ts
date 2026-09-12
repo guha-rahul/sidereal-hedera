@@ -2,7 +2,10 @@
 
 import {
   SiderealClient,
+  type BackingInfo,
   type BondInfo,
+  type CouponInfo,
+  type Eligibility,
   type LpPosition,
   type MarketState,
   type Position,
@@ -134,6 +137,32 @@ export function readBondInfo(cfg: AppConfig = appConfig()): Promise<BondInfo | n
 
 export function readStrategyInfo(cfg: AppConfig = appConfig()): Promise<StrategyInfo | null> {
   return withReadClient(cfg, (client) => client.getStrategyInfo());
+}
+
+export function readEligibility(
+  account: string,
+  cfg: AppConfig = appConfig(),
+): Promise<Eligibility> {
+  return withReadClient(cfg, (client) => client.getEligibility(account));
+}
+
+export function readCoupons(
+  holder?: string,
+  cfg: AppConfig = appConfig(),
+): Promise<CouponInfo[]> {
+  return withReadClient(cfg, (client) => client.getCoupons(holder));
+}
+
+export function readBacking(cfg: AppConfig = appConfig()): Promise<BackingInfo | null> {
+  return withReadClient(cfg, (client) => client.getBacking());
+}
+
+/**
+ * Reads market state and throws on failure. Prefer this over `getMarketSafe`
+ * anywhere the UI must distinguish an undeployed market from an RPC error.
+ */
+export function readMarket(cfg: AppConfig = appConfig()): Promise<MarketState> {
+  return withReadClient(cfg, (client) => client.getMarket(cfg.marketId));
 }
 
 export function readQuote(args: SwapArgs, cfg: AppConfig = appConfig()): Promise<Quote> {

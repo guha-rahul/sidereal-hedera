@@ -26,7 +26,9 @@ export function TokenizeBondPanel({
 }) {
   if (source.kind !== "bond") return null;
 
-  const discount = bond ? bpsToPercent(bondDiscountBps(bond.valuePerUnit)) : "n/a";
+  const discount = bond
+    ? bpsToPercent(bondDiscountBps(bond.valuePerUnit, 10n ** BigInt(decimals)))
+    : "n/a";
 
   return (
     <div className="card space-y-5 border-amber/20 p-8">
@@ -34,7 +36,7 @@ export function TokenizeBondPanel({
         <div>
           <p className="label-data">Tokenize into PT + YT</p>
           <p className="mt-2 text-3xl font-light tabular-nums text-paper">
-            {bond ? formatTokenAmount(bond.valuePerUnit, 18, 4) : "—"}
+            {bond ? formatTokenAmount(bond.valuePerUnit, decimals, 4) : "—"}
             <span className="ml-2 text-xl text-graphite">bond value / unit</span>
           </p>
         </div>
@@ -71,7 +73,7 @@ export function TokenizeBondPanel({
         <div className="flex justify-between gap-4">
           <dt className="text-ash">Strategy assets</dt>
           <dd className="tabular-nums text-paper">
-            {strategy ? formatTokenAmount(strategy.totalAssets, 18, 4) : "n/a"}
+            {strategy ? formatTokenAmount(strategy.totalAssets, decimals, 4) : "n/a"}
           </dd>
         </div>
       </dl>

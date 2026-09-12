@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ContractAddresses } from "@sidereal/sdk";
+import { TESTNET_DEPLOYMENT } from "./deployments";
 
 /**
  * Public runtime configuration, sourced from NEXT_PUBLIC_* env vars. These are
@@ -35,6 +36,14 @@ export interface AppConfig {
   marketId: string;
   /** Base-unit decimals for the underlying, SY, PT and YT (ERC-20 is 18). */
   decimals: number;
+  /**
+   * Base-unit decimals for the cash denomination and the PT/YT face. These are
+   * scaled to the underlying token, not to the 18-decimal SY share. Kept
+   * separate so a 6-decimal USDC denomination formats correctly.
+   */
+  underlyingDecimals: number;
+  /** Base-unit decimals for SY shares and the exchange rate (always WAD/18). */
+  shareDecimals: number;
   yieldSource: YieldSourceConfig;
   contracts: ContractAddresses;
   /** True when the testnet cash faucet is enabled for this deployment. */
@@ -112,9 +121,16 @@ export function appConfig(): AppConfig {
   const network = hederaNetworkKey(chainId);
   const defaultRpcUrl = network === "mainnet" ? MAINNET_RPC : TESTNET_RPC;
   const yieldKind = yieldSourceKind(process.env.NEXT_PUBLIC_YIELD_SOURCE_KIND);
-  const bondAddress = publicEnv(process.env.NEXT_PUBLIC_BOND_ADDRESS);
-  const strategyAddress = publicEnv(process.env.NEXT_PUBLIC_STRATEGY_ADDRESS);
-  const underlyingAddress = publicEnv(process.env.NEXT_PUBLIC_UNDERLYING_ADDRESS);
+  // The public testnet demo falls back to the checked-in deployment when the
+  // NEXT_PUBLIC_* addresses are absent, so a fresh clone still works without
+  // any gating or manual setup. Mainnet never falls back.
+  const fallback = network === "testnet" ? TESTNET_DEPLOYMENT.contracts : null;
+  const deployed = (env: string | undefined, key: keyof ContractAddresses): string =>
+    publicEnv(env, fallback?.[key] ?? "");
+  const bondAddress = deployed(process.env.NEXT_PUBLIC_BOND_ADDRESS, "bond");
+  const strategyAddress = deployed(process.env.NEXT_PUBLIC_STRATEGY_ADDRESS, "strategy");
+  const underlyingAddress = deployed(process.env.NEXT_PUBLIC_UNDERLYING_ADDRESS, "underlying");
+  const decimals = Number(publicEnv(process.env.NEXT_PUBLIC_TOKEN_DECIMALS, "18"));
   const faucetOverride = process.env.NEXT_PUBLIC_FAUCET_ENABLED;
   // Default to on for testnet markets whose underlying is a mintable mock;
   // an explicit env value always wins (e.g. disable for a real testnet asset).
@@ -130,8 +146,10 @@ export function appConfig(): AppConfig {
     rpcFallbackUrls: publicEnvList(process.env.NEXT_PUBLIC_HEDERA_RPC_FALLBACK_URLS),
     networkPassphrase: networkDescriptor(network),
     simulationSourceAccount: ZERO_ADDRESS,
-    marketId: publicEnv(process.env.NEXT_PUBLIC_MARKET_ID, "bond-usdc-q3"),
-    decimals: Number(publicEnv(process.env.NEXT_PUBLIC_TOKEN_DECIMALS, "18")),
+    marketId: publicEnv(process.env.NEXT_PUBLIC_MARKET_ID, "hedera-bond-q4"),
+    decimals,
+    underlyingDecimals: Number(publicEnv(process.env.NEXT_PUBLIC_UNDERLYING_DECIMALS, String(decimals))),
+    shareDecimals: 18,
     yieldSource: {
       kind: yieldKind,
       name: publicEnv(
@@ -144,15 +162,26 @@ export function appConfig(): AppConfig {
       docsUrl: publicEnv(process.env.NEXT_PUBLIC_YIELD_SOURCE_URL),
     },
     contracts: {
-      sy: publicEnv(process.env.NEXT_PUBLIC_SY_ADDRESS),
-      pt: publicEnv(process.env.NEXT_PUBLIC_PT_ADDRESS),
-      yt: publicEnv(process.env.NEXT_PUBLIC_YT_ADDRESS),
-      tokenizer: publicEnv(process.env.NEXT_PUBLIC_TOKENIZER_ADDRESS),
-      market: publicEnv(process.env.NEXT_PUBLIC_MARKET_ADDRESS),
-      orderbook: publicEnv(process.env.NEXT_PUBLIC_ORDERBOOK_ADDRESS),
+      sy: deployed(process.env.NEXT_PUBLIC_SY_ADDRESS, "sy"),
+      pt: deployed(process.env.NEXT_PUBLIC_PT_ADDRESS, "pt"),
+      yt: deployed(process.env.NEXT_PUBLIC_YT_ADDRESS, "yt"),
+      tokenizer: deployed(process.env.NEXT_PUBLIC_TOKENIZER_ADDRESS, "tokenizer"),
+      market: deployed(process.env.NEXT_PUBLIC_MARKET_ADDRESS, "market"),
+      orderbook: publicEnv(
+        process.env.NEXT_PUBLIC_ORDERBOOK_ADDRESS,
+        fallback?.orderbook ?? "",
+      ),
       bond: bondAddress,
       strategy: strategyAddress,
       underlying: underlyingAddress,
+      registry: publicEnv(
+        process.env.NEXT_PUBLIC_REGISTRY_ADDRESS,
+        fallback?.registry ?? "",
+      ),
+      compliance: publicEnv(
+        process.env.NEXT_PUBLIC_COMPLIANCE_ADDRESS,
+        fallback?.compliance ?? "",
+      ),
     },
     faucetEnabled,
     faucetAmount: publicEnv(process.env.NEXT_PUBLIC_FAUCET_AMOUNT, "1000"),

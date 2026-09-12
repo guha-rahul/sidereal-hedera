@@ -183,7 +183,11 @@ export default function MintPage() {
         </section>
       </header>
 
-      <PositionCard position={position} decimals={cfg.decimals} />
+      <PositionCard
+        position={position}
+        decimals={cfg.shareDecimals}
+        assetDecimals={cfg.underlyingDecimals}
+      />
 
       {cfg.yieldSource.kind === "bond" ? (
         <YieldChoiceCard
@@ -318,14 +322,20 @@ export default function MintPage() {
 
         {/* Protocol parameters: real maturity data plus the token legend. */}
         <aside className="space-y-8 lg:col-span-5">
-          <YieldSourceCard source={cfg.yieldSource} market={market} bond={bond} strategy={strategy} />
+          <YieldSourceCard
+            source={cfg.yieldSource}
+            market={market}
+            bond={bond}
+            strategy={strategy}
+            assetDecimals={cfg.underlyingDecimals}
+          />
 
           {cfg.yieldSource.kind === "bond" ? (
             <TokenizeBondPanel
               source={cfg.yieldSource}
               bond={bond}
               strategy={strategy}
-              decimals={cfg.decimals}
+              decimals={cfg.underlyingDecimals}
             />
           ) : null}
 

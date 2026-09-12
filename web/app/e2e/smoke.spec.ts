@@ -32,6 +32,12 @@ test("nav reaches strategy, mint, trade, pool, and portfolio", async ({ page }) 
 
   const nav = page.locator("header nav");
 
+  await nav.getByRole("link", { name: "Journey" }).click();
+  await expect(page).toHaveURL(/\/journey$/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "One bond, end to end" })).toBeVisible();
+  await expect(page.getByText("Identify the ATS asset")).toBeVisible();
+  await expect(page.getByText("Backing and reserve")).toBeVisible();
+
   await nav.getByRole("link", { name: "Strategy" }).click();
   await expect(page).toHaveURL(/\/strategy$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Strategies" })).toBeVisible();

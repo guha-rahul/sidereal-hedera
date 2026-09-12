@@ -54,6 +54,8 @@ const cfg: AppConfig = {
   simulationSourceAccount: "0x0000000000000000000000000000000000000000",
   marketId: "bond-usdc-q3",
   decimals: 18,
+  underlyingDecimals: 18,
+  shareDecimals: 18,
   yieldSource: {
     kind: "bond",
     name: "T-Bill bond",

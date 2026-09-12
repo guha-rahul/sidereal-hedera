@@ -19,24 +19,45 @@ function Cell({ label, value, signal }: { label: string; value: string; signal?:
   );
 }
 
-/** Compact view of a holder's SY/PT/YT balances and claimable yield. Always
- *  rendered, even when disconnected: the bar shows zeroed balances before a
- *  wallet connects. The claimable yield is the live risk value, so it carries
- *  the amber accent. */
+/**
+ * Compact view of a holder's SY/PT/YT balances and claimable yield. Renders an
+ * em dash (not a fabricated zero) when there is no position to read, so a
+ * disconnected wallet or a failed read is never mistaken for a real zero
+ * balance. The claimable yield uses the surplus-capped net (see SDK
+ * `getPosition`), so the card agrees with what `claimYield` actually pays.
+ */
 export function PositionCard({
   position,
   decimals,
+  assetDecimals,
 }: {
   position: Position | null;
+  /** SY share decimals (the claim payout is SY). */
   decimals: number;
+  /** PT/YT face decimals; defaults to the share decimals. */
+  assetDecimals?: number;
 }) {
-  const fmt = (v: bigint) => formatTokenAmount(position ? v : 0n, decimals);
+  if (position === null) {
+    return (
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+        <Cell label="SY balance" value="—" />
+        <Cell label="PT balance" value="—" />
+        <Cell label="YT balance" value="—" />
+        <Cell label="Claimable yield (SY)" value="—" signal />
+      </dl>
+    );
+  }
+  const asset = assetDecimals ?? decimals;
   return (
     <dl className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
-      <Cell label="SY balance" value={fmt(position?.syBalance ?? 0n)} />
-      <Cell label="PT balance" value={fmt(position?.ptBalance ?? 0n)} />
-      <Cell label="YT balance" value={fmt(position?.ytBalance ?? 0n)} />
-      <Cell label="Claimable yield" value={fmt(position?.claimableYield ?? 0n)} signal />
+      <Cell label="SY balance" value={formatTokenAmount(position.syBalance, decimals)} />
+      <Cell label="PT balance" value={formatTokenAmount(position.ptBalance, asset)} />
+      <Cell label="YT balance" value={formatTokenAmount(position.ytBalance, asset)} />
+      <Cell
+        label="Claimable yield (SY)"
+        value={formatTokenAmount(position.claimableYieldNet, decimals)}
+        signal
+      />
     </dl>
   );
 }

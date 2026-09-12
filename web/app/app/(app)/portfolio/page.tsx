@@ -89,10 +89,12 @@ export default function PortfolioPage() {
   );
   const canUnwrap =
     address !== null && syAmount !== "" && !syError && phase.kind !== "working";
+  // Use the surplus-capped net so the button never advertises a claim the
+  // tokenizer would pay as zero.
   const canClaim =
     address !== null &&
     position !== null &&
-    position.claimableYield > 0n &&
+    position.claimableYieldNet > 0n &&
     phase.kind !== "working";
   const underlyingPreview = useMemo(() => {
     if (!syAmount || market === null) return null;
@@ -119,10 +121,14 @@ export default function PortfolioPage() {
         source={cfg.yieldSource}
         bond={bond}
         strategy={strategy}
-        decimals={cfg.decimals}
+        decimals={cfg.underlyingDecimals}
       />
 
-      <PositionCard position={position} decimals={cfg.decimals} />
+      <PositionCard
+        position={position}
+        decimals={cfg.shareDecimals}
+        assetDecimals={cfg.underlyingDecimals}
+      />
 
       <div className="grid gap-10 lg:grid-cols-12">
         {/* The three independent redeem actions. */}
@@ -141,8 +147,8 @@ export default function PortfolioPage() {
               onClick={onClaim}
               connectLabel="Connect wallet to claim"
               idleLabel={
-                position && position.claimableYield > 0n
-                  ? `Claim ${formatTokenAmount(position.claimableYieldNet, cfg.decimals)} SY`
+                position && position.claimableYieldNet > 0n
+                  ? `Claim ${formatTokenAmount(position.claimableYieldNet, cfg.shareDecimals)} SY`
                   : "No yield to claim"
               }
             />
@@ -218,7 +224,13 @@ export default function PortfolioPage() {
 
         {/* Maturity context: real time-to-maturity and the SY exchange rate. */}
         <aside className="space-y-8 lg:col-span-5">
-          <YieldSourceCard source={cfg.yieldSource} market={market} bond={bond} strategy={strategy} />
+          <YieldSourceCard
+            source={cfg.yieldSource}
+            market={market}
+            bond={bond}
+            strategy={strategy}
+            assetDecimals={cfg.underlyingDecimals}
+          />
 
           <p className="label-data">Maturity context</p>
 
