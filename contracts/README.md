@@ -178,27 +178,36 @@ forge script script/VerifyERC3643Testnet.s.sol:VerifyERC3643Testnet \
   --broadcast --slow --gas-estimate-multiplier 200
 ```
 
-Verified on Hedera testnet (chain 296):
+## Public demo market (Hedera testnet, chain 296)
+
+This is the live, pre-maturity market the frontend judge journey targets. It is
+also the checked-in fallback in `web/app/lib/deployments.ts`, so the public demo
+runs without any access-request gate or manual environment setup.
 
 | Role | Address |
 |---|---|
-| cash (test ERC-20) | `0xE8deE17f695Eefb415A21C17b9B7da4301a6aefa` |
-| identity registry | `0x33a2721054Aeb0156f0F380E443f748410c16EbB` |
-| compliance | `0x7E77B929e397AdB55f22390953c0eD7fd7eAd867` |
-| bond | `0x0C8B33cbAEE61Aec6C1FF4505a8A2b3d277FEcfb` |
-| sy | `0x1380AaE24fA295b17f5F87f908be36DB5aeeECFa` |
-| strategy | `0xF8FF14DD20EB4EDA7dED59ebFD7860cBB3986C5b` |
-| pt | `0x6DE94a7740B97BF1a09C5666c944f094b095c071` |
-| yt | `0x815EcFE4778a028338560E0f832490Cf25643B84` |
-| tokenizer | `0xbF814f1F6d5B47bB1D34003BBD856E062afE3781` |
-| amm | `0x8d1Af434a9AB76F12e86cB8aeA33e1AE61C4C580` |
-| orderbook | `0x521B23080Fb52c4bD6a9EB4Dc86Ebc63B6e74a23` |
+| cash (test ERC-20) | `0x02397939C3C08B62836BC818A7739a794aCb9546` |
+| identity registry | `0x36CA9a6Bc30C06ea8F50ca58bC6b359CB3E16717` |
+| compliance | `0x1224D8251b6E5C5aa3138d1dC4fBCeCBE74a6b0e` |
+| bond | `0x1eD9AeB2B3de5AEFb430E8b50B5E9F107e6A9E99` |
+| sy | `0xAA8Ff1f4846E44f89ee5aaA4105434798a26aC1c` |
+| strategy | `0x7e6DDFAE1Fb76818d3311D31371f56254D852c98` |
+| pt | `0x6E0Db9323429E1a11790e582266453C7e22Ea0be` |
+| yt | `0xdFeb6782465423f4EE6456cf78F14618c00142ce` |
+| tokenizer | `0x71aEC07C6E87f7956E3b8AF3EAa46a96a1639C0C` |
+| amm | `0xF5934B77545355028e61efBB2F2b036f9F1B5A18` |
+| orderbook | `0x82dB197F799C7c0edDDC22a53BBFeea011d5Bc4f` |
 
-Outcome: the strategy bought the permissioned bond (517,911 units for 500,000
-cash), a 2% issuer coupon was funded and claimed into the strategy raising the SY
-rate from `1.0000` to `1.0210`, the rate froze at maturity at `1.0276`, and the
-matured position redeemed to `2,256,924` cash against a `500,000` deposit.
-`accountedBonds` tracked the strategy's real bond balance exactly throughout.
+Maturity `1797014421` (2026-12-11). At deployment the strategy held 536,841.57
+bond units worth 510,003 cash with 10,526.32 counted cash, the SY rate stood at
+`1.0211`, and two coupons were scheduled (one already realized into the vault,
+one funded and due). Two distinct identity-verified wallets were exercised:
+`0xAb76...1c43` (issuer/deployer) and `0x55C5...f52A` (investor), the latter
+depositing 10,000 cash for 3,793.80 SY and splitting 6,000 SY into 6,126.32 PT +
+6,126.32 YT.
+
+The earlier 8-minute integration-check deployment (matured 2026-09-12) is
+superseded; its addresses are no longer referenced by the app.
 
 ## License
 
