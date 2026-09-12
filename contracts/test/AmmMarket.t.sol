@@ -1,26 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-import {MockERC20} from "../src/mocks/MockERC20.sol";
-import {MockTokenizedBond} from "../src/sy/MockTokenizedBond.sol";
-import {StandardizedYieldVault} from "../src/sy/StandardizedYieldVault.sol";
-import {BondStrategy} from "../src/sy/BondStrategy.sol";
-import {PrincipalToken} from "../src/tokens/PrincipalToken.sol";
-import {YieldToken} from "../src/tokens/YieldToken.sol";
-import {Tokenizer} from "../src/Tokenizer.sol";
+import {MarketFixture} from "./MarketFixture.sol";
 import {AmmMarket} from "../src/AmmMarket.sol";
 
-contract AmmMarketTest is Test {
-    uint256 internal constant WAD = 1e18;
-
-    MockERC20 internal cash;
-    MockTokenizedBond internal bond;
-    StandardizedYieldVault internal sy;
-    BondStrategy internal strategy;
-    PrincipalToken internal pt;
-    YieldToken internal yt;
-    Tokenizer internal tokenizer;
+contract AmmMarketTest is MarketFixture {
     AmmMarket internal amm;
 
     address internal admin = address(0xA11CE);
@@ -28,31 +12,8 @@ contract AmmMarketTest is Test {
     address internal bob = address(0xB0B);
     address internal feeRecipient = address(0xFEE);
 
-    uint256 internal t0;
-    uint256 internal maturity;
-
     function setUp() public {
-        t0 = 1_770_000_000;
-        vm.warp(t0);
-        maturity = t0 + 90 days;
-
-        cash = new MockERC20("USD", "USD", 18);
-        bond = new MockTokenizedBond(address(cash), t0, maturity, 0.95e18, 1e18);
-        cash.mint(address(this), 2_000_000e18);
-        cash.transfer(address(bond), 1_000_000e18);
-
-        sy = new StandardizedYieldVault();
-        strategy = new BondStrategy(address(sy), address(bond));
-        sy.initialize(admin, address(strategy));
-
-        pt = new PrincipalToken();
-        yt = new YieldToken();
-        tokenizer = new Tokenizer();
-        tokenizer.initialize(
-            admin, address(sy), address(pt), address(yt), maturity, feeRecipient, 0
-        );
-        pt.initialize(admin, address(tokenizer), address(sy), maturity);
-        yt.initialize(admin, address(tokenizer), address(sy), maturity);
+        _setUpMarket(admin, feeRecipient, 1_000_000e18);
 
         amm = new AmmMarket();
         amm.initialize(

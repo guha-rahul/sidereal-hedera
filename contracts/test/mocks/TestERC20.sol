@@ -3,8 +3,9 @@ pragma solidity 0.8.28;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @notice Minimal mintable ERC-20 used as the bond denomination in tests.
-contract MockERC20 is ERC20 {
+/// @notice Test-only mintable ERC-20 standing in for a real cash denomination.
+///         Lives under `test/` so nothing mock-like ships in `src/`.
+contract TestERC20 is ERC20 {
     uint8 private immutable _decimals;
 
     constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_) {

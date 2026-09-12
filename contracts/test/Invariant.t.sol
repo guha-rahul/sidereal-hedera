@@ -1,50 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-import {MockERC20} from "../src/mocks/MockERC20.sol";
-import {MockTokenizedBond} from "../src/sy/MockTokenizedBond.sol";
-import {StandardizedYieldVault} from "../src/sy/StandardizedYieldVault.sol";
-import {BondStrategy} from "../src/sy/BondStrategy.sol";
-import {PrincipalToken} from "../src/tokens/PrincipalToken.sol";
-import {YieldToken} from "../src/tokens/YieldToken.sol";
-import {Tokenizer} from "../src/Tokenizer.sol";
+import {MarketFixture} from "./MarketFixture.sol";
 
 /// @notice Fuzz properties for the Layer 1/2 accounting.
-contract InvariantTest is Test {
-    MockERC20 internal cash;
-    MockTokenizedBond internal bond;
-    StandardizedYieldVault internal sy;
-    BondStrategy internal strategy;
-    PrincipalToken internal pt;
-    YieldToken internal yt;
-    Tokenizer internal tokenizer;
-
+contract InvariantTest is MarketFixture {
     address internal admin = address(0xA11CE);
     address internal alice = address(0xA11CE1);
 
-    uint256 internal t0;
-    uint256 internal maturity;
-
     function setUp() public {
-        t0 = 1_770_000_000;
-        vm.warp(t0);
-        maturity = t0 + 90 days;
-
-        cash = new MockERC20("USD", "USD", 18);
-        bond = new MockTokenizedBond(address(cash), t0, maturity, 0.95e18, 1e18);
-        cash.mint(address(this), 5_000_000e18);
-        cash.transfer(address(bond), 2_000_000e18);
-
-        sy = new StandardizedYieldVault();
-        strategy = new BondStrategy(address(sy), address(bond));
-        sy.initialize(admin, address(strategy));
-        pt = new PrincipalToken();
-        yt = new YieldToken();
-        tokenizer = new Tokenizer();
-        tokenizer.initialize(admin, address(sy), address(pt), address(yt), maturity, admin, 0);
-        pt.initialize(admin, address(tokenizer), address(sy), maturity);
-        yt.initialize(admin, address(tokenizer), address(sy), maturity);
+        _setUpMarket(admin, admin, 2_000_000e18);
 
         cash.mint(alice, type(uint96).max);
         vm.startPrank(alice);

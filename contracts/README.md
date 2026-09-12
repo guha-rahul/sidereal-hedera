@@ -6,10 +6,14 @@ recombines or redeems at maturity. This is the deployable **Hedera Smart
 Contract Service** (HSCS, the EVM) implementation, with one deliberate change at
 the bottom of the stack:
 
-> **Layer 1 wraps an ERC-3643 / ATS tokenized bond.** The yield source is the
-> bond's coupon / maturity cashflow, not a DeFi lending pool. The SY vault holds
-> a `BondStrategy` that custodies the bond and values it in the bond's cash
-> denomination.
+> **Layer 1 wraps an ERC-3643 (T-REX) tokenized bond.** The yield source is the
+> issuer's **cash coupon and maturity cashflow**, not a DeFi lending pool. The SY
+> vault holds an `ERC3643BondStrategy` that custodies the permissioned bond and
+> values it in the bond's cash denomination.
+
+Production code ships **no mocks**: the bond is a real ERC-3643 security
+(`ERC3643Bond`) or any deployed bond implementing `IBond3643`, and the cash
+denomination is a real ERC-20. Test doubles live under `test/`.
 
 ## Layout
 
@@ -19,22 +23,22 @@ contracts/
 │   ├── Tokenizer.sol                    # Layer 2: split / recombine / redeem / claim
 │   ├── AmmMarket.sol                    # Layer 3: time-decay AMM + flash YT routes + TWAP
 │   ├── Orderbook.sol                    # Layer 3: PT/SY limit-order book
-│   ├── interfaces/                      # IYieldStrategy, IStandardizedYield, IMarket, IBond, ...
+│   ├── interfaces/
+│   │   ├── erc3643/                     # IIdentityRegistry, ICompliance (T-REX seams)
+│   │   ├── IBond3643.sol                # the real bond surface the strategy reads
+│   │   └── ...                          # IYieldStrategy, IStandardizedYield, IMarket, ...
 │   ├── libraries/WadMath.sol            # WAD fixed point, integer ln/exp/sqrt, mulDiv
 │   ├── sy/
 │   │   ├── StandardizedYieldVault.sol   # Layer 1: derived-rate SY vault (sSY)
-│   │   ├── BondStrategy.sol             # IYieldStrategy adapter over an ATS bond
-│   │   └── MockTokenizedBond.sol        # reference ERC-3643-style bond for tests/demo
-│   ├── tokens/
-│   │   ├── ProtocolTokenBase.sol        # shared config + tokenizer gate
-│   │   ├── PrincipalToken.sol           # sPT
-│   │   └── YieldToken.sol               # sYT, yield-basis accounting engine
-│   └── mocks/MockERC20.sol
-├── test/                                # Foundry unit + fuzz suites
-├── script/Deploy.s.sol                  # full-market deploy script
-├── script/VerifyTestnet.s.sol           # one-shot live market verification
-├── script/LifecyclePre.s.sol            # phase 1: pre-maturity + coupon
-└── script/LifecyclePost.s.sol           # phase 2: post-maturity redeem/claim
+│   │   ├── ERC3643Bond.sol              # permissioned bond: cash coupons + issuer cashflow
+│   │   └── ERC3643BondStrategy.sol      # IYieldStrategy adapter over the bond
+│   └── tokens/
+│       ├── ERC3643Base.sol              # T-REX permissioned ERC-20 base
+│       ├── ProtocolTokenBase.sol        # shared config + tokenizer gate
+│       ├── PrincipalToken.sol           # sPT
+│       └── YieldToken.sol               # sYT, yield-basis accounting engine
+├── test/                                # unit + fuzz suites; test-only doubles in test/mocks/
+└── script/Deploy.s.sol                  # deploys the market around an existing bond
 ```
 
 ## Contract map
@@ -42,9 +46,11 @@ contracts/
 | Layer | Contract | Responsibility |
 |---|---|---|
 | 1 | `sy/StandardizedYieldVault.sol` | derived-rate SY vault (sSY), `MINIMUM_SHARES` lock, deposit cap |
-| 1 | `sy/BondStrategy.sol` | `IYieldStrategy` adapter over an ERC-3643/ATS bond |
-| 1 | `sy/MockTokenizedBond.sol` + `IBond` | reference bond: coupon / maturity cashflow |
-| 1 | `interfaces/IYieldStrategy.sol` | the strategy seam |
+| 1 | `sy/ERC3643BondStrategy.sol` | `IYieldStrategy` adapter over an ERC-3643 bond; claims coupons, redeems |
+| 1 | `sy/ERC3643Bond.sol` | real bond: permissioned, issuer-funded cash coupons, maturity redemption |
+| 1 | `tokens/ERC3643Base.sol` | ERC-3643 (T-REX) permissioned ERC-20: verified + compliant transfers |
+| 1 | `interfaces/IBond3643.sol` | bond surface: terms, coupons, purchase/redeem, liquidity |
+| 1 | `interfaces/erc3643/*` | identity registry and compliance seams |
 | 2 | `Tokenizer.sol` | split / recombine / redeem / claim; yield fee, maturity freeze |
 | 2 | `tokens/PrincipalToken.sol` | sPT, tokenizer-gated mint/burn |
 | 2 | `tokens/YieldToken.sol` | sYT, yield-basis accounting engine |
@@ -64,26 +70,36 @@ contracts/
 - **Transcendentals.** `WadMath` implements integer `ln`/`exp`/`sqrt`; there is
   no floating point.
 
-## The bond yield model
+## The ERC-3643 bond yield model
 
-`BondStrategy` implements `IYieldStrategy`:
+`ERC3643Bond` is a permissioned ERC-20 (ERC-3643): every non-mint/non-burn
+transfer requires both counterparties to be verified by an `IIdentityRegistry`
+and cleared by an `ICompliance` module. Its yield is the issuer's cashflow, so it
+is **realized as cash**, never capitalized into a per-unit rate:
+
+- **Principal** accretes linearly from `issuePricePerUnit` to `nominalValue`, and
+  is redeemed at par on/after maturity via `redeem` / `redeemAtMaturity`.
+- **Coupons** are scheduled by the issuer (`scheduleCoupon`), funded in cash
+  (`fundCoupon`), and claimed by holders on/after each execution date
+  (`claimCoupon`). Distribution snapshots supply on the first claim: the issuer
+  funds `ratePerUnit * supply / WAD`, and each holder receives
+  `fundedAmount * balance / snapshot`.
+- The issuer tops up the redemption reserve with `fundPrincipal`; purchases also
+  fund it. Early redemption (`redeem`) pays the accreted value, giving the SY
+  vault a liquidity path before maturity.
+
+`ERC3643BondStrategy` implements `IYieldStrategy`:
 
 ```
 totalAssets = bond.valueOf(accountedBonds) + countedCash
 ```
 
 - `accountedBonds` and `countedCash` are tracked explicitly, so **donated**
-  bond tokens or cash never enter the valuation — the seam's anti-donation
-  obligation.
+  bonds or cash never enter the valuation — the seam's anti-donation obligation.
 - `deposit` pulls cash from the vault, buys bonds at `bond.valuePerUnit()`, and
   returns the measured increase in `totalAssets`.
-- `withdraw` redeems bonds (and spends counted cash) back to the vault.
-
-`MockTokenizedBond` models an ATS bond: it accretes linearly from issue price to
-face over the term (the maturity cashflow) and `distributeCoupon` capitalizes
-coupon payments across all holders (the coupon cashflow). A production ATS/ERC-3643
-bond that pays coupons in cash can be adapted by sweeping the coupon into the
-strategy and reinvesting, without changing the seam.
+- `touch` claims every funded, executed coupon and counts the measured cash
+  delta, so the SY exchange rate steps up on each coupon date.
 
 ## Build and test
 
@@ -93,10 +109,11 @@ forge test
 forge test --gas-report
 ```
 
-The suite covers the full lifecycle (deposit → split → trade → claim →
+The suite covers the protocol lifecycle (deposit → split → trade → claim →
 recombine → redeem), the AMM curve and both YT flash routes, the orderbook's
-price-time priority, and fuzz properties for principal round-trips and
-escrow coverage.
+price-time priority, fuzz properties for principal round-trips and escrow
+coverage, and the ERC-3643 bond: permissioned transfers, issuer-funded coupons,
+maturity redemption, and the strategy's coupon cashflow.
 
 ## Deploy to Hedera
 
@@ -107,86 +124,30 @@ Hedera networks:
 | Mainnet | `295` | `https://mainnet.hashio.io/api` |
 | Testnet | `296` | `https://testnet.hashio.io/api` |
 
+The deployer wraps an **existing** bond; it never deploys a mock. Supply the
+cash denomination and the deployed ERC-3643 bond:
+
 ```bash
 export PRIVATE_KEY=0x...
-export ADMIN=0x...
-export CASH_ASSET=0x...            # optional; omit to deploy a mock
-export BOND=0x...                  # optional; omit to deploy the mock bond
+export CASH_ASSET=0x...            # required: bond denomination ERC-20
+export BOND=0x...                  # required: deployed ERC-3643 bond
+export ADMIN=0x...                 # optional; defaults to the deployer
 export MATURITY=$(date -v+90d +%s)
-export BOND_FUNDING=1000000000000000000000000   # seed the bond cashflow
+export BOND_FUNDING=0              # optional cash top-up to the redemption reserve
 
 forge script script/Deploy.s.sol:Deploy \
   --rpc-url https://testnet.hashio.io/api \
-  --broadcast
+  --broadcast --slow --gas-estimate-multiplier 200
 ```
 
-All deployment addresses are logged. Contract addresses can then be fed to the
-web SDK via `NEXT_PUBLIC_*` variables.
-
-## Verify on Hedera testnet
-
-`script/VerifyTestnet.s.sol` deploys the whole market and exercises the
-immediate lifecycle on-chain in one broadcast: deposit → split → seed AMM →
-all four swap routes → orderbook place/fill → SY redeem. (Maturity-gated
-claim/redeem are covered by the local Foundry suite, which can fast-forward
-time.)
-
-```bash
-# 1. Get testnet HBAR: paste a throwaway EVM address into the anonymous faucet
-#    at https://portal.hedera.com (no portal account required), or use the
-#    Faucet API with a Hedera Portal personal access token.
-export PRIVATE_KEY=0x...            # the funded ECDSA key
-
-# 2. Run the verifier against testnet.
-forge script script/VerifyTestnet.s.sol:VerifyTestnet \
-  --rpc-url https://testnet.hashio.io/api \
-  --broadcast --slow --gas-estimate-multiplier 200 -vv
-```
-
-Two flag notes for Hedera: `--slow` avoids a nonce race (Hedera's JSON-RPC can
-report a stale nonce while a burst of transactions is still being ordered), and
+`--slow` avoids a nonce race (Hedera's JSON-RPC can report a stale nonce while a
+burst of transactions is still being ordered), and
 `--gas-estimate-multiplier 200` gives headroom because Hedera's gas schedule
-differs from Ethereum's — an un-buffered estimate can land a transaction a few
-hundred gas under its limit and revert with empty data.
+differs from Ethereum's.
 
-If the network rejects type-2 transactions, append `--legacy`. A successful run
-prints every deployed address plus the seeded reserves, implied APY, and
-exchange rate.
-
-A reference testnet deployment is recorded in
-[`deployments/hedera-testnet.json`](./deployments/hedera-testnet.json).
-
-## Verify the full lifecycle on Hedera testnet
-
-`VerifyTestnet` cannot reach maturity (a live chain has no `vm.warp`), so
-`LifecyclePre` / `LifecyclePost` split the maturity-gated half into two
-broadcasts around a real wait:
-
-- **Phase 1** (`LifecyclePre`) deploys a market with a **5-minute maturity**,
-  runs deposit → split → seed → swaps → orderbook, then the issuer pays a bond
-  coupon and the resulting SY rate is observed. It writes
-  `deployments/hedera-lifecycle.json`.
-- **Phase 2** (`LifecyclePost`), run after maturity, pulls AMM liquidity,
-  redeems all PT for principal, claims all YT yield, and redeems SY to cash.
-
-```bash
-export PRIVATE_KEY=0x...
-R=https://testnet.hashio.io/api
-
-forge script script/LifecyclePre.s.sol:LifecyclePre \
-  --rpc-url $R --broadcast --slow --gas-estimate-multiplier 200 -vv
-
-# wait for the maturity recorded in the manifest
-sleep $(( $(jq -r .maturity deployments/hedera-lifecycle.json) - $(date +%s) + 20 ))
-
-forge script script/LifecyclePost.s.sol:LifecyclePost \
-  --rpc-url $R --broadcast --slow --gas-estimate-multiplier 200 -vv
-```
-
-A verified run settled exactly: the coupon lifted the SY rate to `1.1`, the
-maturity rate froze at `1.1`, PT redeemed `face / 1.1` of escrow, YT claimed the
-coupon as yield, and the whole position returned to cash, leaving only rounding
-dust in escrow (`~1.9e-4 SY`).
+The script deploys SY, the `ERC3643BondStrategy`, PT/YT/tokenizer, the AMM, and
+the orderbook, and logs every address. Wire them into the web SDK via
+`NEXT_PUBLIC_*` variables.
 
 ## License
 
