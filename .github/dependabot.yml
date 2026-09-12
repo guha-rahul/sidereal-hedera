@@ -1,13 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 version: 2
 updates:
-  - package-ecosystem: "cargo"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/web"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -15,3 +10,4 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5

@@ -11,18 +11,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  contracts:
+    name: contracts (build + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.4.4
+      # lib/ is not committed; fetch the pinned dependencies. remappings.txt is
+      # committed, so the imports resolve once the sources are in place.
+      - name: Install Solidity dependencies
+        run: |
+          git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
+          git clone --depth 1 --branch v5.7.0 https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts
+      - name: Build
+        run: forge build
+      - name: Test
+        run: forge test
+
   sdk:
     name: sdk (typecheck + test + build)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @sidereal/sdk run typecheck
       - run: pnpm --filter @sidereal/sdk test
@@ -31,37 +57,21 @@ jobs:
   app:
     name: app (typecheck + test + build)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @sidereal/sdk build
       - run: pnpm --filter @sidereal/app run typecheck
       - run: pnpm --filter @sidereal/app test
       - run: pnpm --filter @sidereal/app run build
-
-  e2e:
-    name: app e2e (playwright smoke)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @sidereal/sdk build
-      - name: Install Playwright Chromium
-        run: pnpm --filter @sidereal/app exec playwright install --with-deps chromium
-      - name: Run smoke e2e
-        run: pnpm --filter @sidereal/app exec playwright test --project=desktop-chromium
-

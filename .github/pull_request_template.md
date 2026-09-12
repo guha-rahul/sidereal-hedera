@@ -12,7 +12,8 @@
 
 - [ ] One logical change per PR
 - [ ] Conventional commit messages
-- [ ] `make test` passes (contracts, SDK, app)
+- [ ] `cd contracts && forge test` passes
+- [ ] `cd web && pnpm --filter @sidereal/sdk test && pnpm --filter @sidereal/app test` passes
 - [ ] No hardcoded private keys anywhere; SPDX headers on new source files
 - [ ] No em dashes in committed prose (commits, docs, frontend copy)
 - [ ] Contract, SDK, frontend, and deployment changes are coordinated where interfaces cross boundaries

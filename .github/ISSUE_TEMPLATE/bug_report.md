@@ -24,7 +24,7 @@ labels: bug
 
 - Layer: contracts / SDK / frontend
 - Network: testnet
-- Versions (Rust, Node, stellar-cli):
+- Versions (Node, Foundry):
 
 ## Logs or screenshots
 
