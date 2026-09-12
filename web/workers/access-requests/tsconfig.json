@@ -1,0 +1,10 @@
+{
+  "extends": "../../app/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "noEmit": true,
+    "plugins": []
+  },
+  "include": ["src/**/*.ts", "../../app/lib/accessRequest.ts", "../../app/lib/turnstile.ts"],
+  "exclude": []
+}

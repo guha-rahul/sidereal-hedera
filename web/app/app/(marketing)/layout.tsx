@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: Apache-2.0
+
+import { Wordmark } from "@/components/Logo";
+import { MarketingNav } from "@/components/MarketingNav";
+import { RevealFooter } from "@/components/RevealFooter";
+import { FooterBrand } from "@/components/FooterBrand";
+import { Atmosphere } from "@/components/Atmosphere";
+import { Grain } from "@/components/Grain";
+import { RollingLink } from "@/components/RollingLink";
+import { SmoothScroll } from "@/components/SmoothScroll";
+import { Conductor } from "@/components/Conductor";
+import { MaturityRail } from "@/components/MaturityRail";
+import { WorldForeground } from "@/components/WorldForeground";
+import { appConfig, networkLabel } from "@/lib/config";
+
+// Marketing chrome for the "cinematic darkroom" landing: a fixed atmospheric
+// canvas, a quiet top bar that inverts on scroll, and the existing reveal
+// footer. The primary action opens the private-access request flow.
+export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const cfg = appConfig();
+
+  return (
+    <div className="flex min-h-screen flex-col text-paper">
+      <SmoothScroll />
+      <Conductor />
+      <MarketingNav />
+      <MaturityRail />
+      {/* The world's near plane. A sibling of the content, not a child of it:
+          only a canvas above the copy in the stacking order can occlude it. */}
+      <WorldForeground />
+
+      <main className="marketing-main relative z-10 flex flex-1 flex-col overflow-clip bg-transparent">
+        <Atmosphere />
+        <Grain className="fixed inset-0 z-0" />
+        <div className="relative z-10 flex flex-1 flex-col">{children}</div>
+      </main>
+
+      <RevealFooter>
+        <div className="hairline" />
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-6 py-10 sm:px-16">
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <Wordmark />
+            <div className="flex flex-wrap items-center gap-6">
+              <RollingLink
+                href="https://github.com/sidereal-tech"
+                className="label-data transition hover:text-paper"
+              >
+                GitHub
+              </RollingLink>
+              <RollingLink
+                href="https://docs.sidereal.tech"
+                className="label-data transition hover:text-paper"
+              >
+                Docs
+              </RollingLink>
+              <span className="label-data">{cfg.yieldSource.name} · {networkLabel(cfg.network)}</span>
+            </div>
+          </div>
+          <p className="border-t border-white/10 pt-6 text-[13px] text-ash">
+            © 2026 Sidereal Protocol. All rights reserved.
+          </p>
+        </div>
+        <FooterBrand />
+      </RevealFooter>
+    </div>
+  );
+}

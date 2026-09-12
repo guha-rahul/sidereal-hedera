@@ -1,0 +1,24 @@
+{
+  "$schema": "../../app/node_modules/wrangler/config-schema.json",
+  "name": "sidereal-access-requests",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-02",
+  "d1_databases": [
+    {
+      "binding": "ACCESS_REQUESTS_DB",
+      "database_name": "sidereal-access-requests",
+      "database_id": "82895e9e-c0f7-4017-9727-d22052e8ade5",
+      "migrations_dir": "../../app/migrations"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "ACCESS_REQUESTS_RATE_LIMITER",
+      "namespace_id": "41001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ]
+}

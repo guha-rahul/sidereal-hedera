@@ -1,0 +1,406 @@
+// SPDX-License-Identifier: Apache-2.0
+
+"use client";
+
+import { useEffect, useState } from "react";
+import type { Asset, Quote, TransactionRequest } from "@sidereal/sdk";
+import {
+  amountError,
+  bpsToPercent,
+  formatMaturityDate,
+  formatTokenAmount,
+  maturityStatus,
+  parseTokenAmount,
+} from "@/lib/format";
+import { describeError } from "@/lib/errors";
+import { usePosition } from "@/lib/usePosition";
+import { useSidereal } from "@/lib/useSidereal";
+import { useMarketStatus } from "@/lib/useMarket";
+import { useBondInfo } from "@/lib/useBondInfo";
+import { applySlippage, DEFAULT_SLIPPAGE_BPS, SLIPPAGE_OPTIONS } from "@/lib/slippage";
+import { useSlideRect } from "@/lib/useSlideRect";
+import { PositionCard } from "@/components/PositionCard";
+import { BondPositionCard } from "@/components/BondPositionCard";
+import { LiveValue } from "@/components/LiveValue";
+import { AmountField } from "@/components/AmountField";
+import { SubmitButton } from "@/components/SubmitButton";
+import { TxStatus } from "@/components/TxStatus";
+import { MaturityBadge } from "@/components/MaturityBadge";
+import { YieldSourceCard } from "@/components/YieldSourceCard";
+import { ensureAllowance, readQuote } from "@/lib/sdk";
+
+// Only the four routes the single PT/SY pool exposes (YT via flash route).
+const DIRECTIONS = [
+  { id: "buy-pt", label: "Buy PT", assetIn: "SY", assetOut: "PT" },
+  { id: "sell-pt", label: "Sell PT", assetIn: "PT", assetOut: "SY" },
+  { id: "buy-yt", label: "Buy YT", assetIn: "SY", assetOut: "YT" },
+  { id: "sell-yt", label: "Sell YT", assetIn: "YT", assetOut: "SY" },
+] as const satisfies ReadonlyArray<{ id: string; label: string; assetIn: Asset; assetOut: Asset }>;
+
+// Above this price impact a PT/SY swap is almost certainly draining the pool to
+// the point where the AMM rejects it (the implied rate would cross zero and the
+// contract reverts with ExchangeRateBelowOne). Block the submit and tell the
+// trader to size down rather than letting them sign a transaction that reverts.
+const MAX_PRICE_IMPACT_BPS = 2_000n; // 20%
+
+export default function TradePage() {
+  const { cfg, client, address, phase, submitSequence } = useSidereal();
+
+  const [directionId, setDirectionId] = useState<(typeof DIRECTIONS)[number]["id"]>("buy-pt");
+  const [amount, setAmount] = useState("");
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteError, setQuoteError] = useState<unknown>(null);
+  const [slippageBps, setSlippageBps] = useState<bigint>(DEFAULT_SLIPPAGE_BPS);
+
+  const direction = DIRECTIONS.find((d) => d.id === directionId) ?? DIRECTIONS[0];
+  const { containerRef: directionsRef, rect: directionRect } = useSlideRect<HTMLDivElement>(
+    '[aria-pressed="true"]',
+    directionId,
+  );
+  const { market, loading: marketLoading } = useMarketStatus();
+  const { bond, strategy } = useBondInfo();
+  const position = usePosition(address, phase.kind === "done" ? phase.hash : 0);
+
+  useEffect(() => {
+    function applyHashRoute() {
+      if (window.location.hash === "#buy-yt") {
+        setDirectionId("buy-yt");
+      }
+    }
+    applyHashRoute();
+    window.addEventListener("hashchange", applyHashRoute);
+    return () => window.removeEventListener("hashchange", applyHashRoute);
+  }, []);
+
+  const balanceIn = position
+    ? direction.assetIn === "SY"
+      ? position.syBalance
+      : direction.assetIn === "PT"
+        ? position.ptBalance
+        : position.ytBalance
+    : 0n;
+
+  // Debounced live quote whenever the route or amount changes.
+  useEffect(() => {
+    setQuote(null);
+    setQuoteError(null);
+    if (!amount || !address) return;
+
+    let cancelled = false;
+    const handle = setTimeout(async () => {
+      try {
+        const amountIn = parseTokenAmount(amount, cfg.decimals);
+        const q = await readQuote(
+          {
+          marketId: cfg.marketId,
+          from: address,
+          assetIn: direction.assetIn,
+          assetOut: direction.assetOut,
+          amountIn,
+          minAmountOut: 0n,
+          },
+          cfg,
+        );
+        if (!cancelled) setQuote(q);
+      } catch (err) {
+        if (!cancelled) setQuoteError(err);
+      }
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [amount, address, direction.assetIn, direction.assetOut, cfg, client]);
+
+  const amtError = amountError(amount, cfg.decimals, position ? balanceIn : undefined);
+  // A quote is in flight between the debounce firing and the RPC answering.
+  const quoting =
+    amount !== "" && address !== null && quote === null && quoteError === null && !amtError;
+  const priceImpactGuardApplies = direction.assetIn !== "YT" && direction.assetOut !== "YT";
+  const priceImpactTooHigh =
+    priceImpactGuardApplies && quote !== null && quote.priceImpactBps > MAX_PRICE_IMPACT_BPS;
+  const canSubmit =
+    address !== null &&
+    quote !== null &&
+    !amtError &&
+    !priceImpactTooHigh &&
+    phase.kind !== "working";
+
+  async function onSubmit() {
+    if (!address || !quote) return;
+    const amountIn = parseTokenAmount(amount, cfg.decimals);
+    const minAmountOut = applySlippage(quote.amountOut, slippageBps);
+    const tokenIn =
+      direction.assetIn === "SY"
+        ? cfg.contracts.sy
+        : direction.assetIn === "PT"
+          ? cfg.contracts.pt
+          : cfg.contracts.yt;
+    const steps: {
+      label: string;
+      build: () => TransactionRequest | Promise<TransactionRequest>;
+    }[] = [];
+    const approve = await ensureAllowance(client, tokenIn, address, cfg.contracts.market, amountIn);
+    if (approve) {
+      steps.push({ label: `Approve ${direction.assetIn}`, build: async () => approve });
+    }
+    steps.push({
+      label: direction.label,
+      build: () =>
+        client.buildSwap({
+          marketId: cfg.marketId,
+          from: address,
+          assetIn: direction.assetIn,
+          assetOut: direction.assetOut,
+          amountIn,
+          minAmountOut,
+        }),
+    });
+    await submitSequence(steps);
+  }
+
+  return (
+    <div className="space-y-12">
+      <header className="space-y-3">
+        <h1 className="text-6xl font-light tracking-tight sm:text-7xl">Trade</h1>
+        <p className="max-w-xl text-smoke">
+          Swap between PT, YT, and SY through the time-decay AMM. Quotes show expected output,
+          price impact, and the implied APY so you can see if you are buying at a premium or
+          discount.
+        </p>
+        <MaturityBadge maturity={market?.maturity ?? null} />
+      </header>
+
+      <PositionCard position={position} decimals={cfg.decimals} />
+      <BondPositionCard
+        source={cfg.yieldSource}
+        bond={bond}
+        strategy={strategy}
+        decimals={cfg.decimals}
+        variant="banner"
+      />
+
+      <div className="grid gap-10 lg:grid-cols-12">
+        {/* Market status rail: live, read-only signals from the AMM. */}
+        <aside className="space-y-5 lg:col-span-4">
+          <YieldSourceCard source={cfg.yieldSource} market={market} bond={bond} strategy={strategy} />
+
+          <div className="flex items-center justify-between">
+            <p className="label-data">Market status</p>
+            <span className="flex items-center gap-2 text-[13px] text-smoke">
+              <span className="glow-signal-dot h-1.5 w-1.5 animate-pulse rounded-pill bg-amber" />
+              Live feed
+            </span>
+          </div>
+          <dl className="space-y-px">
+            <Stat
+              label="Reserves (SY)"
+              value={market ? formatTokenAmount(market.totalSy, cfg.decimals) : "n/a"}
+              loading={marketLoading}
+            />
+            <Stat
+              label="Implied APY (TWAP)"
+              value={market ? bpsToPercent(market.impliedApyBps) : "n/a"}
+              loading={marketLoading}
+              signal
+            />
+            <Stat
+              label="Spot APY"
+              value={market ? bpsToPercent(market.spotApyBps) : "n/a"}
+              loading={marketLoading}
+            />
+            <Stat
+              label="Maturity"
+              value={market ? maturityStatus(market.maturity) : "n/a"}
+              loading={marketLoading}
+              signal
+            />
+            <Stat
+              label="Maturity date"
+              value={market ? formatMaturityDate(market.maturity) : "n/a"}
+              loading={marketLoading}
+            />
+          </dl>
+        </aside>
+
+        {/* Swap form */}
+        <div className="space-y-6 lg:col-span-8">
+          <div className="card space-y-6 p-8">
+            {/* Route toggle: one measured highlight slides behind the active
+                direction; before measurement the active button keeps a static
+                fill so server render and no-JS look identical. */}
+            <div
+              ref={directionsRef}
+              className="relative grid grid-cols-2 gap-px border border-white/10 sm:grid-cols-4"
+            >
+              {directionRect ? (
+                <span
+                  aria-hidden
+                  className="absolute bg-white/[0.04] transition-all duration-300 ease-out motion-reduce:transition-none"
+                  style={{
+                    left: directionRect.left,
+                    top: directionRect.top,
+                    width: directionRect.width,
+                    height: directionRect.height,
+                  }}
+                />
+              ) : null}
+              {DIRECTIONS.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setDirectionId(d.id)}
+                  aria-pressed={d.id === directionId}
+                  className={`relative px-3 py-2.5 text-[13px] uppercase tracking-[0.08em] transition ${
+                    d.id === directionId
+                      ? `text-amber ${directionRect ? "" : "bg-white/[0.04]"}`
+                      : "text-smoke hover:text-paper"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+
+            {direction.assetIn === "YT" || direction.assetOut === "YT" ? (
+              <p className="panel-subtle px-4 py-3 text-xs text-smoke">
+                YT trades flash-route through the pool: in one transaction the AMM
+                splits or recombines via the tokenizer, so buying YT is leveraged.
+              </p>
+            ) : null}
+
+            <AmountField
+              label={`Amount in (${direction.assetIn})`}
+              value={amount}
+              onChange={setAmount}
+              decimals={cfg.decimals}
+              error={amtError}
+              max={balanceIn}
+            />
+
+            {/* Direction arrow + read-only expected-out, mirroring the swap card.
+                The arrow spins while a quote is in flight: the debounce window
+                is the app's one honest "working" moment. */}
+            <div className="flex items-center justify-center">
+              <span
+                aria-hidden
+                className={`flex h-8 w-8 items-center justify-center border border-white/15 text-smoke ${
+                  quoting ? "animate-spin motion-reduce:animate-none" : ""
+                }`}
+              >
+                ↓
+              </span>
+            </div>
+            <div className="border-t border-white/10 pt-5">
+              <span className="label-data">Expected out ({direction.assetOut})</span>
+              <p className="mt-2 text-3xl font-light tabular-nums text-paper">
+                <LiveValue
+                  value={quote ? formatTokenAmount(quote.amountOut, cfg.decimals) : "0.0"}
+                  loading={quoting}
+                />
+              </p>
+            </div>
+
+            {/* Slippage tolerance: 0.5% default, chips swap the local guard. The
+                selected chip is a permitted amber location (active signal). */}
+            <div className="flex items-center justify-between border-t border-white/10 pt-5">
+              <span className="label-data">Slippage tolerance</span>
+              <div className="flex gap-px border border-white/10">
+                {SLIPPAGE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => setSlippageBps(opt.bps)}
+                    aria-pressed={slippageBps === opt.bps}
+                    className={`px-3 py-1.5 text-[13px] tabular-nums transition ${
+                      slippageBps === opt.bps
+                        ? "bg-amber/10 text-amber"
+                        : "text-smoke hover:text-paper"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {quote ? (
+            <dl className="panel-subtle space-y-2 p-5 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-ash">Expected out ({direction.assetOut})</dt>
+                <dd className="tabular-nums text-paper">
+                  <LiveValue value={formatTokenAmount(quote.amountOut, cfg.decimals)} />
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ash">Price impact</dt>
+                <dd className="tabular-nums text-paper">
+                  <LiveValue value={bpsToPercent(quote.priceImpactBps)} />
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ash">Implied APY (TWAP)</dt>
+                <dd className="tabular-nums text-amber">
+                  <LiveValue value={bpsToPercent(quote.impliedApyBps)} />
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ash">
+                  Min received ({SLIPPAGE_OPTIONS.find((o) => o.bps === slippageBps)?.label} slippage)
+                </dt>
+                <dd className="tabular-nums text-paper">
+                  <LiveValue
+                    value={formatTokenAmount(applySlippage(quote.amountOut, slippageBps), cfg.decimals)}
+                  />
+                </dd>
+              </div>
+            </dl>
+          ) : quoteError ? (
+            <p className="text-[13px] text-ash">Quote unavailable: {describeError(quoteError, "amm")}</p>
+          ) : null}
+
+          {priceImpactTooHigh ? (
+            <p className="panel-subtle px-4 py-3 text-[13px] text-amber">
+              Price impact is too high for the current pool depth, so this swap would be rejected
+              on-chain. Reduce the amount and try again.
+            </p>
+          ) : null}
+
+          <SubmitButton
+            phase={phase}
+            address={address}
+            disabled={!canSubmit}
+            onClick={onSubmit}
+            connectLabel="Connect wallet to trade"
+            idleLabel={direction.label}
+          />
+
+          <TxStatus phase={phase} context="amm" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  signal,
+  loading,
+}: {
+  label: string;
+  value: string;
+  signal?: boolean;
+  loading?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-white/10 py-3">
+      <dt className="label-data">{label}</dt>
+      <dd className={`text-sm tabular-nums ${signal ? "text-amber" : "text-paper"}`}>
+        <LiveValue value={value} loading={loading} className="w-14" />
+      </dd>
+    </div>
+  );
+}

@@ -1,0 +1,22 @@
+.codex/logs/
+/target/
+
+# JS/TS
+node_modules/
+dist/
+.next/
+.open-next/
+.wrangler/
+next-env.d.ts
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Local deploy outputs. Committed deployment manifests live in deployments/*.toml.
+app/.env.local
+workers/access-requests/.dev.vars
+deployments/*.state.env
+deployments/*.tmp
+deployments/*.tmp.*
+.vercel
+docs/LOCAL_TEST_WALLETS.md

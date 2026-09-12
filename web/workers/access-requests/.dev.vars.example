@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copy to .dev.vars and replace ACCESS_REQUEST_API_TOKEN with a random secret.
+
+ACCESS_REQUEST_API_TOKEN="replace-with-a-random-secret"
+TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
