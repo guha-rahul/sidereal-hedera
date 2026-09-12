@@ -141,10 +141,10 @@ export default function ContractsPage() {
           <code>{`forge build
 forge test
 
-# Exercise the full immediate lifecycle against Hedera testnet.
-forge script script/VerifyTestnet.s.sol:VerifyTestnet \\
+# Deploy the market around an existing ERC-3643 bond.
+CASH_ASSET=0x... BOND=0x... forge script script/Deploy.s.sol:Deploy \\
   --rpc-url https://testnet.hashio.io/api \\
-  --broadcast -vv`}</code>
+  --broadcast --slow --gas-estimate-multiplier 200`}</code>
         </pre>
         <p>
           The deployment script logs every address; feed those into the app&rsquo;s{" "}
