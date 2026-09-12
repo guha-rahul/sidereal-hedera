@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
-  "name": "sidereal",
+  "name": "sidereal-hedera",
   "compatibility_date": "2026-07-02",
   "compatibility_flags": [
     "nodejs_compat",
@@ -14,7 +14,7 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "sidereal"
+      "service": "sidereal-hedera"
     }
   ]
 }

@@ -96,7 +96,7 @@ The install uses the parent `web/pnpm-workspace.yaml` and lockfile. `cf:build`
 compiles the SDK, then builds Next.js through OpenNext, generating
 `.open-next/worker.js` and `.open-next/assets` for `app/wrangler.jsonc`.
 Set `NEXT_PUBLIC_*` variables in the Cloudflare build environment before building.
-The Worker name in Cloudflare must match `sidereal` in the Wrangler configuration.
+The Worker name in Cloudflare must match `sidereal-hedera` in the Wrangler configuration.
 
 Alternatively, keep Cloudflare's root directory at the repository root, leave
 the build command empty, and use the default `npx wrangler deploy` deploy command.
