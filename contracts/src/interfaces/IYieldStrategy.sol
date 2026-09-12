@@ -14,6 +14,9 @@ pragma solidity 0.8.28;
 ///         send it there) must not enter the valuation, or the exchange rate
 ///         becomes a function of a permissionless token transfer.
 interface IYieldStrategy {
+    function isEligible(address account) external view returns (bool);
+    function maturity() external view returns (uint256);
+    function settlementReady() external view returns (bool);
     /// @notice The underlying asset this strategy consumes and returns.
     function underlying() external view returns (address);
 
@@ -34,11 +37,9 @@ interface IYieldStrategy {
     /// @notice Withdraws underlying worth `amount` back to `vault`.
     /// @param minUnderlyingOut Revert if the amount delivered is below this.
     /// @return delivered The underlying actually delivered.
-    function withdraw(
-        address vault,
-        uint256 amount,
-        uint256 minUnderlyingOut
-    ) external returns (uint256 delivered);
+    function withdraw(address vault, uint256 amount, uint256 minUnderlyingOut)
+        external
+        returns (uint256 delivered);
 
     /// @notice Permissionless upkeep. Renews any upstream position bookkeeping.
     function touch() external;

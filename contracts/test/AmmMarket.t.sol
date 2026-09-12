@@ -16,6 +16,7 @@ contract AmmMarketTest is MarketFixture {
         _setUpMarket(admin, feeRecipient, 1_000_000e18);
 
         amm = new AmmMarket();
+        _verify(address(amm));
         amm.initialize(
             admin,
             address(pt),

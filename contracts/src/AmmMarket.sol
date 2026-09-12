@@ -68,6 +68,7 @@ contract AmmMarket is IMarket {
     Config public config;
     State public state;
     bool private _initialized;
+    address private immutable _initializer = msg.sender;
     mapping(address => uint256) public lpBalance;
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
@@ -118,6 +119,7 @@ contract AmmMarket is IMarket {
         uint256 twapWindow
     ) external {
         if (_initialized) revert AlreadyInitialized();
+        if (msg.sender != _initializer) revert NotAdmin();
         if (maturity_ <= block.timestamp) revert InvalidMaturity();
         if (scalarRoot == 0) revert InvalidScalarRoot();
         if (scalarRoot > MAX_SCALAR_ROOT) revert InputOutOfBounds();

@@ -7,6 +7,9 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ERC3643Base} from "../tokens/ERC3643Base.sol";
 import {IBond3643} from "../interfaces/IBond3643.sol";
 import {WadMath} from "../libraries/WadMath.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title ERC3643Bond
 /// @notice Production-shaped tokenized bond: a permissioned ERC-3643 security
@@ -17,12 +20,12 @@ import {WadMath} from "../libraries/WadMath.sol";
 ///      and funds coupons (`scheduleCoupon` / `fundCoupon`) and tops up the
 ///      redemption reserve (`fundPrincipal`); purchases also fund the reserve.
 ///
-///      Coupon distribution uses a supply snapshot taken on the first claim:
-///      the issuer funds `ratePerUnit * supply / WAD`, and each holder's share
-///      is `fundedAmount * balance / snapshot`. The snapshot assumes no supply
-///      change between the execution date and the first claim, which holds for
-///      a permissioned bond whose holders do not churn around the record date.
-contract ERC3643Bond is ERC3643Base, IBond3643 {
+///      Local reference bond, not ATS. Coupon entitlements use timestamped
+///      record-date balance and supply checkpoints. Funding closes at the
+///      record date; coupon reserves cannot be spent by principal redemption.
+contract ERC3643Bond is ERC3643Base, IBond3643, ReentrancyGuard {
+    using Checkpoints for Checkpoints.Trace208;
+    using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using WadMath for uint256;
 
@@ -34,6 +37,11 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
 
     CouponInfo[] private _coupons;
     mapping(uint256 => mapping(address => bool)) public couponClaimed;
+    mapping(address => Checkpoints.Trace208) private _balances;
+    Checkpoints.Trace208 private _supply;
+    mapping(uint256 => uint256) public couponPaid;
+    uint256 public reservedCoupons;
+    uint256 public constant MAX_COUPONS = 32;
 
     error InvalidTerms();
     error InvalidAmount();
@@ -48,7 +56,9 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
     event Purchased(address indexed buyer, uint256 cashIn, uint256 bondOut);
     event Redeemed(address indexed holder, uint256 bondIn, uint256 cashOut);
     event RedeemedAtMaturity(address indexed holder, uint256 bondIn, uint256 cashOut);
-    event CouponScheduled(uint256 indexed couponId, uint256 recordDate, uint256 executionDate, uint256 ratePerUnit);
+    event CouponScheduled(
+        uint256 indexed couponId, uint256 recordDate, uint256 executionDate, uint256 ratePerUnit
+    );
     event CouponFunded(uint256 indexed couponId, uint256 amount);
     event PrincipalFunded(uint256 amount);
     event CouponClaimed(uint256 indexed couponId, address indexed holder, uint256 cashOut);
@@ -77,6 +87,19 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
 
     function denomination() external view returns (address) {
         return denominationAsset;
+    }
+
+    function securityToken() external view returns (address) {
+        return address(this);
+    }
+
+    function isVerified(address account)
+        public
+        view
+        override(ERC3643Base, IBond3643)
+        returns (bool)
+    {
+        return super.isVerified(account);
     }
 
     function startDate() external view returns (uint256) {
@@ -134,7 +157,7 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
 
     // --- primary / redemption ----------------------------------------------
 
-    function purchase(uint256 cashIn) external returns (uint256 bondOut) {
+    function purchase(uint256 cashIn) external nonReentrant returns (uint256 bondOut) {
         if (isMatured()) revert AlreadyMatured();
         if (cashIn == 0) revert InvalidAmount();
         if (!isVerified(msg.sender)) revert NotVerified(msg.sender);
@@ -146,10 +169,10 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
         emit Purchased(msg.sender, cashIn, bondOut);
     }
 
-    function redeem(uint256 bondAmount) public returns (uint256 cashOut) {
+    function redeem(uint256 bondAmount) public nonReentrant returns (uint256 cashOut) {
         if (bondAmount == 0) revert InvalidAmount();
         cashOut = valueOf(bondAmount);
-        if (cashOut > IERC20(denominationAsset).balanceOf(address(this))) {
+        if (cashOut > availableLiquidity()) {
             revert InsufficientLiquidity();
         }
         _burn(msg.sender, bondAmount);
@@ -163,20 +186,24 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
         emit RedeemedAtMaturity(msg.sender, bondAmount, cashOut);
     }
 
-    function availableLiquidity() external view returns (uint256) {
-        return IERC20(denominationAsset).balanceOf(address(this));
+    function availableLiquidity() public view returns (uint256) {
+        uint256 cash = IERC20(denominationAsset).balanceOf(address(this));
+        return cash > reservedCoupons ? cash - reservedCoupons : 0;
     }
 
     // --- issuer cashflow ----------------------------------------------------
 
     /// @notice Adds a cash coupon to the schedule. Issuer only.
-    function scheduleCoupon(
-        uint256 recordDate,
-        uint256 executionDate,
-        uint256 ratePerUnit
-    ) external onlyOwner returns (uint256 couponId) {
+    function scheduleCoupon(uint256 recordDate, uint256 executionDate, uint256 ratePerUnit)
+        external
+        onlyOwner
+        returns (uint256 couponId)
+    {
         if (ratePerUnit == 0) revert InvalidAmount();
-        if (recordDate >= executionDate || executionDate > maturityTime) revert InvalidSchedule();
+        if (
+            recordDate <= block.timestamp || recordDate >= executionDate
+                || executionDate > maturityTime || _coupons.length >= MAX_COUPONS
+        ) revert InvalidSchedule();
         couponId = _coupons.length;
         _coupons.push(
             CouponInfo({
@@ -192,11 +219,17 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
     }
 
     /// @notice Deposits cash against `couponId`. Issuer only.
-    function fundCoupon(uint256 couponId, uint256 amount) external onlyOwner {
+    function fundCoupon(uint256 couponId, uint256 amount) external onlyOwner nonReentrant {
         if (amount == 0) revert InvalidAmount();
         CouponInfo storage coupon = _coupon(couponId);
+        if (block.timestamp >= coupon.recordDate) revert InvalidSchedule();
+        uint256 beforeCash = IERC20(denominationAsset).balanceOf(address(this));
         IERC20(denominationAsset).safeTransferFrom(msg.sender, address(this), amount);
+        if (IERC20(denominationAsset).balanceOf(address(this)) - beforeCash != amount) {
+            revert InvalidAmount();
+        }
         coupon.fundedAmount += amount;
+        reservedCoupons += amount;
         emit CouponFunded(couponId, amount);
     }
 
@@ -207,8 +240,7 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
         emit PrincipalFunded(amount);
     }
 
-    /// @notice Cash a fully funded coupon should distribute: rate per unit times
-    ///         the supply snapshot the first claim will take.
+    /// @notice Funding estimate using current supply; funding closes at record date.
     function couponTargetFunding(uint256 couponId) external view returns (uint256) {
         CouponInfo memory coupon = _coupon(couponId);
         return WadMath.mulDivUp(totalSupply(), coupon.ratePerUnit, WadMath.WAD);
@@ -224,34 +256,57 @@ contract ERC3643Bond is ERC3643Base, IBond3643 {
         return _coupon(couponId);
     }
 
-    function claimableCoupon(uint256 couponId, address holder) public view returns (uint256) {
+    function accruedCoupon(uint256 couponId, address holder) public view returns (uint256) {
         CouponInfo memory coupon = _coupon(couponId);
-        if (block.timestamp < coupon.executionDate) return 0;
+        if (block.timestamp <= coupon.recordDate) return 0;
         if (couponClaimed[couponId][holder]) return 0;
-        uint256 snapshot = coupon.totalSupplySnapshot;
-        if (snapshot == 0) snapshot = totalSupply();
+        uint256 snapshot = _supply.upperLookup(coupon.recordDate.toUint48());
         if (snapshot == 0) return 0;
-        return WadMath.mulDivDown(coupon.fundedAmount, balanceOf(holder), snapshot);
+        return WadMath.mulDivDown(coupon.fundedAmount, couponBalance(couponId, holder), snapshot);
     }
 
-    function claimCoupon(uint256 couponId) external returns (uint256 cashOut) {
+    function couponBalance(uint256 couponId, address holder) public view returns (uint256) {
+        CouponInfo memory coupon = _coupon(couponId);
+        if (block.timestamp <= coupon.recordDate) return 0;
+        return _balances[holder].upperLookup(coupon.recordDate.toUint48());
+    }
+
+    function claimableCoupon(uint256 couponId, address holder) public view returns (uint256) {
+        if (block.timestamp < _coupon(couponId).executionDate) return 0;
+        return accruedCoupon(couponId, holder);
+    }
+
+    function claimCoupon(uint256 couponId) external nonReentrant returns (uint256 cashOut) {
         CouponInfo storage coupon = _coupon(couponId);
         if (block.timestamp < coupon.executionDate) revert CouponNotDue();
         if (couponClaimed[couponId][msg.sender]) revert CouponAlreadyClaimed();
         if (coupon.totalSupplySnapshot == 0) {
-            uint256 supply = totalSupply();
+            uint256 supply = _supply.upperLookup(coupon.recordDate.toUint48());
             if (supply == 0) revert NothingToClaim();
             coupon.totalSupplySnapshot = supply;
         }
-        cashOut = WadMath.mulDivDown(coupon.fundedAmount, balanceOf(msg.sender), coupon.totalSupplySnapshot);
+        if (!isVerified(msg.sender)) revert NotVerified(msg.sender);
+        cashOut = accruedCoupon(couponId, msg.sender);
         if (cashOut == 0) revert NothingToClaim();
-        if (cashOut > IERC20(denominationAsset).balanceOf(address(this))) revert InsufficientLiquidity();
+        if (cashOut > IERC20(denominationAsset).balanceOf(address(this))) {
+            revert InsufficientLiquidity();
+        }
         couponClaimed[couponId][msg.sender] = true;
+        couponPaid[couponId] += cashOut;
+        reservedCoupons -= cashOut;
         IERC20(denominationAsset).safeTransfer(msg.sender, cashOut);
         emit CouponClaimed(couponId, msg.sender, cashOut);
     }
 
     function accrue() external {}
+
+    function _update(address from, address to, uint256 amount) internal override {
+        super._update(from, to, amount);
+        uint48 now_ = block.timestamp.toUint48();
+        if (from != address(0)) _balances[from].push(now_, balanceOf(from).toUint208());
+        if (to != address(0)) _balances[to].push(now_, balanceOf(to).toUint208());
+        if (from == address(0) || to == address(0)) _supply.push(now_, totalSupply().toUint208());
+    }
 
     // --- internals ----------------------------------------------------------
 

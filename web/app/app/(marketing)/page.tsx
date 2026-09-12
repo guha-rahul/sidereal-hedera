@@ -18,7 +18,8 @@ import { Spotlight } from "@/components/Spotlight";
 import { TickerBand } from "@/components/TickerBand";
 import { Term } from "@/components/Term";
 import { WordReveal } from "@/components/WordReveal";
-import { appConfig, networkLabel } from "@/lib/config";
+import { ConfiguredMarketCount, MarketStatusLabel } from "@/components/MarketStatus";
+import { appConfig } from "@/lib/config";
 // The token legs live in InvariantBand, defined in the protocol's own terms.
 // No invented financial figures anywhere on this page.
 // Token names in the copy carry the mono Term voice so they read as objects.
@@ -75,10 +76,13 @@ const HERO_EXIT: ExitSequence = {
   headline: { at: 0.55, span: 0.45, shift: 18 },
 };
 
-// Protocol facts, stated as oversized numerals. These are design choices that
-// hold regardless of deployment, not market metrics.
+// Protocol facts, stated as oversized numerals. Every entry with a literal
+// `value` is a design choice that holds regardless of deployment, not a market
+// metric. `value: null` means the numeral is read from the build's configured
+// addresses instead, so the homepage cannot advertise a market that the app
+// reports as missing.
 const FACTS = [
-  { value: "01", label: "Active market", note: "", signal: false },
+  { value: null, label: "Active market", note: "", signal: false },
   { value: "03", label: "Token legs", note: "SY · PT · YT", signal: false },
   { value: "00", label: "Price oracles", note: "Internal TWAP", signal: false },
   { value: "1:1", label: "PT at maturity", note: "Redeems to par", signal: false },
@@ -193,7 +197,7 @@ export default function LandingPage() {
             <h2 className="text-4xl font-light tracking-tight sm:text-5xl">
               <WordReveal brightWords={[0]}>Protocol overview</WordReveal>
             </h2>
-            <p className="glow-signal label-data text-amber">Live · {networkLabel(cfg.network)}</p>
+            <MarketStatusLabel className="label-data" />
           </div>
           <div className="mt-12 grid grid-cols-2 border border-white/10 lg:grid-cols-4">
             {FACTS.map((fact, i) => (
@@ -208,7 +212,11 @@ export default function LandingPage() {
                     fact.signal ? "text-amber" : "text-paper"
                   }`}
                 >
-                  <CountUp value={fact.value} />
+                  {fact.value === null ? (
+                    <ConfiguredMarketCount />
+                  ) : (
+                    <CountUp value={fact.value} />
+                  )}
                 </p>
                 <p className="mt-4 label-data">{fact.label}</p>
                 <p className="mt-1 text-sm text-pewter">{fact.note || cfg.yieldSource.name}</p>

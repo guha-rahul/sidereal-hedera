@@ -6,6 +6,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IYieldStrategy} from "../interfaces/IYieldStrategy.sol";
 import {WadMath} from "../libraries/WadMath.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title StandardizedYieldVault (sSY)
 /// @notice Yield-source-agnostic SY vault. Binds one immutable strategy and
@@ -15,7 +17,7 @@ import {WadMath} from "../libraries/WadMath.sol";
 ///      rate setter, which structurally rules out an admin-set rate.
 ///      `MINIMUM_SHARES` are minted to nobody on the first deposit so the
 ///      supply can never return to zero and no holder can own the entire supply.
-contract StandardizedYieldVault is ERC20 {
+contract StandardizedYieldVault is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using WadMath for uint256;
 
@@ -32,6 +34,8 @@ contract StandardizedYieldVault is ERC20 {
 
     Config public config;
     bool private _initialized;
+    address private immutable _initializer = msg.sender;
+    uint256 public assetScale;
     uint256 public depositCap;
 
     mapping(address => uint256) private _principal;
@@ -47,6 +51,8 @@ contract StandardizedYieldVault is ERC20 {
     error InitialDepositTooSmall();
     error DepositCapExceeded();
     error NotAdmin();
+    error NotEligible(address account);
+    error InvalidConfiguration();
 
     event Deposited(
         address indexed from,
@@ -63,8 +69,12 @@ contract StandardizedYieldVault is ERC20 {
     /// @notice Binds the vault to one strategy, permanently.
     function initialize(address admin, address strategy_) external {
         if (_initialized) revert AlreadyInitialized();
+        if (msg.sender != _initializer || admin == address(0)) revert InvalidConfiguration();
         if (IYieldStrategy(strategy_).vault() != address(this)) revert StrategyMismatch();
         address underlying_ = IYieldStrategy(strategy_).underlying();
+        uint8 decimals_ = IERC20Metadata(underlying_).decimals();
+        if (decimals_ > 18) revert InvalidConfiguration();
+        assetScale = 10 ** (18 - decimals_);
         _initialized = true;
         config = Config({admin: admin, underlying: underlying_, strategy: strategy_});
     }
@@ -103,12 +113,12 @@ contract StandardizedYieldVault is ERC20 {
         return _exchangeRate(totalAssets(), totalSupply());
     }
 
-    function _exchangeRate(uint256 assets, uint256 supply) internal pure returns (uint256) {
+    function _exchangeRate(uint256 assets, uint256 supply) internal view returns (uint256) {
         if (supply == 0) {
             if (assets == 0) return WadMath.WAD;
             revert InvalidExchangeRate();
         }
-        uint256 rate = WadMath.mulDivDown(assets, WadMath.WAD, supply);
+        uint256 rate = WadMath.mulDivDown(assets, WadMath.WAD * assetScale, supply);
         if (rate == 0) revert InvalidExchangeRate();
         return rate;
     }
@@ -116,7 +126,7 @@ contract StandardizedYieldVault is ERC20 {
     /// @notice Sets the deposit ceiling (0 = uncapped). Admin only; gates deposit
     ///         and nothing else.
     function setDepositCap(address admin, uint256 cap) external initialized {
-        if (admin != config.admin) revert NotAdmin();
+        if (msg.sender != config.admin || admin != config.admin) revert NotAdmin();
         uint256 old = depositCap;
         depositCap = cap;
         emit DepositCapSet(old, cap);
@@ -128,7 +138,7 @@ contract StandardizedYieldVault is ERC20 {
         uint256 cap = depositCap;
         if (cap > 0 && totalAssets() >= cap) revert DepositCapExceeded();
         uint256 rate = exchangeRate();
-        uint256 minted = WadMath.mulDivDown(amount, WadMath.WAD, rate);
+        uint256 minted = WadMath.mulDivDown(amount, WadMath.WAD * assetScale, rate);
         uint256 supply = totalSupply();
         if (supply == 0) {
             if (minted <= MINIMUM_SHARES) revert InitialDepositTooSmall();
@@ -141,13 +151,19 @@ contract StandardizedYieldVault is ERC20 {
     /// @notice Underlying `syAmount` would redeem at the current rate.
     function previewRedeem(uint256 syAmount) public view returns (uint256) {
         if (syAmount == 0) revert InvalidAmount();
-        return WadMath.mulDivDown(syAmount, exchangeRate(), WadMath.WAD);
+        return WadMath.mulDivDown(syAmount, exchangeRate(), WadMath.WAD * assetScale);
     }
 
     /// @notice Deposits `amount` underlying and mints SY, never fewer than
     ///         `minSyOut`.
-    function deposit(uint256 amount, uint256 minSyOut) public initialized returns (uint256) {
+    function deposit(uint256 amount, uint256 minSyOut)
+        public
+        initialized
+        nonReentrant
+        returns (uint256)
+    {
         if (amount == 0) revert InvalidAmount();
+        IYieldStrategy(config.strategy).touch();
         uint256 rate = exchangeRate();
         address underlying_ = config.underlying;
         address strategy_ = config.strategy;
@@ -161,7 +177,7 @@ contract StandardizedYieldVault is ERC20 {
         uint256 cap = depositCap;
         if (cap > 0 && IYieldStrategy(strategy_).totalAssets() > cap) revert DepositCapExceeded();
 
-        uint256 minted = WadMath.mulDivDown(assetsCredited, WadMath.WAD, rate);
+        uint256 minted = WadMath.mulDivDown(assetsCredited, WadMath.WAD * assetScale, rate);
         uint256 total = totalSupply();
         uint256 shares;
         if (total == 0) {
@@ -195,11 +211,14 @@ contract StandardizedYieldVault is ERC20 {
 
     /// @notice Burns SY and returns underlying, never less than
     ///         `minUnderlyingOut`.
-    function redeem(
-        uint256 syAmount,
-        uint256 minUnderlyingOut
-    ) public initialized returns (uint256 delivered) {
+    function redeem(uint256 syAmount, uint256 minUnderlyingOut)
+        public
+        initialized
+        nonReentrant
+        returns (uint256 delivered)
+    {
         if (syAmount == 0) revert InvalidAmount();
+        IYieldStrategy(config.strategy).touch();
         uint256 rate = exchangeRate();
         address underlying_ = config.underlying;
         address strategy_ = config.strategy;
@@ -208,12 +227,11 @@ contract StandardizedYieldVault is ERC20 {
         uint256 currentPrincipal = _principal[msg.sender];
         if (syAmount > currentShares) revert InsufficientBalance();
 
-        uint256 requested = WadMath.mulDivDown(syAmount, rate, WadMath.WAD);
+        uint256 requested = WadMath.mulDivDown(syAmount, rate, WadMath.WAD * assetScale);
         if (requested == 0) revert InvalidAmount();
 
-        uint256 principalOut = currentShares == 0
-            ? 0
-            : WadMath.mulDivDown(currentPrincipal, syAmount, currentShares);
+        uint256 principalOut =
+            currentShares == 0 ? 0 : WadMath.mulDivDown(currentPrincipal, syAmount, currentShares);
 
         // Burn up front, before any external call.
         _principal[msg.sender] = currentPrincipal - principalOut;
@@ -227,7 +245,7 @@ contract StandardizedYieldVault is ERC20 {
 
         uint256 burned = syAmount;
         if (delivered < requested) {
-            uint256 proportional = WadMath.mulDivUp(delivered, WadMath.WAD, rate);
+            uint256 proportional = WadMath.mulDivUp(delivered, WadMath.WAD * assetScale, rate);
             burned = proportional < syAmount ? proportional : syAmount;
         }
         if (burned < syAmount) {
@@ -249,12 +267,35 @@ contract StandardizedYieldVault is ERC20 {
     function accruedYield(address holder) external view returns (uint256) {
         uint256 rate = exchangeRate();
         uint256 shares = balanceOf(holder);
-        uint256 value = WadMath.mulDivDown(shares, rate, WadMath.WAD);
+        uint256 value = WadMath.mulDivDown(shares, rate, WadMath.WAD * assetScale);
         uint256 principal = _principal[holder];
         return value > principal ? value - principal : 0;
     }
 
-    function touch() external initialized {
+    function touch() external initialized nonReentrant {
         IYieldStrategy(config.strategy).touch();
+    }
+
+    function maturity() external view returns (uint256) {
+        return IYieldStrategy(config.strategy).maturity();
+    }
+
+    function settlementReady() external view returns (bool) {
+        return IYieldStrategy(config.strategy).settlementReady();
+    }
+
+    function isEligible(address account) public view returns (bool) {
+        return _initialized && IYieldStrategy(config.strategy).isEligible(account);
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        if (from != address(0) && !isEligible(from)) revert NotEligible(from);
+        // Only the first deposit's permanent minimum-share lock bypasses eligibility.
+        if (
+            to != address(0)
+                && !(from == address(0) && to == address(0xdEaD) && value == MINIMUM_SHARES)
+                && !isEligible(to)
+        ) revert NotEligible(to);
+        super._update(from, to, value);
     }
 }

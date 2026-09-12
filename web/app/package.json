@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "gen:env": "node scripts/manifest-to-env.mjs",
+    "check:env": "node scripts/manifest-to-env.mjs --check",
     "start": "next start",
     "cf:build": "pnpm --filter @sidereal/sdk build && opennextjs-cloudflare build",
     "cf:deploy": "pnpm run cf:build && opennextjs-cloudflare deploy",

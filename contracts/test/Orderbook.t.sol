@@ -16,6 +16,7 @@ contract OrderbookTest is MarketFixture {
         _setUpMarket(admin, feeRecipient, 1_000_000e18);
 
         book = new Orderbook();
+        _verify(address(book));
         book.initialize(admin, address(pt), address(sy), maturity, feeRecipient, 10);
 
         cash.mint(alice, 100_000e18);

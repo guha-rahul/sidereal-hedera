@@ -38,6 +38,48 @@ addresses (`NEXT_PUBLIC_SY_ADDRESS`, `NEXT_PUBLIC_PT_ADDRESS`,
 yield source (`NEXT_PUBLIC_BOND_ADDRESS`, `NEXT_PUBLIC_STRATEGY_ADDRESS`,
 `NEXT_PUBLIC_UNDERLYING_ADDRESS`).
 
+### Configuring a market from a deployment manifest
+
+Generate the env file from the manifest rather than transcribing addresses:
+
+```bash
+cd app
+pnpm check:env ../../contracts/deployments/hedera-testnet.json   # print, write nothing
+pnpm gen:env   ../../contracts/deployments/hedera-testnet.json   # write app/.env.local
+```
+
+The generator maps manifest keys to env names (`amm` -> `MARKET`, `cash` ->
+`UNDERLYING`), rejects a manifest whose `chainId` is missing or not 295/296,
+rejects malformed and zero addresses, fails when the result would leave
+`isDeployed()` false, and sets `NEXT_PUBLIC_YIELD_SOURCE_KIND=bond` so the app
+stops describing the yield source as simulated. It writes
+`NEXT_PUBLIC_FAUCET_ENABLED` from the manifest's `cashMintable` flag, defaulting
+to off: `Deploy.s.sol` takes a real ERC-3643 bond and real denomination, and
+`mint` reverts on those.
+
+### These values are build-time, not runtime
+
+**Every `NEXT_PUBLIC_*` value is baked into the browser bundle by `next build`.**
+Next.js inlines only the ones present in the build environment and leaves the
+rest as reads against a `process` polyfill whose `env` is `{}` in the browser, so
+an unset variable is permanently `undefined` on the client. Setting Cloudflare
+Worker variables (or Vercel env vars) without rebuilding leaves the deployed
+bundle exactly as it was: the pages will keep reporting no configured market.
+
+Configuring a market therefore always means a rebuild and redeploy:
+
+```bash
+pnpm gen:env ../../contracts/deployments/hedera-testnet.json
+pnpm cf:deploy        # opennextjs-cloudflare build && deploy
+```
+
+To confirm the addresses reached the client, grep the emitted bundle for one of
+them — absence there means the build did not see the env file:
+
+```bash
+grep -rl "0x<sy-address>" .next/static/chunks/
+```
+
 ## Testnet faucet
 
 On testnet the app offers a faucet for the market's cash denomination. The mock
@@ -45,7 +87,8 @@ ERC-20 exposes a public `mint`, so `/api/faucet` prepares an unsigned
 `mint(recipient, amount)` request for the connected wallet to sign; the app never
 holds a key. It is enabled by default on testnet when an underlying is
 configured, and can be turned off with `NEXT_PUBLIC_FAUCET_ENABLED=0` (for a real
-non-mintable asset). The amount is `NEXT_PUBLIC_FAUCET_AMOUNT` (whole tokens,
+non-mintable asset). `pnpm gen:env` always writes this variable explicitly, so a
+manifest-configured build never inherits that default. The amount is `NEXT_PUBLIC_FAUCET_AMOUNT` (whole tokens,
 default `1000`). The mint page surfaces it both inline (when the wallet is empty)
 and in the `BondWalkthrough` onboarding checklist.
 
@@ -115,7 +158,12 @@ pnpm --filter @sidereal/app cf:deploy
 ### Vercel
 
 The web app deploys on Vercel with Root Directory set to `app`. The build runs
-`pnpm --filter @sidereal/sdk build && next build`.
+`pnpm --filter @sidereal/sdk build && next build`. The public demo runs on
+Cloudflare Workers via `pnpm cf:deploy`.
+
+Whichever target, the market addresses must be in the environment of that build
+(see "These values are build-time, not runtime" above). Changing platform
+variables alone does not reconfigure a deployed frontend.
 
 Access requests are handled by the same private Cloudflare Worker and D1
 database as the original deployment; see the original `README` history for the

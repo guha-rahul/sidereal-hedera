@@ -2,7 +2,8 @@
 pragma solidity 0.8.28;
 
 /// @title IBond3643
-/// @notice Production-shaped surface of an ERC-3643 / ATS tokenized bond: a
+/// @notice Sidereal settlement interface implemented by ATSBondAdapter or the local
+///         reference ERC3643Bond. This is NOT the ATS token ABI. A
 ///         permissioned security whose yield is the issuer's **cash coupon and
 ///         maturity cashflow**, not a capitalized per-unit rate.
 /// @dev Coupons are scheduled by the issuer, funded in cash, and claimed by
@@ -11,6 +12,12 @@ pragma solidity 0.8.28;
 ///      strategy reads `valueOf`/`availableLiquidity` for valuation and calls
 ///      `claimCoupon`/`redeemAtMaturity` to realize the cashflow.
 interface IBond3643 {
+    function securityToken() external view returns (address);
+    function isVerified(address account) external view returns (bool);
+    /// @notice Earned coupon receivable, including before its payment date.
+    function accruedCoupon(uint256 couponId, address holder) external view returns (uint256);
+    function couponBalance(uint256 couponId, address holder) external view returns (uint256);
+
     struct CouponInfo {
         uint256 recordDate;
         uint256 executionDate;
@@ -18,7 +25,8 @@ interface IBond3643 {
         uint256 ratePerUnit;
         /// @dev Cash the issuer has deposited for this coupon.
         uint256 fundedAmount;
-        /// @dev Supply snapshot taken on the first claim; 0 until then.
+        /// @dev Reference bond supply snapshot. ATS adapter returns 0; use its
+        ///      underlying ATS getCoupon call for the distinct snapshot identifier.
         uint256 totalSupplySnapshot;
         bool exists;
     }

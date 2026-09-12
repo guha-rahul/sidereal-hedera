@@ -70,5 +70,16 @@ abstract contract MarketFixture is Test {
         );
         pt.initialize(issuer_, address(tokenizer), address(sy), maturity);
         yt.initialize(issuer_, address(tokenizer), address(sy), maturity);
+        _verify(issuer_);
+        _verify(feeRecipient);
+        _verify(address(tokenizer));
+        _verify(address(sy));
+        _verify(address(0xA11CE1));
+        _verify(address(0xB0B));
+    }
+
+    function _verify(address account) internal {
+        registry.setVerified(account, true);
+        compliance.setAllowed(account, true);
     }
 }

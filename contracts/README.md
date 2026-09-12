@@ -11,9 +11,12 @@ the bottom of the stack:
 > vault holds an `ERC3643BondStrategy` that custodies the permissioned bond and
 > values it in the bond's cash denomination.
 
-Production code ships **no mocks**: the bond is a real ERC-3643 security
-(`ERC3643Bond`) or any deployed bond implementing `IBond3643`, and the cash
-denomination is a real ERC-20. Test doubles live under `test/`.
+For actual ATS integration, use `ATSBondAdapter` around an ATS-issued security.
+It transfers ATS inventory and settles cash from issuer-funded reserves using
+ATS coupon entitlements. `ERC3643Bond` is a local reference implementation, not
+an ATS-issued asset. `IBond3643` is Sidereal's settlement ABI, not ATS's token ABI.
+See [ATS_INTEGRATION.md](./ATS_INTEGRATION.md) for deployment, supported versions,
+permissions, units, funding constraints, and SDK changes.
 
 ## Layout
 
@@ -81,9 +84,9 @@ is **realized as cash**, never capitalized into a per-unit rate:
   is redeemed at par on/after maturity via `redeem` / `redeemAtMaturity`.
 - **Coupons** are scheduled by the issuer (`scheduleCoupon`), funded in cash
   (`fundCoupon`), and claimed by holders on/after each execution date
-  (`claimCoupon`). Distribution snapshots supply on the first claim: the issuer
-  funds `ratePerUnit * supply / WAD`, and each holder receives
-  `fundedAmount * balance / snapshot`.
+  (`claimCoupon`). Distribution uses record-date balance and supply checkpoints.
+  Coupon funding closes at the record date and remains separate from principal
+  reserves. A later token transfer cannot recreate an already-earned entitlement.
 - The issuer tops up the redemption reserve with `fundPrincipal`; purchases also
   fund it. Early redemption (`redeem`) pays the accreted value, giving the SY
   vault a liquidity path before maturity.
@@ -91,15 +94,16 @@ is **realized as cash**, never capitalized into a per-unit rate:
 `ERC3643BondStrategy` implements `IYieldStrategy`:
 
 ```
-totalAssets = bond.valueOf(accountedBonds) + countedCash
+totalAssets = bond.valueOf(accountedBonds) + countedCash + attributedCouponReceivables
 ```
 
 - `accountedBonds` and `countedCash` are tracked explicitly, so **donated**
   bonds or cash never enter the valuation — the seam's anti-donation obligation.
 - `deposit` pulls cash from the vault, buys bonds at `bond.valuePerUnit()`, and
   returns the measured increase in `totalAssets`.
-- `touch` claims every funded, executed coupon and counts the measured cash
-  delta, so the SY exchange rate steps up on each coupon date.
+- `touch` claims funded, executed coupons and counts measured, attributed cash.
+  Receivables already enter NAV at the record date, so collection does not change
+  NAV or allow a new depositor to capture an existing holder's coupon.
 
 ## Build and test
 
@@ -124,16 +128,18 @@ Hedera networks:
 | Mainnet | `295` | `https://mainnet.hashio.io/api` |
 | Testnet | `296` | `https://testnet.hashio.io/api` |
 
-The deployer wraps an **existing** bond; it never deploys a mock. Supply the
-cash denomination and the deployed ERC-3643 bond:
+The script wraps an existing settlement contract. For an ATS market, deploy and
+configure `ATSBondAdapter` first and provide its address as `BOND`. The script
+does not grant ATS eligibility or bind the strategy; follow the handoff sequence
+before accepting deposits. Supply matching bond maturity and cash denomination:
 
 ```bash
 export PRIVATE_KEY=0x...
 export CASH_ASSET=0x...            # required: bond denomination ERC-20
-export BOND=0x...                  # required: deployed ERC-3643 bond
+export BOND=0x...                  # required: ATSBondAdapter (not raw ATS token)
 export ADMIN=0x...                 # optional; defaults to the deployer
 export MATURITY=$(date -v+90d +%s)
-export BOND_FUNDING=0              # optional cash top-up to the redemption reserve
+export BOND_FUNDING=0              # keep zero; fund ATS adapter via fundPrincipal
 
 forge script script/Deploy.s.sol:Deploy \
   --rpc-url https://testnet.hashio.io/api \

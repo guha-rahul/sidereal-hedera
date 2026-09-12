@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { bondDiscountBps } from "@sidereal/sdk";
 import { LiveValue } from "@/components/LiveValue";
-import { appConfig, isDeployed, networkLabel } from "@/lib/config";
+import { ConfiguredMarketPill } from "@/components/MarketStatus";
+import { appConfig, deploymentStage, networkLabel } from "@/lib/config";
 import { bpsToPercent, formatMaturityDate, maturityStatus } from "@/lib/format";
 import { useBondInfo } from "@/lib/useBondInfo";
 import { useMarketStatus } from "@/lib/useMarket";
@@ -65,12 +66,7 @@ export default function StrategyPage() {
   const { market, loading: marketLoading } = useMarketStatus();
   const { bond } = useBondInfo();
   const fixed = fixedRateDisplay(market, cfg.decimals);
-  const deployed = isDeployed(cfg);
-  const deploymentStatus = deployed
-    ? cfg.network === "mainnet"
-      ? "Live"
-      : "Testnet"
-    : "Preview";
+  const deploymentStatus = deploymentStage(cfg);
   const bondDiscount = bond ? bpsToPercent(bondDiscountBps(bond.valuePerUnit)) : "";
   const bondValue = bond ? (Number(bond.valuePerUnit) / 1e18).toFixed(4) : "";
   const sourceName = cfg.yieldSource.name || "Configured yield source";
@@ -87,10 +83,7 @@ export default function StrategyPage() {
             <p className="label-data text-amber">Yield markets</p>
             <h1 className="mt-2 text-6xl font-light tracking-tight sm:text-7xl">Strategies</h1>
           </div>
-          <div className="flex items-center gap-2 pb-2 text-[13px] uppercase tracking-[0.1em] text-smoke">
-            <span className="glow-signal-dot h-1.5 w-1.5 animate-pulse rounded-pill bg-amber" />
-            1 configured market
-          </div>
+          <ConfiguredMarketPill />
         </div>
         <p className="max-w-2xl text-smoke">
           Select the source of yield, then mint SY or trade its fixed and variable sides.

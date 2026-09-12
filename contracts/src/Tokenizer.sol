@@ -32,6 +32,7 @@ contract Tokenizer {
 
     Config public config;
     bool private _initialized;
+    address private immutable _initializer = msg.sender;
 
     /// @dev SY rate frozen at maturity.
     uint256 public maturityRate;
@@ -52,6 +53,8 @@ contract Tokenizer {
     error NotAdmin();
     error InvalidFeeRecipient();
     error MathOverflow();
+    error InvalidConfiguration();
+    error SettlementPending();
 
     event YieldFeeSet(address indexed admin, uint256 oldFeeBps, uint256 newFeeBps);
     event Split(address indexed from, uint256 syIn, uint256 ptOut, uint256 ytOut, uint256 rate);
@@ -74,6 +77,8 @@ contract Tokenizer {
         uint256 yieldFeeBps_
     ) external {
         if (_initialized) revert AlreadyInitialized();
+        if (msg.sender != _initializer || admin == address(0)) revert InvalidConfiguration();
+        if (IStandardizedYield(syToken).maturity() != maturity_) revert InvalidMaturity();
         if (maturity_ <= block.timestamp) revert InvalidMaturity();
         if (yieldFeeBps_ > MAX_YIELD_FEE_BPS) revert InvalidFee();
         if (
@@ -112,10 +117,10 @@ contract Tokenizer {
         if (yieldFeeBps_ > MAX_YIELD_FEE_BPS) revert InvalidFee();
         if (
             yieldFeeBps_ > 0
-                && (
-                    config.feeRecipient == address(this) || config.feeRecipient == config.syToken
-                        || config.feeRecipient == config.ptToken || config.feeRecipient == config.ytToken
-                )
+                && (config.feeRecipient == address(this)
+                    || config.feeRecipient == config.syToken
+                    || config.feeRecipient == config.ptToken
+                    || config.feeRecipient == config.ytToken)
         ) {
             revert InvalidFeeRecipient();
         }
@@ -147,9 +152,12 @@ contract Tokenizer {
 
     // --- previews -----------------------------------------------------------
 
-    function previewSplit(
-        uint256 syAmount
-    ) external view initialized returns (uint256 ptOut, uint256 ytOut) {
+    function previewSplit(uint256 syAmount)
+        external
+        view
+        initialized
+        returns (uint256 ptOut, uint256 ytOut)
+    {
         if (isMatured()) revert Matured();
         if (syAmount == 0) revert InvalidAmount();
         uint256 rate = IStandardizedYield(config.syToken).exchangeRate();
@@ -158,10 +166,12 @@ contract Tokenizer {
         return (face, face);
     }
 
-    function previewRecombine(
-        uint256 ptAmount,
-        uint256 ytAmount
-    ) external view initialized returns (uint256) {
+    function previewRecombine(uint256 ptAmount, uint256 ytAmount)
+        external
+        view
+        initialized
+        returns (uint256)
+    {
         if (isMatured()) revert Matured();
         if (ptAmount == 0 || ytAmount == 0) revert InvalidAmount();
         if (ptAmount != ytAmount) revert AmountMismatch();
@@ -173,9 +183,12 @@ contract Tokenizer {
         return full < proRata ? full : proRata;
     }
 
-    function position(
-        address holder
-    ) external view initialized returns (uint256 ptBalance, uint256 ytBalance) {
+    function position(address holder)
+        external
+        view
+        initialized
+        returns (uint256 ptBalance, uint256 ytBalance)
+    {
         return (
             IProtocolToken(config.ptToken).balanceOf(holder),
             IProtocolToken(config.ytToken).balanceOf(holder)
@@ -197,9 +210,7 @@ contract Tokenizer {
 
     /// @notice Pulls `syAmount` SY from the caller into escrow and mints equal PT
     ///         and YT, denominated in asset units.
-    function split(
-        uint256 syAmount
-    ) external initialized returns (uint256 ptOut, uint256 ytOut) {
+    function split(uint256 syAmount) external initialized returns (uint256 ptOut, uint256 ytOut) {
         _requireLive();
         if (syAmount == 0) revert InvalidAmount();
         uint256 rate = _observeLiveRate();
@@ -215,10 +226,11 @@ contract Tokenizer {
 
     /// @notice Burns equal PT and YT from the caller and returns principal in SY
     ///         shares, capped pro-rata under a shortfall.
-    function recombine(
-        uint256 ptAmount,
-        uint256 ytAmount
-    ) external initialized returns (uint256 syOut) {
+    function recombine(uint256 ptAmount, uint256 ytAmount)
+        external
+        initialized
+        returns (uint256 syOut)
+    {
         _requireLive();
         if (ptAmount == 0 || ytAmount == 0) revert InvalidAmount();
         if (ptAmount != ytAmount) revert AmountMismatch();
@@ -242,9 +254,7 @@ contract Tokenizer {
 
     /// @notice After maturity, burns PT and returns principal in SY shares,
     ///         capped to the holder's pro-rata share of escrow.
-    function redeemAtMaturity(
-        uint256 ptAmount
-    ) external initialized returns (uint256 syOut) {
+    function redeemAtMaturity(uint256 ptAmount) external initialized returns (uint256 syOut) {
         if (!isMatured()) revert LiveMarket();
         if (ptAmount == 0) revert InvalidAmount();
 
@@ -292,21 +302,25 @@ contract Tokenizer {
     /// @dev Reads the live SY rate and records it as the latest pre-maturity
     ///      observation.
     function _observeLiveRate() internal returns (uint256 rate) {
+        IStandardizedYield(config.syToken).touch();
         rate = _currentRate();
         lastObservedRate = rate;
     }
 
-    /// @dev Live before maturity; the frozen snapshot after. The freeze uses the
-    ///      last rate observed at or before maturity, never a live post-maturity
-    ///      read, so freeze timing cannot move value between PT and YT.
+    /// @dev Bond strategies stop principal accrual at their matched maturity and
+    ///      include record-date coupon receivables in NAV. Synchronize coupon cash
+    ///      before the terminal rate is frozen; no keeper observation is required.
+    ///      New strategy types must enforce a terminal NAV before reporting ready.
     function _effectiveRate() internal returns (uint256 rate) {
         if (!isMatured()) {
             return _observeLiveRate();
         }
         uint256 frozen = maturityRate;
         if (frozen > 0) return frozen;
-        uint256 observed = lastObservedRate;
-        rate = observed > 0 ? observed : _currentRate();
+        IStandardizedYield sy = IStandardizedYield(config.syToken);
+        sy.touch();
+        if (!sy.settlementReady()) revert SettlementPending();
+        rate = _currentRate();
         maturityRate = rate;
     }
 
@@ -315,8 +329,8 @@ contract Tokenizer {
         if (!isMatured()) return _currentRate();
         uint256 frozen = maturityRate;
         if (frozen > 0) return frozen;
-        uint256 observed = lastObservedRate;
-        return observed > 0 ? observed : _currentRate();
+        if (!IStandardizedYield(config.syToken).settlementReady()) revert SettlementPending();
+        return _currentRate();
     }
 
     function _juniorSurplus(uint256 rate) internal view returns (uint256) {

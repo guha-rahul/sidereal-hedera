@@ -3,8 +3,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   appConfig,
+  configuredMarketCount,
+  deploymentStage,
   hederaNetworkKey,
   isDeployed,
+  marketStatusLabel,
   MAINNET_CHAIN_ID,
   MAINNET_NETWORK,
   MAINNET_RPC,
@@ -208,5 +211,54 @@ describe("networkLabel", () => {
     expect(networkLabel("testnet")).toBe("Testnet");
     expect(networkLabel("mainnet", "lower")).toBe("mainnet");
     expect(networkLabel("custom")).toBe("Configured Network");
+  });
+});
+
+describe("market status", () => {
+  // One source for every status label. The regression these cover is the
+  // homepage advertising an active market while the app banner reported none.
+  it("reports preview and zero markets when no addresses are configured", () => {
+    stubYieldSourceEnv();
+    for (const name of Object.keys(contractEnv)) vi.stubEnv(name, "");
+    const cfg = appConfig();
+
+    expect(isDeployed(cfg)).toBe(false);
+    expect(deploymentStage(cfg)).toBe("Preview");
+    expect(marketStatusLabel(cfg)).toBe("Preview · Testnet");
+    expect(configuredMarketCount(cfg)).toBe(0);
+  });
+
+  it("reports one live market on a configured testnet build", () => {
+    stubYieldSourceEnv();
+    for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(TESTNET_CHAIN_ID));
+    const cfg = appConfig();
+
+    expect(isDeployed(cfg)).toBe(true);
+    // The badge keeps the network as its own stage; the pill says "Live"
+    // because it already carries the network in its second half.
+    expect(deploymentStage(cfg)).toBe("Testnet");
+    expect(marketStatusLabel(cfg)).toBe("Live · Testnet");
+    expect(configuredMarketCount(cfg)).toBe(1);
+  });
+
+  it("reports a live mainnet market as Live in both wordings", () => {
+    stubYieldSourceEnv();
+    for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(MAINNET_CHAIN_ID));
+    const cfg = appConfig();
+
+    expect(deploymentStage(cfg)).toBe("Live");
+    expect(marketStatusLabel(cfg)).toBe("Live · Mainnet");
+  });
+
+  it("stays in preview when only some addresses are configured", () => {
+    stubYieldSourceEnv();
+    for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
+    vi.stubEnv("NEXT_PUBLIC_MARKET_ADDRESS", "");
+    const cfg = appConfig();
+
+    expect(configuredMarketCount(cfg)).toBe(0);
+    expect(marketStatusLabel(cfg)).toBe("Preview · Testnet");
   });
 });

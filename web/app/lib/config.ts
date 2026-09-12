@@ -198,3 +198,40 @@ export function isDeployed(cfg: AppConfig): boolean {
     cfg.contracts.market,
   ].every((addr) => addr.length > 0);
 }
+
+export type DeploymentStage = "Live" | "Testnet" | "Preview";
+
+/**
+ * Single source for every deployment-status label in the app. "Preview"
+ * whenever no market is configured, so the marketing page, the strategy header
+ * and `DeploymentBanner` cannot contradict each other: one of them claiming a
+ * live market while another reports none is the exact failure this replaces.
+ *
+ * Read it from a client component. `NEXT_PUBLIC_*` values are inlined at build
+ * time for the browser but read from the live process on the server, so a
+ * server-rendered status can disagree with the bundle the browser is running.
+ */
+export function deploymentStage(cfg: AppConfig): DeploymentStage {
+  if (!isDeployed(cfg)) return "Preview";
+  return cfg.network === "mainnet" ? "Live" : "Testnet";
+}
+
+/**
+ * Overview-pill wording: "Live · Testnet" / "Preview · Testnet". Separate from
+ * `deploymentStage` because the network is already the second half here, so a
+ * configured testnet market reads "Live · Testnet" rather than repeating
+ * itself, while the per-strategy badge needs the stage on its own.
+ */
+export function marketStatusLabel(cfg: AppConfig): string {
+  const stage = isDeployed(cfg) ? "Live" : "Preview";
+  return `${stage} · ${networkLabel(cfg.network)}`;
+}
+
+/**
+ * Markets this build is configured for. One market per build (a market is a
+ * maturity, and its addresses are baked into the bundle), so this is 1 or 0 —
+ * never a hardcoded 1.
+ */
+export function configuredMarketCount(cfg: AppConfig): number {
+  return isDeployed(cfg) ? 1 : 0;
+}

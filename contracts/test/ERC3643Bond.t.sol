@@ -127,7 +127,6 @@ contract ERC3643BondTest is Test {
 
     function testCouponAndPrincipalBothSettle() public {
         uint256 bonds = _purchase(alice, 1_000e18);
-        vm.warp(t0 + 30 days);
 
         vm.startPrank(issuer);
         uint256 couponId = bond.scheduleCoupon(t0 + 25 days, t0 + 30 days, 0.02e18);
@@ -136,6 +135,7 @@ contract ERC3643BondTest is Test {
         bond.fundPrincipal(200e18);
         vm.stopPrank();
 
+        vm.warp(t0 + 30 days);
         vm.prank(alice);
         uint256 coupon = bond.claimCoupon(couponId);
         assertGt(coupon, 0);

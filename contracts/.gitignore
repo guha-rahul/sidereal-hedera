@@ -8,4 +8,8 @@ lib/
 *.env
 !.env.example
 broadcast/
-deployments/
+
+# Fork-test manifest artifacts only. Real deployment manifests ARE committed:
+# they are the submission's address evidence, and both
+# web/app/scripts/manifest-to-env.mjs and web/app/lib/deployments.ts read them.
+deployments/codex2-fork-*.json

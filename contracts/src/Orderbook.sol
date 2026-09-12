@@ -60,6 +60,7 @@ contract Orderbook {
 
     Config public config;
     bool private _initialized;
+    address private immutable _initializer = msg.sender;
     uint64 public askHead;
     uint64 public bidHead;
     uint64 public nextOrderId;
@@ -121,6 +122,7 @@ contract Orderbook {
         uint256 takerFeeBps
     ) external {
         if (_initialized) revert AlreadyInitialized();
+        if (msg.sender != _initializer) revert NotAdmin();
         if (maturity_ <= block.timestamp) revert InvalidMaturity();
         _requireFee(takerFeeBps);
         if (feeRecipient == address(this) || feeRecipient == ptToken || feeRecipient == syToken) {
