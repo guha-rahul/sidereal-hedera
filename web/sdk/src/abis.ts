@@ -142,8 +142,17 @@ export const orderbookAbi = parseAbi([
 ]);
 
 export const bondAbi = parseAbi([
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function owner() view returns (address)",
   "function denomination() view returns (address)",
+  "function identityRegistry() view returns (address)",
+  "function compliance() view returns (address)",
+  "function isVerified(address account) view returns (bool)",
+  "function startDate() view returns (uint256)",
   "function maturity() view returns (uint256)",
+  "function maturityDate() view returns (uint256)",
+  "function isMatured() view returns (bool)",
   "function totalSupply() view returns (uint256)",
   "function balanceOf(address account) view returns (uint256)",
   "function valuePerUnit() view returns (uint256)",
@@ -151,11 +160,36 @@ export const bondAbi = parseAbi([
   "function availableLiquidity() view returns (uint256)",
   "function issuePricePerUnit() view returns (uint256)",
   "function faceValuePerUnit() view returns (uint256)",
+  "function nominalValue() view returns (uint256)",
   "function couponValuePerUnit() view returns (uint256)",
   "function purchase(uint256 cashIn) returns (uint256)",
   "function redeem(uint256 bondAmount) returns (uint256)",
+  "function redeemAtMaturity(uint256 bondAmount) returns (uint256)",
+  "function couponCount() view returns (uint256)",
+  "function couponInfo(uint256 couponId) view returns (uint256 recordDate, uint256 executionDate, uint256 ratePerUnit, uint256 fundedAmount, uint256 totalSupplySnapshot, bool exists)",
+  "function claimableCoupon(uint256 couponId, address holder) view returns (uint256)",
+  "function couponTargetFunding(uint256 couponId) view returns (uint256)",
+  "function couponClaimed(uint256 couponId, address holder) view returns (bool)",
+  "function claimCoupon(uint256 couponId) returns (uint256)",
+  "function scheduleCoupon(uint256 recordDate, uint256 executionDate, uint256 ratePerUnit) returns (uint256)",
+  "function fundCoupon(uint256 couponId, uint256 amount)",
+  "function fundPrincipal(uint256 amount)",
   "function distributeCoupon(uint256 cashAmount)",
   "function accrue()",
+  "event Purchased(address indexed buyer, uint256 cashIn, uint256 bondOut)",
+  "event Redeemed(address indexed holder, uint256 bondIn, uint256 cashOut)",
+  "event CouponScheduled(uint256 indexed couponId, uint256 recordDate, uint256 executionDate, uint256 ratePerUnit)",
+  "event CouponFunded(uint256 indexed couponId, uint256 amount)",
+  "event CouponClaimed(uint256 indexed couponId, address indexed holder, uint256 cashOut)",
+  "event PrincipalFunded(uint256 amount)",
+]);
+
+export const identityRegistryAbi = parseAbi([
+  "function isVerified(address account) view returns (bool)",
+]);
+
+export const complianceAbi = parseAbi([
+  "function canTransfer(address from, address to, uint256 amount) view returns (bool)",
 ]);
 
 export const bondStrategyAbi = parseAbi([

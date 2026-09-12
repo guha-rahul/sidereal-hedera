@@ -7,6 +7,7 @@ export {
   bondDiscountBps,
   bondPositionValue,
   bondSecondsToMaturity,
+  claimablePayout,
   impliedBondApyBps,
 } from "./bond.js";
 export {
@@ -35,6 +36,8 @@ export {
   orderbookAbi,
   bondAbi,
   bondStrategyAbi,
+  identityRegistryAbi,
+  complianceAbi,
 } from "./abis.js";
 export type {
   Asset,
@@ -67,6 +70,10 @@ export type {
   RemoveLiquidityArgs,
   ApproveArgs,
   BondInfo,
+  CouponInfo,
+  Eligibility,
+  BackingInfo,
+  TxReceipt,
   StrategyInfo,
   TransactionRequest,
   TransactionSender,

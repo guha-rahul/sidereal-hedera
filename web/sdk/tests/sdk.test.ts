@@ -3,9 +3,14 @@
 import { describe, expect, it } from "vitest";
 import { decodeFunctionData } from "viem";
 import { SiderealClient } from "../src/client.js";
-import { ammAbi, orderbookAbi, syVaultAbi } from "../src/abis.js";
+import { ammAbi, bondAbi, orderbookAbi, syVaultAbi } from "../src/abis.js";
 import { marketMethodFor, quoteMethodFor, relativePriceImpactBps } from "../src/routes.js";
-import { bondDiscountBps, impliedBondApyBps, bondPositionValue } from "../src/bond.js";
+import {
+  bondDiscountBps,
+  claimablePayout,
+  impliedBondApyBps,
+  bondPositionValue,
+} from "../src/bond.js";
 import { ContractError } from "../src/errors.js";
 import { WAD, ORDER_SIDE } from "../src/types.js";
 
@@ -67,6 +72,21 @@ describe("bond helpers", () => {
   it("values a position from the contract's unit value", () => {
     expect(bondPositionValue(100n * WAD, (WAD * 97n) / 100n)).toBe(97n * WAD);
   });
+
+  it("computes the discount against a 6-decimal cash par", () => {
+    const par = 1_000_000n; // 1.0 USDC
+    expect(bondDiscountBps(par, par)).toBe(0n);
+    expect(bondDiscountBps(950_000n, par)).toBe(500n);
+  });
+
+  it("caps the claim at the junior surplus before applying the fee", () => {
+    // Preview 100 exceeds surplus 40 => payable 40, 10% fee => 36.
+    expect(claimablePayout(100n, 40n, 1_000n)).toBe(36n);
+    // Surplus is ample: fee applies to the preview.
+    expect(claimablePayout(100n, 1_000n, 1_000n)).toBe(90n);
+    // Nothing banked: a claim pays zero, never a fabricated amount.
+    expect(claimablePayout(100n, 0n, 1_000n)).toBe(0n);
+  });
 });
 
 describe("transaction builders", () => {
@@ -109,6 +129,21 @@ describe("transaction builders", () => {
     const decoded = decodeFunctionData({ abi: syVaultAbi, data: request.data as `0x${string}` });
     expect(decoded.functionName).toBe("deposit");
     expect(decoded.args).toEqual([123n, 120n]);
+  });
+
+  it("encodes coupon and primary-market bond calls", () => {
+    const c = client();
+    const claim = c.buildClaimCoupon(2n);
+    expect(claim.to).toBe(CONTRACTS.bond);
+    const decodedClaim = decodeFunctionData({ abi: bondAbi, data: claim.data as `0x${string}` });
+    expect(decodedClaim.functionName).toBe("claimCoupon");
+    expect(decodedClaim.args).toEqual([2n]);
+
+    const purchase = c.buildPurchase(500n);
+    const decodedPurchase = decodeFunctionData({ abi: bondAbi, data: purchase.data as `0x${string}` });
+    expect(decodedPurchase.functionName).toBe("purchase");
+    expect(decodedPurchase.args).toEqual([500n]);
+    expect(() => c.buildPurchase(0n)).toThrow(/positive/);
   });
 
   it("validates positive amounts and fee ceilings", () => {

@@ -13,7 +13,9 @@ import {
   ammAbi,
   bondAbi,
   bondStrategyAbi,
+  complianceAbi,
   erc20Abi,
+  identityRegistryAbi,
   orderbookAbi,
   principalTokenAbi,
   syVaultAbi,
@@ -23,10 +25,13 @@ import {
 import type {
   AddLiquidityArgs,
   ApproveArgs,
+  BackingInfo,
   BondInfo,
   CancelOrderArgs,
   ClaimArgs,
   ContractAddresses,
+  CouponInfo,
+  Eligibility,
   FillBestOrderArgs,
   LpPosition,
   MarketState,
@@ -53,6 +58,7 @@ import type {
   TokenizerFeeConfig,
   TransactionRequest,
   TransactionSender,
+  TxReceipt,
 } from "./types.js";
 import {
   BPS_DENOMINATOR,
@@ -60,6 +66,7 @@ import {
   MAX_SWAP_FEE_BPS,
   MAX_YIELD_FEE_BPS,
   ORDER_SIDE,
+  WAD,
 } from "./types.js";
 import {
   marketMethodFor,
@@ -67,6 +74,7 @@ import {
   relativePriceImpactBps,
   secondsToMaturity,
 } from "./routes.js";
+import { claimablePayout } from "./bond.js";
 import { toContractError } from "./errors.js";
 
 type Hex = `0x${string}`;
@@ -341,40 +349,49 @@ export class SiderealClient {
 
   /** Reads a holder's SY/PT/YT balances and claimable yield. */
   async getPosition(holder: string, marketId: string): Promise<Position> {
-    const [syBalance, position, lpBalance, claimableYield, tokenizerConfig] = await Promise.all([
-      this.read<bigint>({
-        address: this.contracts.sy,
-        abi: syVaultAbi,
-        functionName: "shareBalance",
-        args: [addr(holder)],
-      }),
-      this.read<unknown>({
-        address: this.contracts.tokenizer,
-        abi: tokenizerAbi,
-        functionName: "position",
-        args: [addr(holder)],
-      }),
-      this.read<bigint>({
-        address: this.contracts.market,
-        abi: ammAbi,
-        functionName: "lpBalance",
-        args: [addr(holder)],
-      }),
-      this.read<bigint>({
-        address: this.contracts.yt,
-        abi: yieldTokenAbi,
-        functionName: "previewClaimYield",
-        args: [addr(holder)],
-      }),
-      this.read<unknown>({
-        address: this.contracts.tokenizer,
-        abi: tokenizerAbi,
-        functionName: "config",
-      }),
-    ]);
+    const [syBalance, position, lpBalance, claimableYield, tokenizerConfig, availableYieldSurplus] =
+      await Promise.all([
+        this.read<bigint>({
+          address: this.contracts.sy,
+          abi: syVaultAbi,
+          functionName: "shareBalance",
+          args: [addr(holder)],
+        }),
+        this.read<unknown>({
+          address: this.contracts.tokenizer,
+          abi: tokenizerAbi,
+          functionName: "position",
+          args: [addr(holder)],
+        }),
+        this.read<bigint>({
+          address: this.contracts.market,
+          abi: ammAbi,
+          functionName: "lpBalance",
+          args: [addr(holder)],
+        }),
+        this.read<bigint>({
+          address: this.contracts.yt,
+          abi: yieldTokenAbi,
+          functionName: "previewClaimYield",
+          args: [addr(holder)],
+        }),
+        this.read<unknown>({
+          address: this.contracts.tokenizer,
+          abi: tokenizerAbi,
+          functionName: "config",
+        }),
+        this.read<bigint>({
+          address: this.contracts.tokenizer,
+          abi: tokenizerAbi,
+          functionName: "availableYieldSurplus",
+        }),
+      ]);
 
     const yieldFeeBps = field(tokenizerConfig, 6, "yieldFeeBps");
-    const claimableYieldNet = claimableYield - (claimableYield * yieldFeeBps) / BPS_DENOMINATOR;
+    // The tokenizer pays `min(preview, juniorSurplus)` and only then takes its
+    // fee. Showing `preview - fee` overstates a claim whenever the surplus is
+    // short, so cap first (see `claimablePayout`).
+    const claimableYieldNet = claimablePayout(claimableYield, availableYieldSurplus, yieldFeeBps);
 
     return {
       holder,
@@ -384,6 +401,7 @@ export class SiderealClient {
       ytBalance: field(position, 1, "ytBalance"),
       claimableYield,
       claimableYieldNet,
+      availableYieldSurplus,
       yieldFeeBps,
       lpBalance,
     };
@@ -435,27 +453,177 @@ export class SiderealClient {
   async getBondInfo(): Promise<BondInfo | null> {
     if (!this.contracts.bond) return null;
     const bond = this.contracts.bond;
-    const [denomination, maturity, totalSupply, valuePerUnit, issue, face, coupon, liquidity] =
-      await Promise.all([
-        this.read<string>({ address: bond, abi: bondAbi, functionName: "denomination" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "maturity" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "totalSupply" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "valuePerUnit" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "issuePricePerUnit" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "faceValuePerUnit" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "couponValuePerUnit" }),
-        this.read<bigint>({ address: bond, abi: bondAbi, functionName: "availableLiquidity" }),
-      ]);
+    const [
+      name,
+      symbol,
+      decimals,
+      owner,
+      denomination,
+      identityRegistry,
+      compliance,
+      startDate,
+      maturity,
+      isMatured,
+      totalSupply,
+      valuePerUnit,
+      issue,
+      face,
+      nominal,
+      coupon,
+      liquidity,
+    ] = await Promise.all([
+      this.read<string>({ address: bond, abi: bondAbi, functionName: "name" }),
+      this.read<string>({ address: bond, abi: bondAbi, functionName: "symbol" }),
+      this.read<number>({ address: bond, abi: erc20Abi, functionName: "decimals" }),
+      this.read<string>({ address: bond, abi: bondAbi, functionName: "owner" }),
+      this.read<string>({ address: bond, abi: bondAbi, functionName: "denomination" }),
+      this.read<string>({ address: bond, abi: bondAbi, functionName: "identityRegistry" }),
+      this.read<string>({ address: bond, abi: bondAbi, functionName: "compliance" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "startDate" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "maturity" }),
+      this.read<boolean>({ address: bond, abi: bondAbi, functionName: "isMatured" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "totalSupply" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "valuePerUnit" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "issuePricePerUnit" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "faceValuePerUnit" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "nominalValue" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "couponValuePerUnit" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "availableLiquidity" }),
+    ]);
     return {
       address: bond,
+      name,
+      symbol,
+      decimals: Number(decimals),
+      owner,
       denomination,
+      identityRegistry,
+      compliance,
+      startDate: Number(startDate),
       maturity: Number(maturity),
+      isMatured,
       totalSupply,
       valuePerUnit,
       issuePricePerUnit: issue,
       faceValuePerUnit: face,
+      nominalValue: nominal,
       couponValuePerUnit: coupon,
       availableLiquidity: liquidity,
+    };
+  }
+
+  /**
+   * Reads ERC-3643 eligibility for one account. Returns null flags when the
+   * deployment has no registry/compliance configured, and captures read
+   * failures per-check instead of failing the whole view.
+   */
+  async getEligibility(account: string): Promise<Eligibility> {
+    const owner = addr(account);
+    const registry = this.contracts.registry?.trim() || null;
+    const compliance = this.contracts.compliance?.trim() || null;
+    const [verified, transferAllowed] = await Promise.all([
+      registry
+        ? this.read<boolean>({
+            address: registry,
+            abi: identityRegistryAbi,
+            functionName: "isVerified",
+            args: [owner],
+          }).catch(() => null)
+        : Promise.resolve<boolean | null>(null),
+      compliance
+        ? this.read<boolean>({
+            address: compliance,
+            abi: complianceAbi,
+            functionName: "canTransfer",
+            args: [owner, owner, 0n],
+          }).catch(() => null)
+        : Promise.resolve<boolean | null>(null),
+    ]);
+    return { account, registry, compliance, verified, transferAllowed };
+  }
+
+  /**
+   * Reads the bond's coupon schedule. When a holder is supplied, each coupon
+   * also carries that holder's claimable cash and claimed flag.
+   */
+  async getCoupons(holder?: string): Promise<CouponInfo[]> {
+    if (!this.contracts.bond) return [];
+    const bond = this.contracts.bond;
+    const count = Number(
+      await this.read<bigint>({ address: bond, abi: bondAbi, functionName: "couponCount" }),
+    );
+    if (count === 0) return [];
+    const ids = Array.from({ length: count }, (_, i) => BigInt(i));
+    return Promise.all(
+      ids.map(async (couponId) => {
+        const raw = await this.read<unknown>({
+          address: bond,
+          abi: bondAbi,
+          functionName: "couponInfo",
+          args: [couponId],
+        });
+        const [claimable, claimed] = holder
+          ? await Promise.all([
+              this.read<bigint>({
+                address: bond,
+                abi: bondAbi,
+                functionName: "claimableCoupon",
+                args: [couponId, addr(holder)],
+              }).catch(() => null),
+              this.read<boolean>({
+                address: bond,
+                abi: bondAbi,
+                functionName: "couponClaimed",
+                args: [couponId, addr(holder)],
+              }).catch(() => null),
+            ])
+          : [null, null];
+        return {
+          couponId,
+          recordDate: field(raw, 0, "recordDate"),
+          executionDate: field(raw, 1, "executionDate"),
+          ratePerUnit: field(raw, 2, "ratePerUnit"),
+          fundedAmount: field(raw, 3, "fundedAmount"),
+          totalSupplySnapshot: field(raw, 4, "totalSupplySnapshot"),
+          exists: Boolean(Array.isArray(raw) ? raw[5] : (raw as Record<string, unknown>).exists),
+          claimable,
+          claimed,
+        } satisfies CouponInfo;
+      }),
+    );
+  }
+
+  /**
+   * Reads the strategy's bond backing, keeping bond units and cash value
+   * separate. Returns null when no strategy/bond is configured.
+   */
+  async getBacking(): Promise<BackingInfo | null> {
+    if (!this.contracts.strategy || !this.contracts.bond) return null;
+    const strategy = this.contracts.strategy;
+    const bond = this.contracts.bond;
+    const [bondUnits, countedCash, totalAssets, availableLiquidity] = await Promise.all([
+      this.read<bigint>({ address: strategy, abi: bondStrategyAbi, functionName: "accountedBonds" }),
+      this.read<bigint>({ address: strategy, abi: bondStrategyAbi, functionName: "countedCash" }),
+      this.read<bigint>({ address: strategy, abi: bondStrategyAbi, functionName: "totalAssets" }),
+      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "availableLiquidity" }),
+    ]);
+    const [bondValue, shares] = await Promise.all([
+      this.read<bigint>({
+        address: bond,
+        abi: bondAbi,
+        functionName: "valueOf",
+        args: [bondUnits],
+      }),
+      this.read<bigint>({ address: this.contracts.sy, abi: syVaultAbi, functionName: "totalShares" }),
+    ]);
+    return {
+      address: strategy,
+      bondUnits,
+      bondValue,
+      countedCash,
+      totalAssets,
+      availableLiquidity,
+      assetsPerShare: shares > 0n ? (totalAssets * WAD) / shares : 0n,
     };
   }
 
@@ -614,6 +782,19 @@ export class SiderealClient {
     return this.encode(this.contracts.bond, bondAbi, "accrue");
   }
 
+  /** Claims one funded, executed coupon for the sender (bond holder path). */
+  buildClaimCoupon(couponId: bigint): TransactionRequest {
+    if (!this.contracts.bond) throw new Error("this market deployment has no bond configured");
+    return this.encode(this.contracts.bond, bondAbi, "claimCoupon", [couponId]);
+  }
+
+  /** Buys the bond directly from the issuer with cash (primary market). */
+  buildPurchase(cashIn: bigint): TransactionRequest {
+    if (!this.contracts.bond) throw new Error("this market deployment has no bond configured");
+    requirePositive("cashIn", cashIn);
+    return this.encode(this.contracts.bond, bondAbi, "purchase", [cashIn]);
+  }
+
   // --- submit --------------------------------------------------------------
 
   /**
@@ -624,9 +805,25 @@ export class SiderealClient {
     return sender.sendTransaction({ to: request.to, data: request.data, value: request.value });
   }
 
-  /** Waits for a transaction to be included on Hedera. */
+  /**
+   * Waits for a transaction to be included on Hedera. Throws when the receipt
+   * status is not success, so a reverted call is never reported as confirmed.
+   */
   async waitForReceipt(hash: string): Promise<void> {
-    await this.client.waitForTransactionReceipt({ hash: hash as Hex });
+    const receipt = await this.getReceipt(hash);
+    if (receipt.status !== "success") {
+      throw new Error(`transaction reverted on-chain: ${hash}`);
+    }
+  }
+
+  /** Fetches a receipt without asserting success (for the tx detail view). */
+  async getReceipt(hash: string): Promise<TxReceipt> {
+    const receipt = await this.client.waitForTransactionReceipt({ hash: hash as Hex });
+    return {
+      hash,
+      status: receipt.status,
+      blockNumber: receipt.blockNumber,
+    };
   }
 
   /** The underlying viem public client, for advanced reads. */

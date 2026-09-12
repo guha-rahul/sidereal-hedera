@@ -52,6 +52,10 @@ export interface ContractAddresses {
   strategy?: string;
   /** Bond cash denomination (the SY vault's underlying). Optional. */
   underlying?: string;
+  /** ERC-3643 identity registry gating the bond. Optional. */
+  registry?: string;
+  /** ERC-3643 compliance module gating bond transfers. Optional. */
+  compliance?: string;
 }
 
 export interface SiderealOptions {
@@ -119,10 +123,16 @@ export interface Position {
   syBalance: bigint;
   ptBalance: bigint;
   ytBalance: bigint;
-  /** Yield earned before the tokenizer protocol fee. */
+  /** YT yield preview before the tokenizer applies its fee and junior cap. */
   claimableYield: bigint;
-  /** SY received after the current tokenizer protocol fee. */
+  /**
+   * SY the holder can actually receive right now: the preview capped by the
+   * tokenizer's junior surplus, minus the protocol fee. Reading the raw preview
+   * overstates a claim whenever the surplus is short.
+   */
   claimableYieldNet: bigint;
+  /** Junior surplus backing YT claims right now, in SY shares. */
+  availableYieldSurplus: bigint;
   /** Current tokenizer protocol fee in basis points. */
   yieldFeeBps: bigint;
   /** LP tokens held by this holder in the AMM, in base units. */
@@ -275,14 +285,79 @@ export interface ApproveArgs {
 /** Bond snapshot for the yield source behind the SY vault. */
 export interface BondInfo {
   address: string;
+  name: string;
+  symbol: string;
+  /** Bond token decimals (the "reserve quantity" base unit). */
+  decimals: number;
   denomination: string;
+  owner: string;
+  identityRegistry: string;
+  compliance: string;
+  startDate: number;
   maturity: number;
+  isMatured: boolean;
   totalSupply: bigint;
+  /** Cash value of one bond unit right now, in cash base units (WAD-scaled). */
   valuePerUnit: bigint;
   issuePricePerUnit: bigint;
   faceValuePerUnit: bigint;
   couponValuePerUnit: bigint;
+  nominalValue: bigint;
   availableLiquidity: bigint;
+}
+
+/** One issuer-coupon record on the bond, with the holder's claimable amount. */
+export interface CouponInfo {
+  couponId: bigint;
+  recordDate: bigint;
+  executionDate: bigint;
+  /** WAD cash per bond unit, e.g. 0.02e18 = 2%. */
+  ratePerUnit: bigint;
+  /** Cash the issuer has deposited to fund this coupon, in cash base units. */
+  fundedAmount: bigint;
+  /** Bond supply snapshot, set on the first claim (0 while unclaimed). */
+  totalSupplySnapshot: bigint;
+  exists: boolean;
+  /** Cash claimable by the queried holder, when a holder was supplied. */
+  claimable: bigint | null;
+  /** True once the queried holder has claimed, when a holder was supplied. */
+  claimed: boolean | null;
+}
+
+/** ERC-3643 eligibility for one account. Null flags mean "not configured". */
+export interface Eligibility {
+  account: string;
+  registry: string | null;
+  compliance: string | null;
+  verified: boolean | null;
+  /** Whether the account may transfer the bond to itself (a cash-like probe). */
+  transferAllowed: boolean | null;
+  /** Human-readable reason when a check failed to read. */
+  error?: string;
+}
+
+/** Bond backing behind the SY vault, separating units from cash value. */
+export interface BackingInfo {
+  address: string;
+  /** Bond units the strategy holds (the reserve quantity). */
+  bondUnits: bigint;
+  /** Cash value of those units at the current accreted price. */
+  bondValue: bigint;
+  /** Cash already realized and held by the strategy. */
+  countedCash: bigint;
+  /** `bondValue + countedCash`, the strategy's totalAssets. */
+  totalAssets: bigint;
+  /** Cash the bond itself holds for redemptions and coupons. */
+  availableLiquidity: bigint;
+  /** Bond backing per SY share, WAD-scaled (assets per share). */
+  assetsPerShare: bigint;
+}
+
+/** Minimal receipt surfaced after a confirmed transaction. */
+export interface TxReceipt {
+  hash: string;
+  status: "success" | "reverted";
+  blockNumber: bigint;
 }
 
 /** Strategy snapshot for the yield source seam. */
