@@ -10,24 +10,23 @@ import { test, expect } from "@playwright/test";
 const MAINNET_CHAIN_ID = "295";
 const isPublicProfile = process.env.NEXT_PUBLIC_HEDERA_CHAIN_ID === MAINNET_CHAIN_ID;
 
-test("landing page renders the protocol pitch and a request-access CTA", async ({ page }) => {
+test("landing page renders the protocol pitch and an Open App CTA", async ({ page }) => {
   await page.goto("/");
-  // Marketing hero: editorial headline, the PT+YT=SY value identity, and the private-access CTA.
+  // Marketing hero: editorial headline, the PT+YT=SY value identity, and the app CTA.
   await expect(
     page.getByRole("heading", { name: /split bond yield into principal and yield/i }),
   ).toBeVisible();
   await expect(page.getByText("PT + YT = SY")).toBeVisible();
-  const requestAccess = page.getByRole("link", { name: /request access/i }).first();
-  await expect(requestAccess).toBeVisible();
-  await requestAccess.click();
-  await expect(page).toHaveURL(/\/request-access\?source=nav$/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { name: /enter the next fixed-yield market/i })).toBeVisible();
-  await expect(page.getByLabel("Work email")).toBeVisible();
+  const openApp = page.getByRole("link", { name: /open app/i }).first();
+  await expect(openApp).toBeVisible();
+  await openApp.click();
+  await expect(page).toHaveURL(/\/mint$/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Mint" })).toBeVisible();
 });
 
 test("nav reaches strategy, mint, trade, pool, and portfolio", async ({ page }) => {
-  // The public CTA now leads to the request flow. Exercise the independently
-  // routable app shell directly.
+  // The public CTA leads into the app. Exercise the independently routable
+  // app shell directly.
   await page.goto("/trade");
   await expect(page.getByRole("heading", { name: "Trade" })).toBeVisible({ timeout: 15_000 });
 

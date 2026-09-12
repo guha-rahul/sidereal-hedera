@@ -15,7 +15,7 @@ import { appConfig, networkLabel } from "@/lib/config";
 
 // Marketing chrome for the "cinematic darkroom" landing: a fixed atmospheric
 // canvas, a quiet top bar that inverts on scroll, and the existing reveal
-// footer. The primary action opens the private-access request flow.
+// footer. The primary action opens the trading app.
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const cfg = appConfig();
 
