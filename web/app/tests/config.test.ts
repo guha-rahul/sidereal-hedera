@@ -148,6 +148,37 @@ describe("appConfig", () => {
     expect(cfg.yieldSource.kind).toBe("mock");
     expect(cfg.yieldSource.name).toBe("Simulated rate");
   });
+
+  it("enables the faucet by default on testnet when an underlying is configured", () => {
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(TESTNET_CHAIN_ID));
+    vi.stubEnv("NEXT_PUBLIC_UNDERLYING_ADDRESS", "0xUNDERLYING");
+    vi.stubEnv("NEXT_PUBLIC_FAUCET_ENABLED", "");
+    vi.stubEnv("NEXT_PUBLIC_FAUCET_AMOUNT", "");
+
+    const cfg = appConfig();
+
+    expect(cfg.faucetEnabled).toBe(true);
+    expect(cfg.faucetAmount).toBe("1000");
+  });
+
+  it("keeps the faucet off on mainnet and when explicitly disabled", () => {
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(MAINNET_CHAIN_ID));
+    vi.stubEnv("NEXT_PUBLIC_UNDERLYING_ADDRESS", "0xUNDERLYING");
+    vi.stubEnv("NEXT_PUBLIC_FAUCET_ENABLED", "");
+    expect(appConfig().faucetEnabled).toBe(false);
+
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(TESTNET_CHAIN_ID));
+    vi.stubEnv("NEXT_PUBLIC_FAUCET_ENABLED", "0");
+    expect(appConfig().faucetEnabled).toBe(false);
+  });
+
+  it("honors a custom faucet amount", () => {
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(TESTNET_CHAIN_ID));
+    vi.stubEnv("NEXT_PUBLIC_UNDERLYING_ADDRESS", "0xUNDERLYING");
+    vi.stubEnv("NEXT_PUBLIC_FAUCET_AMOUNT", "250");
+
+    expect(appConfig().faucetAmount).toBe("250");
+  });
 });
 
 describe("hederaNetworkKey", () => {
