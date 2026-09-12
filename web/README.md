@@ -38,6 +38,17 @@ addresses (`NEXT_PUBLIC_SY_ADDRESS`, `NEXT_PUBLIC_PT_ADDRESS`,
 yield source (`NEXT_PUBLIC_BOND_ADDRESS`, `NEXT_PUBLIC_STRATEGY_ADDRESS`,
 `NEXT_PUBLIC_UNDERLYING_ADDRESS`).
 
+## Testnet faucet
+
+On testnet the app offers a faucet for the market's cash denomination. The mock
+ERC-20 exposes a public `mint`, so `/api/faucet` prepares an unsigned
+`mint(recipient, amount)` request for the connected wallet to sign; the app never
+holds a key. It is enabled by default on testnet when an underlying is
+configured, and can be turned off with `NEXT_PUBLIC_FAUCET_ENABLED=0` (for a real
+non-mintable asset). The amount is `NEXT_PUBLIC_FAUCET_AMOUNT` (whole tokens,
+default `1000`). The mint page surfaces it both inline (when the wallet is empty)
+and in the `BondWalkthrough` onboarding checklist.
+
 ## Wallet
 
 The app connects to an injected EVM wallet (`window.ethereum`): MetaMask, or

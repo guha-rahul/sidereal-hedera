@@ -25,6 +25,8 @@ import { MaturityBadge } from "@/components/MaturityBadge";
 import { YieldSourceCard } from "@/components/YieldSourceCard";
 import { TokenizeBondPanel } from "@/components/TokenizeBondPanel";
 import { YieldChoiceCard } from "@/components/YieldChoiceCard";
+import { FaucetButton } from "@/components/FaucetButton";
+import { BondWalkthrough } from "@/components/BondWalkthrough";
 import { applySlippage, DEFAULT_SLIPPAGE_BPS } from "@/lib/slippage";
 
 const MINT_MODES = [
@@ -39,6 +41,7 @@ export default function MintPage() {
   const [mode, setMode] = useState<(typeof MINT_MODES)[number]["id"]>("deposit");
   const [underlyingBalance, setUnderlyingBalance] = useState<bigint | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
   const market = useMarket();
   const refreshKey = phase.kind === "done" ? phase.hash : 0;
   const position = usePosition(address, refreshKey);
@@ -83,7 +86,7 @@ export default function MintPage() {
     return () => {
       cancelled = true;
     };
-  }, [address, cfg, market]);
+  }, [address, cfg, market, refreshNonce]);
 
   const amtError = balanceError ?? amountError(amount, cfg.decimals, underlyingBalance ?? undefined);
   const canSubmit = address !== null && preview !== null && !amtError && phase.kind !== "working";
@@ -218,6 +221,20 @@ export default function MintPage() {
                 "connect wallet"
               )}
             </p>
+
+            {address && underlyingBalance === 0n ? (
+              <div className="rounded-card border border-amber/30 bg-amber/5 p-3">
+                <p className="text-xs leading-relaxed text-smoke">
+                  This wallet has no {cfg.yieldSource.kind === "bond" ? "cash" : "underlying"} yet.
+                  {cfg.faucetEnabled
+                    ? " Mint test cash to try the flow."
+                    : " Fund the wallet with the market's underlying before minting."}
+                </p>
+                <div className="mt-2">
+                  <FaucetButton onDone={() => setRefreshNonce((value) => value + 1)} />
+                </div>
+              </div>
+            ) : null}
 
             <div className="border-t border-white/10 pt-5">
               <span className="label-data">Mint mode</span>
@@ -360,6 +377,8 @@ export default function MintPage() {
           </div>
         </aside>
       </div>
+
+      <BondWalkthrough />
     </div>
   );
 }
