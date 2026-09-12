@@ -81,6 +81,39 @@ reads an allowance and returns an approval request when one is needed.
 
 ## Deploy
 
+### Cloudflare Workers
+
+In Workers & Pages, set the Worker's build configuration to:
+
+| Setting | Value |
+|---|---|
+| Root directory | `web/app` |
+| Build command | `pnpm install --frozen-lockfile && pnpm run cf:build` |
+| Deploy command | `pnpm exec opennextjs-cloudflare deploy` |
+| Node version (`NODE_VERSION` build variable) | `20` |
+
+The install uses the parent `web/pnpm-workspace.yaml` and lockfile. `cf:build`
+compiles the SDK, then builds Next.js through OpenNext, generating
+`.open-next/worker.js` and `.open-next/assets` for `app/wrangler.jsonc`.
+Set `NEXT_PUBLIC_*` variables in the Cloudflare build environment before building.
+The Worker name in Cloudflare must match `sidereal` in the Wrangler configuration.
+
+Alternatively, keep Cloudflare's root directory at the repository root, leave
+the build command empty, and use the default `npx wrangler deploy` deploy command.
+The root `wrangler.jsonc` installs the web workspace with pinned pnpm, runs
+`cf:build`, and deploys the generated Worker and assets. It mirrors the runtime
+bindings in `app/wrangler.jsonc`; keep both configurations in sync when changing
+bindings or the Worker name.
+
+To build and deploy locally from `web/`:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm --filter @sidereal/app cf:deploy
+```
+
+### Vercel
+
 The web app deploys on Vercel with Root Directory set to `app`. The build runs
 `pnpm --filter @sidereal/sdk build && next build`.
 
