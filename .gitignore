@@ -1,0 +1,8 @@
+# OS / editor
+.DS_Store
+*.swp
+
+# Local environment files (nested projects manage their own)
+.env
+.env.*
+!.env.example

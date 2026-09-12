@@ -1,0 +1,10 @@
+# Foundry
+out/
+cache/
+lib/
+
+# Secrets — never commit
+.env
+*.env
+!.env.example
+broadcast/
