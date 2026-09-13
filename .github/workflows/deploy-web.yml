@@ -34,7 +34,7 @@ jobs:
         run: echo "::warning::VERCEL_TOKEN is not set; add it as a repository secret to enable deploys."
 
       - if: env.VERCEL_TOKEN != ''
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
