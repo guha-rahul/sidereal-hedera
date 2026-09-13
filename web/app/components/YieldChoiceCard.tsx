@@ -43,7 +43,7 @@ export function YieldChoiceCard({
               </span>
             </div>
             <p className="text-sm leading-relaxed text-smoke">
-              Tokenize USDC into PT and YT, then sell the YT. The PT discount is
+              Tokenize the bond&apos;s cash into PT and YT, then sell the YT. The PT discount is
               the fixed yield you keep to maturity.
             </p>
             <p className="text-xs leading-relaxed text-ash">{fixed.detail}</p>

@@ -30,8 +30,8 @@ const STEPS = [
     kicker: "Action / Supply",
     body: (
       <>
-        Deposit <Term>USDC</Term>. The protocol wraps it into Standardized Yield, ready for the
-        splitting mechanism.
+        Deposit the bond&rsquo;s <Term>cash</Term>. The protocol wraps it into Standardized Yield,
+        ready for the splitting mechanism.
       </>
     ),
     band: "ink" as const,
@@ -121,7 +121,8 @@ export default function LandingPage() {
               Split bond yield into principal and yield.
             </h1>
             <p data-exit="lede" className="mt-8 max-w-xl text-lg leading-relaxed text-smoke">
-              Deposit USDC. Mint SY. Separate fixed principal from variable yield, and trade both.
+              Deposit the bond&rsquo;s cash. Mint SY. Separate fixed principal from variable yield,
+              and trade both.
             </p>
             <div
               data-exit="actions"

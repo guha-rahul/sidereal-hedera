@@ -66,7 +66,7 @@ type OutputOffsets = Record<DemoTaskId, Record<DemoOutputStream, number>>;
 
 const DEPLOYMENT_ROWS = [
   { key: "ADMIN", name: "Admin account", kind: "account" },
-  { key: "UNDERLYING", name: "Underlying SAC", kind: "contract" },
+  { key: "UNDERLYING", name: "Underlying cash token", kind: "contract" },
   { key: "SY", name: "SY wrapper", kind: "contract" },
   { key: "PT", name: "Principal token", kind: "contract" },
   { key: "YT", name: "Yield token", kind: "contract" },
@@ -128,20 +128,16 @@ function explorerUrl(address: string, network: AppNetwork): string | null {
 function extractDeploymentValue(output: string, key: string): string | null {
   const cleaned = cleanOutput(output);
   if (key === "ADMIN") {
-    return (
-      cleaned.match(/ADMIN="?([G][A-Z0-9]{55})"?/)?.[1] ??
-      cleaned.match(/Identity:\s+\S+\s+=\s+([G][A-Z0-9]{55})/)?.[1] ??
-      null
-    );
+    return cleaned.match(/ADMIN="?(0x[0-9a-fA-F]{40})"?/)?.[1] ?? null;
   }
   if (key === "UNDERLYING") {
     return (
-      cleaned.match(/UNDERLYING="?([C][A-Z0-9]{55})"?/)?.[1] ??
-      cleaned.match(/Underlying SAC:\s+([C][A-Z0-9]{55})/)?.[1] ??
+      cleaned.match(/UNDERLYING="?(0x[0-9a-fA-F]{40})"?/)?.[1] ??
+      cleaned.match(/Underlying:\s+(0x[0-9a-fA-F]{40})/)?.[1] ??
       null
     );
   }
-  return cleaned.match(new RegExp(`${key}="?([C][A-Z0-9]{55})"?`))?.[1] ?? null;
+  return cleaned.match(new RegExp(`${key}="?(0x[0-9a-fA-F]{40})"?`))?.[1] ?? null;
 }
 
 function initialOffsets(): OutputOffsets {
@@ -539,18 +535,18 @@ export default function DemoPage() {
         <header className="space-y-3">
           <h1 className="text-5xl font-light tracking-tight sm:text-6xl">Demo</h1>
           <p className="max-w-2xl text-smoke">
-            Demo automation stays disabled on mainnet. The backend runner shells out to local repo
-            scripts and testnet transactions, so this route is manual-only on the configured public
-            market.
+            Demo automation stays disabled on the public deployment. The backend runner shells out
+            to local repo scripts and testnet transactions, so this route is manual-only on the
+            configured public market.
           </p>
         </header>
 
         <section className="panel-subtle p-5">
           <p className="label-data">Automation disabled</p>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-smoke">
-            The live market is already deployed on Hedera mainnet. Use the mint and trade pages to
-            deposit the bond&apos;s cash denomination, mint SY, and split it into PT and YT. The
-            server-side demo runner remains testnet-only by design.
+            The live market is deployed on Hedera testnet. Use the mint and trade pages to deposit
+            the bond&apos;s cash denomination, mint SY, and split it into PT and YT. The server-side
+            demo runner remains testnet-only by design.
           </p>
         </section>
       </div>

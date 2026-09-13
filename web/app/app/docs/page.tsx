@@ -112,11 +112,12 @@ export default function IntroductionPage() {
       </div>
 
       <div className="mt-5">
-        <Callout label="Live on mainnet · unaudited" signal>
-          Sidereal is live on Hedera mainnet, and the full lifecycle has settled real funds end to
-          end. It has <strong>not</strong> had a professional third-party audit, and the contracts
-          cannot be changed after deployment, so a defect would be permanent. Treat it as early and
-          unaudited, not as safe. See <Link href="/docs/security">Security and risks</Link>.
+        <Callout label="Hedera testnet demonstration · unaudited" signal>
+          Sidereal runs on Hedera <strong>testnet</strong> with a real ATS-issued bond and test-only
+          sdUSD cash. It has <strong>not</strong> had a professional third-party audit, and the
+          contracts cannot be changed after deployment, so a defect would be permanent. Treat it as
+          an early, unaudited demonstration, not as safe or as a live mainnet product. See{" "}
+          <Link href="/docs/security">Security and risks</Link>.
         </Callout>
       </div>
 

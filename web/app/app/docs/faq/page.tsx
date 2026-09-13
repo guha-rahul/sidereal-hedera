@@ -11,8 +11,9 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: "Is Sidereal live on mainnet?",
     a: (
       <>
-        Yes, the contracts are live on Hedera mainnet, wrapping a tokenized bond, and the full
-        lifecycle has settled real funds end to end. It is early and unaudited; see{" "}
+        No. This is a Hedera <strong>testnet</strong> demonstration. The bond is issued through the
+        real ATS factory and the full lifecycle runs on testnet, but the cash is test-only sdUSD and
+        no real funds are involved. It is early and unaudited; see{" "}
         <Link href="/docs/security">Security and risks</Link>.
       </>
     ),
@@ -60,7 +61,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
-    q: "Why is the PT price below 1 USDC? Is something wrong?",
+    q: "Why is the PT price below 1 unit of cash? Is something wrong?",
     a: (
       <>
         That discount is the product. PT works like a savings bond: pay less than face value
@@ -106,10 +107,9 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: "Why can't I trade size right now?",
     a: (
       <>
-        The first mainnet market is newly seeded, so the trading pool is shallow and large swaps
-        move the rate sharply against you. Everything that needs no counterparty (deposit, split,
-        claim, recombine, redeem) works at any size. Deepening liquidity is the current growth
-        focus.
+        The testnet market is newly seeded, so the trading pool is shallow and large swaps move the
+        rate sharply against you. Everything that needs no counterparty (deposit, split, claim,
+        recombine, redeem) works at any size. Deepening liquidity is the current growth focus.
       </>
     ),
   },

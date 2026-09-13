@@ -19,9 +19,9 @@ const STRATEGIES = [
     stage: "Live",
     family: "Tokenized bond",
     name: "Tokenized bond yield",
-    asset: "USDC",
+    asset: "Cash",
     rate: "Bond discount + fixed PT",
-    path: "USDC / tokenized bond / SY / PT + YT",
+    path: "Cash / tokenized bond / SY / PT + YT",
     summary:
       "Deposit the bond's cash denomination without borrowing or collateralization, then choose fixed-principal PT or variable-yield YT.",
   },

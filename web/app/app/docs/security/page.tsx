@@ -17,10 +17,11 @@ export default function SecurityPage() {
 
       <div className="mt-8">
         <Callout label="Read this first" signal>
-          Sidereal has <strong>not</strong> had a professional third-party audit. The contracts
-          cannot be changed after deployment, so a defect would be permanent. The mainnet
-          deployment holds small, deliberately limited funds. Treat it as early and unaudited, not
-          as safe.
+          Sidereal runs on Hedera <strong>testnet</strong> as an unaudited demonstration. The bond is
+          issued through the real ATS factory, and the cash is test-only sdUSD; no real funds are
+          involved. Sidereal has <strong>not</strong> had a professional third-party audit, and the
+          contracts cannot be changed after deployment, so a defect would be permanent. Treat it as
+          early and unaudited, not as safe.
         </Callout>
       </div>
 
@@ -28,28 +29,25 @@ export default function SecurityPage() {
         <h2>What has been done</h2>
         <ul>
           <li>
-            <strong>Three internal audit rounds</strong> before mainnet, each with fixes verified
-            on-chain against real bond cashflow: ERC-20 approval lifetimes, unit conversion in the
-            YT trade route, withdrawal price floors, the maturity-freeze mechanism, and interest
-            settlement on YT transfers, among others.
+            <strong>Test suite:</strong> Solidity tests pass, including live ATS fork checks that
+            run issuance, deposits, splits, trades, revocation, coupons, and maturity settlement
+            against the real ATS factory. The SDK and app test suites also pass.
           </li>
           <li>
-            <strong>Randomized property testing:</strong> a 10,000-step test that hammers the
-            contracts with random splits, transfers, claims, recombines and redemptions under
-            changing rates, checking after every step that the escrow still covers everything it
-            owes. The AMM also has a 10,000-case reserve/custody property suite, and its non-par SY
-            unit paths are exercised directly.
+            <strong>Property and invariant tests:</strong> fuzzed and invariant runs exercise random
+            splits, transfers, claims, recombines, and redemptions under changing rates, checking
+            that the escrow still covers what it owes.
           </li>
           <li>
-            <strong>Live simulation:</strong> waves of real testnet wallets ran the full lifecycle
-            against fresh deployments, and every claimed finding was re-verified against source
-            before being recorded. The mainnet deployment itself has run the complete lifecycle
-            with real funds.
+            <strong>Live testnet lifecycle:</strong> two ATS markets were issued through the real
+            factory and driven end to end on testnet — issuance, KYC, deposits, splits, a two-wallet
+            trade, revocation, coupon, and maturity settlement. Receipts and balances are recorded
+            under <code>contracts/deployments/evidence/</code>.
           </li>
           <li>
-            <strong>Reproducible builds:</strong> anyone can rebuild the contracts from the
-            recorded source commit and confirm the result matches what is on chain
-            (see <Link href="/docs/contracts">Deployed contracts</Link>).
+            <strong>Reproducible builds:</strong> dependencies are pinned, and the ATS deployment
+            records its compiler settings and build inputs so the deployed bytecode can be compared
+            against source (see <Link href="/docs/contracts">Deployed contracts</Link>).
           </li>
           <li>
             <strong>Whole-number math by construction:</strong> Solidity has no floating-point
@@ -57,13 +55,6 @@ export default function SecurityPage() {
             pricing arithmetic cannot silently regress to floating point.
           </li>
         </ul>
-        <p>
-          Known issues, all minor and none affecting funds, are tracked publicly in{" "}
-          <a href="https://github.com/sidereal-tech/contracts/blob/main/findings.md">
-            findings.md
-          </a>
-          .
-        </p>
 
         <h2>What the admin can and cannot do</h2>
         <p>Admin authority is enforced independently by each contract:</p>
