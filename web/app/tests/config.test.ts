@@ -96,7 +96,8 @@ describe("appConfig", () => {
     expect(cfg.decimals).toBe(18);
     expect(cfg.underlyingDecimals).toBe(6);
     expect(cfg.shareDecimals).toBe(18);
-    expect(cfg.yieldSource.kind).toBe("mock");
+    expect(cfg.yieldSource.kind).toBe("bond");
+    expect(cfg.yieldSource.name).toBe("Tokenized bond");
     // The public demo works from a fresh clone with no env: the checked-in
     // testnet deployment fills every address.
     expect(cfg.contracts.sy).toBe(TESTNET_DEPLOYMENT.contracts.sy);

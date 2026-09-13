@@ -153,7 +153,6 @@ export function appConfig(): AppConfig {
   const chainId = chainIdFromEnv(process.env.NEXT_PUBLIC_HEDERA_CHAIN_ID);
   const network = hederaNetworkKey(chainId);
   const defaultRpcUrl = network === "mainnet" ? MAINNET_RPC : TESTNET_RPC;
-  const yieldKind = yieldSourceKind(process.env.NEXT_PUBLIC_YIELD_SOURCE_KIND);
   // The public testnet demo falls back to the checked-in deployment when the
   // NEXT_PUBLIC_* addresses are absent, so a fresh clone still works without
   // any gating or manual setup. Mainnet never falls back.
@@ -163,6 +162,14 @@ export function appConfig(): AppConfig {
     key: keyof ContractAddresses,
   ): string => publicEnv(env, fallback?.[key] ?? "");
   const bondAddress = deployed(process.env.NEXT_PUBLIC_BOND_ADDRESS, "bond");
+  const yieldKind = yieldSourceKind(
+    publicEnv(
+      process.env.NEXT_PUBLIC_YIELD_SOURCE_KIND,
+      fallback && bondAddress.toLowerCase() === fallback.bond?.toLowerCase()
+        ? "bond"
+        : "mock",
+    ),
+  );
   const strategyAddress = deployed(
     process.env.NEXT_PUBLIC_STRATEGY_ADDRESS,
     "strategy",
