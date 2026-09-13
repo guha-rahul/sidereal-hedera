@@ -65,7 +65,8 @@ jobs:
           stage="$RUNNER_TEMP/app"
           mkdir -p "$stage"
           ( cd web/sdk && npm pack --pack-destination "$RUNNER_TEMP" >/dev/null )
-          rsync -a --exclude node_modules --exclude .next --exclude .vercel --exclude '.env.local' web/app/ "$stage/"
+          rsync -a --exclude node_modules --exclude .next --exclude .vercel \
+            --exclude tests --exclude e2e --exclude '.env.local' web/app/ "$stage/"
           cd "$stage"
           tarball=$(basename "$(ls "$RUNNER_TEMP"/sidereal-sdk-*.tgz)")
           mv "$RUNNER_TEMP/$tarball" .
@@ -76,4 +77,4 @@ jobs:
         if: env.VERCEL_TOKEN != ''
         run: |
           cd "$RUNNER_TEMP/app"
-          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          npx --yes vercel@latest deploy --prod --yes --force --token "$VERCEL_TOKEN"

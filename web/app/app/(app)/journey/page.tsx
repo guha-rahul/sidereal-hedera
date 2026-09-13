@@ -10,6 +10,7 @@ type BuildStep = {
   build: () => TransactionRequest | Promise<TransactionRequest>;
 };
 import { appConfig } from "@/lib/config";
+import { TESTNET_DEPLOYMENT } from "@/lib/deployments";
 import type { ErrorContext } from "@/lib/errors";
 import { hederaExplorerAccountUrl, hederaExplorerContractUrl } from "@/lib/explorer";
 import { requestFaucetFunds } from "@/lib/faucet";
@@ -31,6 +32,14 @@ import { AmountField } from "@/components/AmountField";
 import { ExplorerTxLink } from "@/components/ExplorerTxLink";
 import { SubmitButton } from "@/components/SubmitButton";
 import { TxStatus } from "@/components/TxStatus";
+
+// ATS provenance for the live Hedera testnet demo. The settlement adapter
+// reports the security via `securityToken()`; these constants come from
+// `contracts/deployments/hedera-ats.json`.
+const ATS_FACTORY = "0x5fA65CA30d1984701F10476664327f97c864A9D3";
+const ATS_SECURITY_FALLBACK = "0xB8012a1c3227C454059Ee115Db2f1A7947903e22";
+const ATS_ISSUANCE_TX =
+  "0x4ab1105568c026e632d9d38ac2f05f82cb240d8e8255220db3731e062f9fc9e0";
 
 type Action =
   | "faucet"
@@ -130,8 +139,7 @@ export default function JourneyPage() {
   // Optional in the shared SDK type, always populated by appConfig().
   const cashToken = cfg.contracts.underlying ?? "";
   const bondAddress = cfg.contracts.bond ?? "";
-  const registryAddress = cfg.contracts.registry ?? "";
-  const complianceAddress = cfg.contracts.compliance ?? "";
+
   const { client, address, phase, submit, submitSequence } = useSidereal();
   const { connect } = useWallet();
   const journey = useJourney(address, phase.kind === "done" ? phase.hash : 0);
@@ -156,6 +164,8 @@ export default function JourneyPage() {
   const market = journey.market;
   const bond = journey.bond;
   const backing = journey.backing;
+  const securityAddress = bond?.address ?? ATS_SECURITY_FALLBACK;
+  const adapterAddress = bond?.adapter ?? bondAddress;
   const position = journey.position;
   const coupons = journey.coupons;
   const cash = journey.cashBalance;
@@ -377,11 +387,15 @@ export default function JourneyPage() {
                 value={bond ? `${bond.name} (${bond.symbol})` : "—"}
                 signal
               />
-              <Stat label="Bond contract" value={<Addr address={bondAddress} />} />
+              <Stat label="ATS security" value={<Addr address={securityAddress} />} />
+              <Stat label="ATS factory" value={<Addr address={ATS_FACTORY} />} />
+              <Stat label="Sidereal adapter (BOND)" value={<Addr address={adapterAddress} />} />
+              <Stat
+                label="Issuance transaction"
+                value={<ExplorerTxLink hash={ATS_ISSUANCE_TX} />}
+              />
               <Stat label="Cash denomination" value={<Addr address={cashToken} />} />
               <Stat label="Issuer / owner" value={<Addr address={bond?.owner ?? ""} kind="account" />} />
-              <Stat label="Identity registry" value={<Addr address={registryAddress} />} />
-              <Stat label="Compliance module" value={<Addr address={complianceAddress} />} />
               <Stat
                 label="Started"
                 value={bond ? new Date(bond.startDate * 1000).toISOString().slice(0, 10) : "—"}
@@ -685,10 +699,7 @@ export default function JourneyPage() {
               flow is not single-account.
             </p>
             <ul className="space-y-3">
-              {[
-                { label: "Wallet A · issuer/deployer", address: "0xAb76e285b5C458638846c474FdA8E51EbBb81c43" },
-                { label: "Wallet B · investor", address: "0x55C5A77c526b4618021307F052A24d131579f52A" },
-              ].map((wallet) => (
+              {TESTNET_DEPLOYMENT.demoWallets.map((wallet) => (
                 <li key={wallet.address} className="border-t border-white/10 pt-3">
                   <p className="text-sm text-paper">{wallet.label}</p>
                   <p className="mt-1 text-xs">

@@ -452,7 +452,29 @@ export class SiderealClient {
   /** Reads the tokenized bond behind the SY vault, or null if unconfigured. */
   async getBondInfo(): Promise<BondInfo | null> {
     if (!this.contracts.bond) return null;
-    const bond = this.contracts.bond;
+    const adapter = this.contracts.bond;
+
+    // An ATS settlement adapter exposes `securityToken()`: the real ERC-3643
+    // security. ERC-20 metadata (`name`/`symbol`) lives on the security, not on
+    // the adapter, so read it there when present. Each read is isolated so one
+    // unsupported method cannot blank the whole bond view.
+    let token = adapter;
+    try {
+      const security = await this.read<string>({
+        address: adapter,
+        abi: bondAbi,
+        functionName: "securityToken",
+      });
+      if (security && security !== "0x0000000000000000000000000000000000000000") {
+        token = security;
+      }
+    } catch {
+      // Not an adapter; the configured bond is the token itself.
+    }
+
+    const safe = <T>(call: Promise<T>, fallback: T): Promise<T> =>
+      call.catch(() => fallback);
+
     const [
       name,
       symbol,
@@ -472,26 +494,39 @@ export class SiderealClient {
       coupon,
       liquidity,
     ] = await Promise.all([
-      this.read<string>({ address: bond, abi: bondAbi, functionName: "name" }),
-      this.read<string>({ address: bond, abi: bondAbi, functionName: "symbol" }),
-      this.read<number>({ address: bond, abi: erc20Abi, functionName: "decimals" }),
-      this.read<string>({ address: bond, abi: bondAbi, functionName: "owner" }),
-      this.read<string>({ address: bond, abi: bondAbi, functionName: "denomination" }),
-      this.read<string>({ address: bond, abi: bondAbi, functionName: "identityRegistry" }),
-      this.read<string>({ address: bond, abi: bondAbi, functionName: "compliance" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "startDate" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "maturity" }),
-      this.read<boolean>({ address: bond, abi: bondAbi, functionName: "isMatured" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "totalSupply" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "valuePerUnit" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "issuePricePerUnit" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "faceValuePerUnit" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "nominalValue" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "couponValuePerUnit" }),
-      this.read<bigint>({ address: bond, abi: bondAbi, functionName: "availableLiquidity" }),
+      safe(this.read<string>({ address: token, abi: bondAbi, functionName: "name" }), ""),
+      safe(this.read<string>({ address: token, abi: bondAbi, functionName: "symbol" }), ""),
+      safe(this.read<number>({ address: token, abi: erc20Abi, functionName: "decimals" }), 0),
+      safe(this.read<string>({ address: adapter, abi: bondAbi, functionName: "owner" }), ""),
+      safe(this.read<string>({ address: adapter, abi: bondAbi, functionName: "denomination" }), ""),
+      safe(
+        this.read<string>({ address: token, abi: bondAbi, functionName: "identityRegistry" }),
+        "",
+      ),
+      safe(this.read<string>({ address: token, abi: bondAbi, functionName: "compliance" }), ""),
+      safe(this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "startDate" }), 0n),
+      safe(this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "maturity" }), 0n),
+      safe(this.read<boolean>({ address: adapter, abi: bondAbi, functionName: "isMatured" }), false),
+      safe(this.read<bigint>({ address: token, abi: bondAbi, functionName: "totalSupply" }), 0n),
+      safe(this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "valuePerUnit" }), 0n),
+      safe(
+        this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "issuePricePerUnit" }),
+        0n,
+      ),
+      safe(this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "faceValuePerUnit" }), 0n),
+      safe(this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "nominalValue" }), 0n),
+      safe(
+        this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "couponValuePerUnit" }),
+        0n,
+      ),
+      safe(
+        this.read<bigint>({ address: adapter, abi: bondAbi, functionName: "availableLiquidity" }),
+        0n,
+      ),
     ]);
     return {
-      address: bond,
+      address: token,
+      adapter,
       name,
       symbol,
       decimals: Number(decimals),
@@ -521,7 +556,7 @@ export class SiderealClient {
     const owner = addr(account);
     const registry = this.contracts.registry?.trim() || null;
     const compliance = this.contracts.compliance?.trim() || null;
-    const [verified, transferAllowed] = await Promise.all([
+    let [verified, transferAllowed] = await Promise.all([
       registry
         ? this.read<boolean>({
             address: registry,
@@ -539,6 +574,21 @@ export class SiderealClient {
           }).catch(() => null)
         : Promise.resolve<boolean | null>(null),
     ]);
+
+    // ATS deployments gate access internally (no external registry/compliance
+    // configured). When neither is set, read the bond's own `isVerified` so the
+    // eligibility view still reflects the real KYC/control decision.
+    if (verified === null && transferAllowed === null && this.contracts.bond) {
+      const onBond = await this.read<boolean>({
+        address: this.contracts.bond,
+        abi: bondAbi,
+        functionName: "isVerified",
+        args: [owner],
+      }).catch(() => null);
+      verified = onBond;
+      transferAllowed = onBond;
+    }
+
     return { account, registry, compliance, verified, transferAllowed };
   }
 

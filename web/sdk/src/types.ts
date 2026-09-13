@@ -284,7 +284,10 @@ export interface ApproveArgs {
 
 /** Bond snapshot for the yield source behind the SY vault. */
 export interface BondInfo {
+  /** The ERC-3643 security (the ATS bond). Metadata reads target this. */
   address: string;
+  /** The Sidereal settlement adapter, when the security sits behind one. */
+  adapter?: string;
   name: string;
   symbol: string;
   /** Bond token decimals (the "reserve quantity" base unit). */

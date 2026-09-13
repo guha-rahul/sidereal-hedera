@@ -144,6 +144,8 @@ export const orderbookAbi = parseAbi([
 export const bondAbi = parseAbi([
   "function name() view returns (string)",
   "function symbol() view returns (string)",
+  // ATS settlement adapters expose the real ERC-3643 security here.
+  "function securityToken() view returns (address)",
   "function owner() view returns (address)",
   "function denomination() view returns (address)",
   "function identityRegistry() view returns (address)",
