@@ -1,0 +1,60 @@
+{
+  "chainId": 296,
+  "status": "live-book-and-pool-verified",
+  "signer": "locally-controlled-demo-account",
+  "wallet": "0x55C5A77c526b4618021307F052A24d131579f52A",
+  "before": {
+    "cash": "4800999999",
+    "sy": "95321987005270495159",
+    "pt": "98999999999999999999",
+    "yt": "98999999999999999999"
+  },
+  "afterFill": {
+    "cash": "4800999999",
+    "sy": "94341007005270495159",
+    "pt": "99999999999999999999",
+    "yt": "98999999999999999999"
+  },
+  "lpBefore": "0",
+  "lpAdded": "816496580927726032",
+  "lpFinal": "0",
+  "receipts": [
+    {
+      "hash": "0xadd26358802ed8c9a60ea09ab5aa3ace35bc897f4aec9a4434400dd438298dec",
+      "status": "success",
+      "blockNumber": "40469042",
+      "explorer": "https://hashscan.io/testnet/transaction/0xadd26358802ed8c9a60ea09ab5aa3ace35bc897f4aec9a4434400dd438298dec"
+    },
+    {
+      "hash": "0xa94a1e972d1d908717f947abf7a4ed22fd46aaa7ff72237017f2a846d9d12ea7",
+      "status": "success",
+      "blockNumber": "40469045",
+      "explorer": "https://hashscan.io/testnet/transaction/0xa94a1e972d1d908717f947abf7a4ed22fd46aaa7ff72237017f2a846d9d12ea7"
+    },
+    {
+      "hash": "0x60df59c0115dd7d712ae42f3584d28c8eeaaad13155c3b129e5f802d580c2f20",
+      "status": "success",
+      "blockNumber": "40469051",
+      "explorer": "https://hashscan.io/testnet/transaction/0x60df59c0115dd7d712ae42f3584d28c8eeaaad13155c3b129e5f802d580c2f20"
+    },
+    {
+      "hash": "0xa391d134e491eda69d7ce6fdec41033fd377131d3c83e84a8416ce50e51d0365",
+      "status": "success",
+      "blockNumber": "40469054",
+      "explorer": "https://hashscan.io/testnet/transaction/0xa391d134e491eda69d7ce6fdec41033fd377131d3c83e84a8416ce50e51d0365"
+    },
+    {
+      "hash": "0x5946d46fea35481b5ea5a524bd6b1348720680a008f80fa50e2d4ad24e3b2b04",
+      "status": "success",
+      "blockNumber": "40469058",
+      "explorer": "https://hashscan.io/testnet/transaction/0x5946d46fea35481b5ea5a524bd6b1348720680a008f80fa50e2d4ad24e3b2b04"
+    },
+    {
+      "hash": "0x23e44d7bddec3283e3b32073b99db530d1244441f8b981002fdafea2ceff5267",
+      "status": "success",
+      "blockNumber": "40469062",
+      "explorer": "https://hashscan.io/testnet/transaction/0x23e44d7bddec3283e3b32073b99db530d1244441f8b981002fdafea2ceff5267"
+    }
+  ],
+  "limitations": "Actual testnet transactions, not Privy embedded-wallet signatures."
+}

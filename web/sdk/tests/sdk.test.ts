@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { decodeFunctionData } from "viem";
 import { SiderealClient } from "../src/client.js";
 import { ammAbi, bondAbi, orderbookAbi, syVaultAbi } from "../src/abis.js";
@@ -29,6 +29,38 @@ const CONTRACTS = {
 function client(): SiderealClient {
   return new SiderealClient({ rpcUrl: "http://localhost:8545", chainId: 296, contracts: CONTRACTS });
 }
+
+describe("reads after confirmed transactions", () => {
+  it("reads at least the receipt block even when the RPC head lags, then follows newer blocks", async () => {
+    const sdk = client();
+    const receipt = vi.spyOn(sdk.publicClient, "waitForTransactionReceipt");
+    receipt.mockResolvedValue({ status: "success", blockNumber: 100n } as never);
+    const head = vi.spyOn(sdk.publicClient, "getBlockNumber").mockResolvedValue(99n);
+    const read = vi.spyOn(sdk.publicClient, "readContract").mockResolvedValue(42n);
+    const hash = `0x${"1".repeat(64)}`;
+    await sdk.waitForReceipt(hash);
+    expect(await sdk.getTokenBalance(CONTRACTS.sy, CONTRACTS.pt)).toBe(42n);
+    expect(read.mock.calls.at(-1)?.[0].blockNumber).toBe(100n);
+    receipt.mockResolvedValue({ status: "success", blockNumber: 98n } as never);
+    await sdk.getReceipt(hash);
+    await sdk.getTokenBalance(CONTRACTS.sy, CONTRACTS.pt);
+    expect(read.mock.calls.at(-1)?.[0].blockNumber).toBe(100n);
+    head.mockResolvedValue(101n);
+    await sdk.getTokenBalance(CONTRACTS.sy, CONTRACTS.pt);
+    expect(read.mock.calls.at(-1)?.[0].blockNumber).toBe(101n);
+  });
+
+  it("does not advance the read floor for a reverted transaction", async () => {
+    const sdk = client();
+    vi.spyOn(sdk.publicClient, "waitForTransactionReceipt").mockResolvedValue({ status: "reverted", blockNumber: 100n } as never);
+    const head = vi.spyOn(sdk.publicClient, "getBlockNumber");
+    const read = vi.spyOn(sdk.publicClient, "readContract").mockResolvedValue(42n);
+    await expect(sdk.waitForReceipt(`0x${"2".repeat(64)}`)).rejects.toThrow("transaction reverted");
+    await sdk.getTokenBalance(CONTRACTS.sy, CONTRACTS.pt);
+    expect(head).not.toHaveBeenCalled();
+    expect(read.mock.calls.at(-1)?.[0].blockNumber).toBeUndefined();
+  });
+});
 
 describe("route mapping", () => {
   it("maps every supported route", () => {

@@ -1,0 +1,186 @@
+{
+  "chainId": 296,
+  "status": "live-protocol-workflow-verified",
+  "signer": "locally-controlled-demo-account",
+  "wallet": "0x55C5A77c526b4618021307F052A24d131579f52A",
+  "verification": "Receipt-block-pinned balances and consumed exact allowances",
+  "fixed": {
+    "before": {
+      "cash": "5000000000",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0"
+    },
+    "after": {
+      "cash": "4900000000",
+      "sy": "4618521279760380395",
+      "pt": "99999999999999999999",
+      "yt": "0"
+    }
+  },
+  "variable": {
+    "before": {
+      "cash": "4900000000",
+      "sy": "4618521279760380395",
+      "pt": "99999999999999999999",
+      "yt": "0"
+    },
+    "after": {
+      "cash": "4800000000",
+      "sy": "95321987005270495159",
+      "pt": "99999999999999999999",
+      "yt": "99999999999999999999"
+    }
+  },
+  "exit": {
+    "before": {
+      "cash": "4800000000",
+      "sy": "95321987005270495159",
+      "pt": "99999999999999999999",
+      "yt": "99999999999999999999"
+    },
+    "recombined": {
+      "cash": "4800000000",
+      "sy": "96321980689871218619",
+      "pt": "98999999999999999999",
+      "yt": "98999999999999999999"
+    },
+    "after": {
+      "cash": "4800999999",
+      "sy": "95321987005270495159",
+      "pt": "98999999999999999999",
+      "yt": "98999999999999999999"
+    }
+  },
+  "receipts": [
+    {
+      "hash": "0x6640af8ef09369ac06b1d8de7299428cbea98d8164a82ae7da6bdab803f76721",
+      "status": "success",
+      "blockNumber": "40468818",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0x71311092cf6486941acb34d3631cf4ad8f442b07",
+      "explorer": "https://hashscan.io/testnet/transaction/0x6640af8ef09369ac06b1d8de7299428cbea98d8164a82ae7da6bdab803f76721"
+    },
+    {
+      "hash": "0x2f71ffd11d30a2958f7c1a74284fce5df14662050b4c076e3fdde2df9953f56e",
+      "status": "success",
+      "blockNumber": "40468821",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191",
+      "explorer": "https://hashscan.io/testnet/transaction/0x2f71ffd11d30a2958f7c1a74284fce5df14662050b4c076e3fdde2df9953f56e"
+    },
+    {
+      "hash": "0xa3b4fad67678019fa220971419bc4281803b416e526d412bfdd546c767723be9",
+      "status": "success",
+      "blockNumber": "40468823",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191",
+      "explorer": "https://hashscan.io/testnet/transaction/0xa3b4fad67678019fa220971419bc4281803b416e526d412bfdd546c767723be9"
+    },
+    {
+      "hash": "0x57438efa9b1fa3f4ace820bce6425766f40e32681fbce85cd44bdbb85ca01560",
+      "status": "success",
+      "blockNumber": "40468826",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xb51ec9e8f0f0c2a57c42b50d61cc17505d8bcf6d",
+      "explorer": "https://hashscan.io/testnet/transaction/0x57438efa9b1fa3f4ace820bce6425766f40e32681fbce85cd44bdbb85ca01560"
+    },
+    {
+      "hash": "0x98b171d16c76973aa9cfff7ada97d588a5c5c873b3866a5fdc19ba6f02cf91a0",
+      "status": "success",
+      "blockNumber": "40468829",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0x0b28a594d5af6f5c893b82de3b8ff69b63f1d5cf",
+      "explorer": "https://hashscan.io/testnet/transaction/0x98b171d16c76973aa9cfff7ada97d588a5c5c873b3866a5fdc19ba6f02cf91a0"
+    },
+    {
+      "hash": "0xaadc881b192e3be2c67375d547f73969684ef55747be5b27e83086e590747a02",
+      "status": "success",
+      "blockNumber": "40468832",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xf816cec720c78af2870f323b6374ad6f3e41861e",
+      "explorer": "https://hashscan.io/testnet/transaction/0xaadc881b192e3be2c67375d547f73969684ef55747be5b27e83086e590747a02"
+    },
+    {
+      "hash": "0x9a887ff16302ae0c69afccc93c3331b50eda7300b9fd85183da25ca0b09d1fa3",
+      "status": "success",
+      "blockNumber": "40468837",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0x71311092cf6486941acb34d3631cf4ad8f442b07",
+      "explorer": "https://hashscan.io/testnet/transaction/0x9a887ff16302ae0c69afccc93c3331b50eda7300b9fd85183da25ca0b09d1fa3"
+    },
+    {
+      "hash": "0x19ee5c1fc8d0d1ca20363d1bb3348b405385cdf4138b65e724c12a8b6d461409",
+      "status": "success",
+      "blockNumber": "40468841",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191",
+      "explorer": "https://hashscan.io/testnet/transaction/0x19ee5c1fc8d0d1ca20363d1bb3348b405385cdf4138b65e724c12a8b6d461409"
+    },
+    {
+      "hash": "0xc2d69b32b0b4d4e5be7c703c7f5f56cc14d45d22291f839a554584f7b19d6158",
+      "status": "success",
+      "blockNumber": "40468844",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191",
+      "explorer": "https://hashscan.io/testnet/transaction/0xc2d69b32b0b4d4e5be7c703c7f5f56cc14d45d22291f839a554584f7b19d6158"
+    },
+    {
+      "hash": "0x0bccbb51a711048c4952eefba4d1107b30ae6ba3ebfc1138f1055d5e05700ad2",
+      "status": "success",
+      "blockNumber": "40468847",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xb51ec9e8f0f0c2a57c42b50d61cc17505d8bcf6d",
+      "explorer": "https://hashscan.io/testnet/transaction/0x0bccbb51a711048c4952eefba4d1107b30ae6ba3ebfc1138f1055d5e05700ad2"
+    },
+    {
+      "hash": "0xcf1abc7bcfb42d54efd5d61a0c236839fea6f9572decfe50b89f470befe7c208",
+      "status": "success",
+      "blockNumber": "40468849",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0x67f22b76e7cb722394118fc4805b45cc428bd8ef",
+      "explorer": "https://hashscan.io/testnet/transaction/0xcf1abc7bcfb42d54efd5d61a0c236839fea6f9572decfe50b89f470befe7c208"
+    },
+    {
+      "hash": "0x001cced32b8fcc8277e17c9f4b41aef9c7edcf485b742c67e422f05727c0db3d",
+      "status": "success",
+      "blockNumber": "40468852",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xf816cec720c78af2870f323b6374ad6f3e41861e",
+      "explorer": "https://hashscan.io/testnet/transaction/0x001cced32b8fcc8277e17c9f4b41aef9c7edcf485b742c67e422f05727c0db3d"
+    },
+    {
+      "hash": "0x9055c0ddca2dd50b9ae1ec6a77f1b040e7cf3821272ab44d5fe0911fcc7a8495",
+      "status": "success",
+      "blockNumber": "40468856",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0x67f22b76e7cb722394118fc4805b45cc428bd8ef",
+      "explorer": "https://hashscan.io/testnet/transaction/0x9055c0ddca2dd50b9ae1ec6a77f1b040e7cf3821272ab44d5fe0911fcc7a8495"
+    },
+    {
+      "hash": "0xb2df5ca933eedaeaf0c54d90dd082c2fcd88b338b1dec096c50885e9e564696b",
+      "status": "success",
+      "blockNumber": "40468858",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0x0b28a594d5af6f5c893b82de3b8ff69b63f1d5cf",
+      "explorer": "https://hashscan.io/testnet/transaction/0xb2df5ca933eedaeaf0c54d90dd082c2fcd88b338b1dec096c50885e9e564696b"
+    },
+    {
+      "hash": "0xe173781361fb14f84ba2f5d87627f3f0722cdab15d3d733ad13b73d3414320b1",
+      "status": "success",
+      "blockNumber": "40468860",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xb51ec9e8f0f0c2a57c42b50d61cc17505d8bcf6d",
+      "explorer": "https://hashscan.io/testnet/transaction/0xe173781361fb14f84ba2f5d87627f3f0722cdab15d3d733ad13b73d3414320b1"
+    },
+    {
+      "hash": "0x3f913632b3ef4d5fa6f529f5f338a0948d34f51e58031101b06083fbfdc193ee",
+      "status": "success",
+      "blockNumber": "40468863",
+      "from": "0x55c5a77c526b4618021307f052a24d131579f52a",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191",
+      "explorer": "https://hashscan.io/testnet/transaction/0x3f913632b3ef4d5fa6f529f5f338a0948d34f51e58031101b06083fbfdc193ee"
+    }
+  ],
+  "limitations": "Shared investment builder and actual protocol transactions; not Privy authentication or embedded signing. Future maturity/coupons are not accelerated on live testnet."
+}

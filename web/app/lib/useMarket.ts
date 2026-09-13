@@ -5,9 +5,10 @@
 import { useEffect, useState } from "react";
 import type { MarketState } from "@sidereal/sdk";
 import { getMarketSafe } from "./sdk";
+import { appConfig, isDeployed } from "./config";
 
 /**
- * Reads market state once on mount, tracking whether the fetch has settled.
+ * Reads market state on mount and retries unavailable reads, tracking whether the fetch has settled.
  * `market` is null while loading, when the market is not deployed, or on an
  * RPC error; `loading` distinguishes the first case so pages can show a
  * skeleton instead of an "n/a" that only becomes truthful once settled.
@@ -25,11 +26,18 @@ export function useMarketStatus(refreshKey: unknown = 0): {
   useEffect(() => {
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
-    getMarketSafe()
-      .then((m) => !cancelled && setState({ market: m, loading: false }))
-      .catch(() => !cancelled && setState({ market: null, loading: false }));
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const load = async () => {
+      const market = await getMarketSafe().catch(() => null);
+      if (cancelled) return;
+      setState({ market, loading: false });
+      // A temporary RPC failure must recover without requiring navigation.
+      if (!market && isDeployed(appConfig())) retryTimer = setTimeout(load, 5_000);
+    };
+    void load();
     return () => {
       cancelled = true;
+      clearTimeout(retryTimer);
     };
   }, [refreshKey]);
 

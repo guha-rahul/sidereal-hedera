@@ -116,6 +116,16 @@ describe("readPosition", () => {
   });
 });
 
+describe("Hedera view execution recovery", () => {
+  it("retries a transient FAIL_INVALID response", async () => {
+    getTokenBalanceMock
+      .mockRejectedValueOnce(new Error("execution reverted: FAIL_INVALID"))
+      .mockResolvedValueOnce(42n);
+    await expect(readTokenBalance("0xTOKEN", "0xUSER", cfg)).resolves.toBe(42n);
+    expect(getTokenBalanceMock).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("readTokenBalance", () => {
   it("delegates to the SDK token balance read", async () => {
     getTokenBalanceMock.mockResolvedValueOnce(42n);

@@ -141,6 +141,7 @@ function toRestingOrder(raw: unknown): RestingOrder {
 export class SiderealClient {
   private readonly client: PublicClient;
   private readonly contracts: ContractAddresses;
+  private confirmedReadFloor: bigint | null = null;
   readonly chainId: number;
 
   constructor(opts: SiderealOptions) {
@@ -164,11 +165,20 @@ export class SiderealClient {
     args?: readonly unknown[];
   }): Promise<T> {
     try {
+      // Hedera's latest-state reads can briefly lag a mined receipt. An explicit
+      // block prevents the next step from seeing pre-transaction balances.
+      const head = this.confirmedReadFloor === null
+        ? undefined
+        : await this.client.getBlockNumber();
+      const blockNumber = head === undefined
+        ? undefined
+        : head > this.confirmedReadFloor! ? head : this.confirmedReadFloor!;
       return (await this.client.readContract({
         address: addr(params.address),
         abi: params.abi,
         functionName: params.functionName,
         args: params.args ?? [],
+        blockNumber,
       } as never)) as T;
     } catch (error) {
       throw toContractError(error);
@@ -869,6 +879,10 @@ export class SiderealClient {
   /** Fetches a receipt without asserting success (for the tx detail view). */
   async getReceipt(hash: string): Promise<TxReceipt> {
     const receipt = await this.client.waitForTransactionReceipt({ hash: hash as Hex });
+    if (receipt.status === "success" &&
+        (this.confirmedReadFloor === null || receipt.blockNumber > this.confirmedReadFloor)) {
+      this.confirmedReadFloor = receipt.blockNumber;
+    }
     return {
       hash,
       status: receipt.status,

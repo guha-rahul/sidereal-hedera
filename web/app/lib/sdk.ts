@@ -56,7 +56,9 @@ function retryableReadError(error: unknown): boolean {
     normalized.includes("rate limit") ||
     normalized.includes("too many requests") ||
     normalized.includes("temporarily unavailable") ||
-    normalized.includes("tryagainlater")
+    normalized.includes("tryagainlater") ||
+    // Hedera RPC can transiently fail view execution while catching up.
+    normalized.includes("fail_invalid")
   );
 }
 
