@@ -138,6 +138,12 @@ function envFromManifest(manifest, path) {
   if (manifest.decimals !== undefined) {
     env.set("NEXT_PUBLIC_TOKEN_DECIMALS", String(manifest.decimals));
   }
+  // The ATS demo cash is 6-decimal sdUSD while SY/PT/YT are 18-decimal. Emit the
+  // underlying decimals explicitly, or the app formats cash amounts 10^12 too
+  // large by falling back to NEXT_PUBLIC_TOKEN_DECIMALS.
+  if (manifest.cashDecimals !== undefined) {
+    env.set("NEXT_PUBLIC_UNDERLYING_DECIMALS", String(manifest.cashDecimals));
+  }
 
   // Always emit the faucet flag rather than leaving it to the code default.
   // `appConfig()` turns the faucet on for any testnet build that has an

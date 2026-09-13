@@ -10,9 +10,9 @@ import type { ContractAddresses } from "@sidereal/sdk";
  * deployment so the demo is usable without any access-request gate or manual
  * environment setup. Mainnet builds never fall back to these addresses.
  *
- * These addresses are public. The matching contracts were deployed by
- * `contracts/script/VerifyERC3643Testnet.s.sol`; see
- * `contracts/deployments/erc3643-testnet.json` for the source manifest.
+ * These addresses are public. The matching contracts were issued through the
+ * real ATS factory by `contracts/script/DeployATS.s.sol`; see
+ * `contracts/deployments/hedera-ats.json` for the source manifest and receipts.
  */
 
 export interface DeploymentInfo {
@@ -26,23 +26,21 @@ export interface DeploymentInfo {
 
 export const TESTNET_DEPLOYMENT: DeploymentInfo = {
   contracts: {
-    sy: "0xAA8Ff1f4846E44f89ee5aaA4105434798a26aC1c",
-    pt: "0x6E0Db9323429E1a11790e582266453C7e22Ea0be",
-    yt: "0xdFeb6782465423f4EE6456cf78F14618c00142ce",
-    tokenizer: "0x71aEC07C6E87f7956E3b8AF3EAa46a96a1639C0C",
-    market: "0xF5934B77545355028e61efBB2F2b036f9F1B5A18",
-    orderbook: "0x82dB197F799C7c0edDDC22a53BBFeea011d5Bc4f",
-    bond: "0x1eD9AeB2B3de5AEFb430E8b50B5E9F107e6A9E99",
-    strategy: "0x7e6DDFAE1Fb76818d3311D31371f56254D852c98",
-    underlying: "0x02397939C3C08B62836BC818A7739a794aCb9546",
-    registry: "0x36CA9a6Bc30C06ea8F50ca58bC6b359CB3E16717",
-    compliance: "0x1224D8251b6E5C5aa3138d1dC4fBCeCBE74a6b0e",
+    sy: "0x5Cfb3Da5B8AbAaF8e94DE7ED37462674445F333C",
+    pt: "0x603EaBD246B82c4cB4386Dc72d83CB1B15d19dCf",
+    yt: "0x691415D1aD9E6443d7f5d1682C249306c8E88ba2",
+    tokenizer: "0xA506DcabcfE9a435373E08511876827599c579Cc",
+    market: "0x777b0DB3AA93e52e376f68bdE5092C1678Ac7640",
+    orderbook: "0xB36FAb30226f2fB7F1136Edd8bE7c958E7e378AD",
+    bond: "0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06",
+    strategy: "0x578422A2824408c4d7ac56Fc68D9F3a150f6f3E3",
+    underlying: "0xedb4c1335780f192AA693147662Da3F4FD9C9ba9",
   },
-  maturity: 1_797_014_421,
-  couponId: 1,
-  deployer: "0xAb76e285b5C458638846c474FdA8E51EbBb81c43",
+  maturity: 1_797_058_665,
+  couponId: 0,
+  deployer: "0xbDC25Ce69f8921eb15ceb9a1EC6e807DAf3078bA",
   demoWallets: [
-    { label: "Wallet A (issuer / deployer)", address: "0xAb76e285b5C458638846c474FdA8E51EbBb81c43" },
-    { label: "Wallet B (investor)", address: "0x55C5A77c526b4618021307F052A24d131579f52A" },
+    { label: "Wallet A (issuer / deployer)", address: "0xbDC25Ce69f8921eb15ceb9a1EC6e807DAf3078bA" },
+    { label: "Wallet B (investor / buyer)", address: "0xa51944c14BB90070B8642cb4BEe04DA9aDD820E3" },
   ],
 };
