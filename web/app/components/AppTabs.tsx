@@ -6,10 +6,12 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { appConfig } from "@/lib/config";
+import { privyConfigured } from "@/lib/privy";
 import { useSlideRect } from "@/lib/useSlideRect";
 
 const TABS = [
   { href: "/journey", label: "Journey", tour: undefined },
+  { href: "/privy", label: "Privy", tour: undefined },
   { href: "/strategy", label: "Strategy", tour: undefined },
   { href: "/mint", label: "Mint", tour: "nav-mint" },
   { href: "/trade", label: "Trade", tour: "nav-trade" },
@@ -27,10 +29,16 @@ const TABS = [
  *  static underline so nothing is missing. */
 export function AppTabs() {
   const pathname = usePathname();
-  const tabs = useMemo(
-    () => (appConfig().network === "testnet" ? TABS : TABS.filter((tab) => tab.href !== "/demo")),
-    [],
-  );
+  const tabs = useMemo(() => {
+    let visible = TABS;
+    if (appConfig().network !== "testnet") {
+      visible = visible.filter((tab) => tab.href !== "/demo");
+    }
+    if (!privyConfigured()) {
+      visible = visible.filter((tab) => tab.href !== "/privy");
+    }
+    return visible;
+  }, []);
   const { containerRef, rect } = useSlideRect<HTMLUListElement>('[aria-current="page"]', pathname);
 
   return (

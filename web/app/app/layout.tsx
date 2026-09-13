@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { WalletProvider } from "@/lib/wallet";
+import { PrivyProviderGate } from "@/lib/privy";
 
 const TITLE = "Sidereal, split, fix, and trade tokenized-bond yield";
 const DESCRIPTION =
@@ -36,7 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen font-sans">
-        <WalletProvider>{children}</WalletProvider>
+        <PrivyProviderGate>
+          <WalletProvider>{children}</WalletProvider>
+        </PrivyProviderGate>
         <Analytics />
       </body>
     </html>

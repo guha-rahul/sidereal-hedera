@@ -13,6 +13,7 @@ import {
 } from "viem";
 import { hederaTestnet } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
+import { PrivyClient } from "@privy-io/server-auth";
 import { appConfig } from "@/lib/config";
 
 export const runtime = "nodejs";
@@ -87,6 +88,35 @@ function cashAmount(cfg: ReturnType<typeof appConfig>): bigint {
   return parseUnits(process.env.FAUCET_CASH_AMOUNT ?? cfg.faucetAmount, cfg.underlyingDecimals);
 }
 
+/**
+ * When a Privy app secret is configured, funding is bound to the authenticated
+ * Privy user: the bearer token is verified and the requested address must be one
+ * of that user's linked wallets. Without the secret the route stays in demo mode
+ * (no identity binding), which is acceptable only for a public testnet faucet.
+ */
+async function privyOwnershipError(request: Request, recipient: string): Promise<string | null> {
+  const secret = process.env.PRIVY_APP_SECRET;
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  if (!secret) return null;
+  if (!appId) return "Privy app id is not configured";
+  const header = request.headers.get("authorization") ?? "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token) return "A Privy session token is required to fund this wallet";
+  try {
+    const privy = new PrivyClient(appId, secret);
+    const claims = await privy.verifyAuthToken(token);
+    const user = await privy.getUser(claims.userId);
+    const owns = user.linkedAccounts.some(
+      (account) =>
+        account.type === "wallet" &&
+        (account as { address?: string }).address?.toLowerCase() === recipient.toLowerCase(),
+    );
+    return owns ? null : "The requested address is not linked to this Privy user";
+  } catch {
+    return "Privy authentication failed";
+  }
+}
+
 export async function GET() {
   const cfg = appConfig();
   const enabled = Boolean(process.env.FAUCET_PRIVATE_KEY) && cfg.faucetEnabled && cfg.chainId === 296;
@@ -123,6 +153,10 @@ export async function POST(request: Request) {
   }
 
   const recipient = getAddress(address);
+  const authError = await privyOwnershipError(request, recipient);
+  if (authError) {
+    return noStore({ error: authError }, { status: 401 });
+  }
   if (FUNDED.has(recipient.toLowerCase())) {
     return noStore({ error: "This wallet already received test funds" }, { status: 429 });
   }

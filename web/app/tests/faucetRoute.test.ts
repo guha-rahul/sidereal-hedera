@@ -70,4 +70,14 @@ describe("POST /api/faucet", () => {
     const response = await POST(post({ address: WALLET }));
     expect(response.status).toBe(403);
   });
+
+  it("requires a Privy session token when identity binding is configured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRIVY_APP_ID", "app_test");
+    vi.stubEnv("PRIVY_APP_SECRET", "test-secret");
+    const response = await POST(post({ address: WALLET }));
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      error: "A Privy session token is required to fund this wallet",
+    });
+  });
 });
