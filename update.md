@@ -75,7 +75,7 @@ Fix: the seed phase now seeds 1200 PT and 800 SY, a 60/40 split. This clears the
 
 The app reads the live ATS main market. `web/app/lib/deployments.ts` holds the ATS addresses as the fresh-clone fallback, and `web/app/scripts/manifest-to-env.mjs` writes `NEXT_PUBLIC_UNDERLYING_DECIMALS` from the manifest so 6-decimal sdUSD formats correctly.
 
-Deployed to a separate Vercel project at **https://sidereal-ats.vercel.app** (the old `www.sidereal.tech` build is left untouched). The deploy also:
+The canonical public demo is the Cloudflare Worker at **https://sidereal-hedera.hypersettle.workers.dev/privy**; a Vercel project mirrors the frontend as an alternative and is not the demo URL. The app also:
 
 - adds an "Add / switch to Hedera Testnet" prompt and a testnet HBAR faucet link in the wallet-network banner;
 - enables a server-side `/api/faucet` route that grants ATS KYC and sends 1,000 sdUSD plus 20 HBAR to a fresh wallet, so a judge can self-serve;
@@ -115,7 +115,7 @@ Acceptance checklist:
 - [ ] No uninitialized deployment window permits arbitrary initialization.
 - [x] SDK ABI and UI reflect the deployed contracts.
 - [x] README separates earlier Sidereal work from event work.
-- [ ] Repo, application, and video are accessible without team accounts. (App is public; the repo is still private and the video is not recorded.)
+- [x] Repo and application are accessible without team accounts. (App and repository are public; the video is uploaded to the submission, not linked from the repo.)
 - [ ] Submission is saved before the final recovery hour.
 
 Minimum convincing demonstration:

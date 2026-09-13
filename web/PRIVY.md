@@ -32,11 +32,13 @@ starting another investment. AMM liquidity is required for the final sale.
 PT represents asset-unit principal face and redeems through SY at maturity,
 subject to the exchange rate and backing; it is not a guaranteed cash payout.
 
-Invest is one UI action. After a single approval, the ordered transactions
-(approve, deposit, approve, split, approve, sell) are submitted with
-`showWalletUIs: false`, so the user is not prompted once per transaction; the
-page still lists each hash and its confirmation as it lands. The optional PT
-exit demonstrates a narrower server-side action:
+Invest is one user action. The ordered transactions (approve, deposit, approve,
+split, approve, sell) run as a sequence after a single start, with the
+per-transaction wallet prompts suppressed via `showWalletUIs: false`; the page
+still lists each hash and its confirmation as it lands. This is not an atomic
+batch: each transaction confirms before the next is built, and a failure can
+leave a partial position to review in Portfolio. The optional PT exit
+demonstrates a narrower server-side action:
 the user adds a Privy key quorum as an additional signer and approves an exact
 PT amount. The server can then submit the exit without another wallet popup.
 The attached Privy policy defaults to denial and allows only:

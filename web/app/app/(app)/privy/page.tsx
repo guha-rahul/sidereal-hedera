@@ -496,7 +496,7 @@ export default function PrivyPage() {
           <li><strong className="text-paper">Sign in with email.</strong> Complete the code sent to your inbox, then click All Done on the wallet setup screen. Your embedded wallet follows you across the app.</li>
           <li><strong className="text-paper">Fund your demo wallet.</strong> Click Fund demo wallet below after signing in. Wait for sdUSD to appear; funding also supplies HBAR for transaction fees and test-only eligibility.</li>
           <li><strong className="text-paper">Choose an amount and exposure.</strong> Start with 100 sdUSD. Fixed principal keeps PT, your principal exposure. Variable yield keeps YT, your exposure to available yield until maturity.</li>
-          <li><strong className="text-paper">Invest and confirm.</strong> Click Invest and approve the sequence once; Sidereal then submits the deposit, split and sale steps without prompting you for each one. Keep this page open until it completes.</li>
+          <li><strong className="text-paper">Invest and confirm.</strong> Click Invest once; Sidereal runs the deposit, split and sale steps as a sequence without prompting you for each one. Each step confirms before the next, so a failure can leave a partial position. Keep this page open until it completes.</li>
           <li><strong className="text-paper">Check your result.</strong> Compare the before and after balances, visit Portfolio, and download the investment receipts. Open the HashScan links to check confirmations.</li>
         </ol>
         <p className="mt-4 text-xs text-ash">
@@ -600,8 +600,10 @@ export default function PrivyPage() {
             <p className="text-xs text-ash">
               Hedera testnet only. Funding grants issuer-controlled demo
               eligibility, sdUSD and HBAR. Privy authentication is not KYC.
-              Approve the investment once and the sequence runs unattended;
-              approvals are limited to the exact amount used here.
+              Start the investment once and the sequence runs without a
+              per-step prompt; each step confirms before the next, so a failure
+              can leave a partial position. Approvals are limited to the exact
+              amount used here.
             </p>
             {delegated && addDelegatedSigner && (
               <details className="border-t border-white/10 pt-5">
