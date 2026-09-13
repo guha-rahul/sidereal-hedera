@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useWallet } from "@/lib/wallet";
 import { useEffect, useMemo, useState } from "react";
 import { appConfig, isDeployed } from "@/lib/config";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/lib/tour";
 
 export function TourHelpButton() {
+  const { walletKind } = useWallet();
   const cfg = useMemo(() => appConfig(), []);
   const [mounted, setMounted] = useState(false);
   const [tourActive, setTourActive] = useState(false);
@@ -23,10 +25,12 @@ export function TourHelpButton() {
     }
 
     window.addEventListener(TOUR_VISIBILITY_EVENT, onVisibility);
-    return () => window.removeEventListener(TOUR_VISIBILITY_EVENT, onVisibility);
+    return () =>
+      window.removeEventListener(TOUR_VISIBILITY_EVENT, onVisibility);
   }, []);
 
-  if (!mounted || !isDeployed(cfg) || tourActive) return null;
+  if (walletKind === "privy" || !mounted || !isDeployed(cfg) || tourActive)
+    return null;
 
   return (
     <button

@@ -185,3 +185,11 @@ pnpm --filter @sidereal/app test
 ## License
 
 Apache-2.0. See [`contracts/LICENSE`](contracts/LICENSE).
+
+## Privy embedded-wallet investments
+
+Sign in with email or Google and use the same self-custodial embedded wallet
+throughout Sidereal. Invest offers fixed principal (retain PT, sell YT) or
+variable yield (retain YT, sell PT), with exact approvals, before/after balances
+and downloadable HashScan receipts. Authenticated test funding uses a durable
+D1 allocation ledger. See [Privy architecture and demo setup](web/PRIVY.md) for configuration, testing and submission evidence.

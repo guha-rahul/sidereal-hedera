@@ -44,13 +44,16 @@ function findTarget(step: TourStep): HTMLElement | null {
   );
 }
 
-function measureTarget(step: TourStep): { target: TargetBox; callout: CalloutBox } | null {
+function measureTarget(
+  step: TourStep,
+): { target: TargetBox; callout: CalloutBox } | null {
   const element = findTarget(step);
   if (!element) return null;
 
   const rect = element.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return null;
-  const headerBottom = element.closest("header")?.getBoundingClientRect().bottom ?? null;
+  const headerBottom =
+    element.closest("header")?.getBoundingClientRect().bottom ?? null;
 
   const target: TargetBox = {
     left: rect.left - 6,
@@ -62,7 +65,11 @@ function measureTarget(step: TourStep): { target: TargetBox; callout: CalloutBox
 
   return {
     target,
-    callout: layoutCalloutBox(rect, { width: window.innerWidth, height: window.innerHeight }, headerBottom),
+    callout: layoutCalloutBox(
+      rect,
+      { width: window.innerWidth, height: window.innerHeight },
+      headerBottom,
+    ),
   };
 }
 
@@ -89,12 +96,15 @@ function sameBoxes(
 export function TourOverlay() {
   const cfg = useMemo(() => appConfig(), []);
   const pathname = usePathname();
-  const { address } = useWallet();
+  const { address, walletKind } = useWallet();
   const [mounted, setMounted] = useState(false);
   const [preference, setPreference] = useState<TourPreference>(null);
   const [goalChosen, setGoalChosen] = useState(false);
   const [tick, setTick] = useState(0);
-  const [boxes, setBoxes] = useState<{ target: TargetBox; callout: CalloutBox } | null>(null);
+  const [boxes, setBoxes] = useState<{
+    target: TargetBox;
+    callout: CalloutBox;
+  } | null>(null);
 
   const position = usePosition(address, tick);
 
@@ -104,7 +114,10 @@ export function TourOverlay() {
   }, []);
 
   useEffect(() => {
-    const id = window.setInterval(() => setTick((value) => value + 1), REFRESH_MS);
+    const id = window.setInterval(
+      () => setTick((value) => value + 1),
+      REFRESH_MS,
+    );
     return () => window.clearInterval(id);
   }, []);
 
@@ -124,7 +137,10 @@ export function TourOverlay() {
     function markGoalChosen(event: Event) {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest(targetSelector("tokenize-goal")) || target.closest(targetSelector("mint-amount"))) {
+      if (
+        target.closest(targetSelector("tokenize-goal")) ||
+        target.closest(targetSelector("mint-amount"))
+      ) {
         window.setTimeout(() => setGoalChosen(true), 0);
       }
     }
@@ -180,7 +196,9 @@ export function TourOverlay() {
 
   useEffect(() => {
     window.dispatchEvent(
-      new CustomEvent(TOUR_VISIBILITY_EVENT, { detail: { active: step !== null && boxes !== null } }),
+      new CustomEvent(TOUR_VISIBILITY_EVENT, {
+        detail: { active: step !== null && boxes !== null },
+      }),
     );
   }, [boxes, step]);
 
@@ -190,7 +208,7 @@ export function TourOverlay() {
     setBoxes(null);
   }
 
-  if (!mounted || !step || !boxes) return null;
+  if (walletKind === "privy" || !mounted || !step || !boxes) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50" aria-live="polite">
@@ -203,10 +221,14 @@ export function TourOverlay() {
           width: boxes.target.width,
           height: boxes.target.height,
           borderRadius: boxes.target.radius,
-          boxShadow: "0 0 0 6px rgba(234, 179, 8, 0.12), 0 0 28px rgba(234, 179, 8, 0.28)",
+          boxShadow:
+            "0 0 0 6px rgba(234, 179, 8, 0.12), 0 0 28px rgba(234, 179, 8, 0.28)",
         }}
       >
-        <div className="absolute inset-0 motion-safe:animate-ping border border-amber/70" style={{ borderRadius: boxes.target.radius }} />
+        <div
+          className="absolute inset-0 motion-safe:animate-ping border border-amber/70"
+          style={{ borderRadius: boxes.target.radius }}
+        />
       </div>
 
       <section
@@ -233,7 +255,9 @@ export function TourOverlay() {
             <p className="label-data">
               Step {step.index} of {step.total}
             </p>
-            <h2 className="mt-2 text-base font-semibold text-paper">{step.title}</h2>
+            <h2 className="mt-2 text-base font-semibold text-paper">
+              {step.title}
+            </h2>
           </div>
           <button
             type="button"
@@ -243,7 +267,9 @@ export function TourOverlay() {
             Skip
           </button>
         </div>
-        <p className="mt-3 text-sm leading-relaxed text-smoke">{step.instruction}</p>
+        <p className="mt-3 text-sm leading-relaxed text-smoke">
+          {step.instruction}
+        </p>
       </section>
     </div>
   );

@@ -6,12 +6,12 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { appConfig } from "@/lib/config";
-import { privyConfigured } from "@/lib/privy";
+import { privyConfigured } from "@/lib/privyConfig";
 import { useSlideRect } from "@/lib/useSlideRect";
 
 const TABS = [
   { href: "/journey", label: "Journey", tour: undefined },
-  { href: "/privy", label: "Privy", tour: undefined },
+  { href: "/privy", label: "Invest", tour: undefined },
   { href: "/strategy", label: "Strategy", tour: undefined },
   { href: "/mint", label: "Mint", tour: "nav-mint" },
   { href: "/trade", label: "Trade", tour: "nav-trade" },
@@ -39,7 +39,10 @@ export function AppTabs() {
     }
     return visible;
   }, []);
-  const { containerRef, rect } = useSlideRect<HTMLUListElement>('[aria-current="page"]', pathname);
+  const { containerRef, rect } = useSlideRect<HTMLUListElement>(
+    '[aria-current="page"]',
+    pathname,
+  );
 
   return (
     <ul
@@ -73,7 +76,11 @@ export function AppTabs() {
         <span
           aria-hidden
           className="absolute h-px bg-amber shadow-[0_0_8px_rgba(255,172,46,0.55)] transition-all duration-300 ease-out motion-reduce:transition-none"
-          style={{ left: rect.left, top: rect.top + rect.height - 1, width: rect.width }}
+          style={{
+            left: rect.left,
+            top: rect.top + rect.height - 1,
+            width: rect.width,
+          }}
         />
       ) : null}
     </ul>

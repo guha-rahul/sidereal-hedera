@@ -20,5 +20,13 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "sidereal-hedera"
     }
+  ],
+  "d1_databases": [
+    {
+      "binding": "FAUCET_DB",
+      "database_name": "sidereal-hedera-faucet",
+      "database_id": "852d1d00-d98d-4681-b100-70db51a0c37c",
+      "migrations_dir": "web/app/migrations"
+    }
   ]
 }

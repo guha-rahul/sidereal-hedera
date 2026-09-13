@@ -94,7 +94,7 @@ describe("appConfig", () => {
     expect(cfg.networkPassphrase).toBe(TESTNET_NETWORK);
     expect(cfg.marketId).toBe("hedera-bond-q4");
     expect(cfg.decimals).toBe(18);
-    expect(cfg.underlyingDecimals).toBe(18);
+    expect(cfg.underlyingDecimals).toBe(6);
     expect(cfg.shareDecimals).toBe(18);
     expect(cfg.yieldSource.kind).toBe("mock");
     // The public demo works from a fresh clone with no env: the checked-in
@@ -155,7 +155,10 @@ describe("appConfig", () => {
 
     const cfg = appConfig();
 
-    expect(cfg.rpcFallbackUrls).toEqual(["https://rpc-a.example", "https://rpc-b.example"]);
+    expect(cfg.rpcFallbackUrls).toEqual([
+      "https://rpc-a.example",
+      "https://rpc-b.example",
+    ]);
   });
 
   it("falls back to mock metadata for invalid yield-source kind values", () => {
@@ -250,7 +253,8 @@ describe("market status", () => {
 
   it("reports one live market on a configured testnet build", () => {
     stubYieldSourceEnv();
-    for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
+    for (const [name, value] of Object.entries(contractEnv))
+      vi.stubEnv(name, value);
     vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(TESTNET_CHAIN_ID));
     const cfg = appConfig();
 
@@ -264,7 +268,8 @@ describe("market status", () => {
 
   it("reports a live mainnet market as Live in both wordings", () => {
     stubYieldSourceEnv();
-    for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
+    for (const [name, value] of Object.entries(contractEnv))
+      vi.stubEnv(name, value);
     vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(MAINNET_CHAIN_ID));
     const cfg = appConfig();
 
@@ -276,11 +281,27 @@ describe("market status", () => {
     // Mainnet: no fallback fills the missing market, so the status stays Preview.
     stubYieldSourceEnv();
     vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(MAINNET_CHAIN_ID));
-    for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
+    for (const [name, value] of Object.entries(contractEnv))
+      vi.stubEnv(name, value);
     vi.stubEnv("NEXT_PUBLIC_MARKET_ADDRESS", "");
     const cfg = appConfig();
 
     expect(configuredMarketCount(cfg)).toBe(0);
     expect(marketStatusLabel(cfg)).toBe("Preview · Mainnet");
+  });
+});
+
+describe("ATS cash denomination defaults", () => {
+  it("uses six decimals for the checked-in sdUSD deployment", () => {
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", "296");
+    vi.stubEnv("NEXT_PUBLIC_UNDERLYING_ADDRESS", "");
+    vi.stubEnv("NEXT_PUBLIC_UNDERLYING_DECIMALS", "");
+    expect(appConfig().underlyingDecimals).toBe(6);
+    expect(appConfig().shareDecimals).toBe(18);
+  });
+  it("preserves an explicit denomination-decimal override", () => {
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", "296");
+    vi.stubEnv("NEXT_PUBLIC_UNDERLYING_DECIMALS", "8");
+    expect(appConfig().underlyingDecimals).toBe(8);
   });
 });

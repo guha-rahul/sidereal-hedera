@@ -56,7 +56,9 @@ function quote(overrides: Partial<Quote>): Quote {
   };
 }
 
-function clientMock(overrides: Partial<TokenizeBondClient> = {}): TokenizeBondClient {
+function clientMock(
+  overrides: Partial<TokenizeBondClient> = {},
+): TokenizeBondClient {
   return {
     getAllowance: vi.fn(async () => 0n),
     buildApprove: vi.fn((args) => request(`approve-${args.token}`)),
@@ -72,13 +74,19 @@ function clientMock(overrides: Partial<TokenizeBondClient> = {}): TokenizeBondCl
 
 describe("estimateBondTokenizationFace", () => {
   it("returns zero until the market is available", () => {
-    expect(estimateBondTokenizationFace(null, 101n)).toEqual({ faceAmount: 0n });
-    expect(estimateBondTokenizationFace({ exchangeRate: 2n * WAD }, 0n)).toEqual({ faceAmount: 0n });
+    expect(estimateBondTokenizationFace(null, 101n)).toEqual({
+      faceAmount: 0n,
+    });
+    expect(
+      estimateBondTokenizationFace({ exchangeRate: 2n * WAD }, 0n),
+    ).toEqual({ faceAmount: 0n });
   });
 
   it("estimates the asset-unit PT and YT face amount", () => {
-    expect(estimateBondTokenizationFace({ exchangeRate: 2n * WAD }, 200n)).toEqual({
-      faceAmount: 100n,
+    expect(
+      estimateBondTokenizationFace({ exchangeRate: 2n * WAD }, 200n),
+    ).toEqual({
+      faceAmount: 200n,
     });
   });
 });
@@ -116,7 +124,10 @@ describe("buildTokenizeBondSteps", () => {
       underlyingAmount: 100n,
       minSyOut: 49n,
     });
-    expect(client.buildSplit).toHaveBeenCalledWith({ from: address, syAmount: 50n });
+    expect(client.buildSplit).toHaveBeenCalledWith({
+      from: address,
+      syAmount: 50n,
+    });
   });
 
   it("skips approvals when allowances are already maxed", async () => {
@@ -207,8 +218,126 @@ describe("buildTokenizeBondSteps", () => {
       mode: "fixed",
     });
 
-    await expect(steps[5]!.build()).rejects.toThrow(/no YT available to sell after split/);
+    await expect(steps[5]!.build()).rejects.toThrow(
+      /no YT available to sell after split/,
+    );
     expect(client.quoteSwap).not.toHaveBeenCalled();
     expect(client.buildSwap).not.toHaveBeenCalled();
+  });
+});
+
+describe("exact investment approvals", () => {
+  async function exact(
+    client: TokenizeBondClient,
+    mode: "fixed" | "variable" = "fixed",
+  ) {
+    return buildTokenizeBondSteps({
+      client,
+      marketId,
+      contracts: { ...contracts, pt: "0xPT" },
+      address,
+      market,
+      underlyingAmount: 100n,
+      mode,
+      approvalMode: "exact",
+    });
+  }
+
+  it("splits actual new SY below the preview without consuming existing SY", async () => {
+    let held = sdkPosition({ syBalance: 200n, ytBalance: 30n });
+    const client = clientMock({ getPosition: vi.fn(async () => held) });
+    const steps = await exact(client);
+    await steps[0]!.build();
+    expect(client.buildApprove).toHaveBeenLastCalledWith({
+      token: market.underlying,
+      spender: contracts.sy,
+      amount: 100n,
+    });
+    await steps[1]!.build(); // Capture the pre-deposit holdings.
+    held = sdkPosition({ syBalance: 249n, ytBalance: 30n }); // 49 instead of the 50 preview.
+    await steps[2]!.build();
+    expect(client.buildApprove).toHaveBeenLastCalledWith({
+      token: contracts.sy,
+      spender: contracts.tokenizer,
+      amount: 49n,
+    });
+    await steps[3]!.build();
+    expect(client.buildSplit).toHaveBeenLastCalledWith({
+      from: address,
+      syAmount: 49n,
+    });
+    held = sdkPosition({ syBalance: 200n, ytBalance: 79n });
+    await steps[4]!.build();
+    expect(client.buildApprove).toHaveBeenLastCalledWith({
+      token: contracts.yt,
+      spender: contracts.market,
+      amount: 49n,
+    });
+    await steps[5]!.build();
+    expect(client.buildSwap).toHaveBeenCalledWith(
+      expect.objectContaining({ assetIn: "YT", amountIn: 49n }),
+    );
+  });
+
+  it("sells only newly minted PT for variable yield exposure", async () => {
+    let held = sdkPosition({ syBalance: 100n, ptBalance: 20n });
+    const client = clientMock({ getPosition: vi.fn(async () => held) });
+    const steps = await exact(client, "variable");
+    await steps[1]!.build();
+    held = sdkPosition({ syBalance: 150n, ptBalance: 20n });
+    await steps[2]!.build();
+    await steps[3]!.build();
+    held = sdkPosition({ syBalance: 100n, ptBalance: 70n });
+    await steps[4]!.build();
+    await steps[5]!.build();
+    expect(client.buildApprove).toHaveBeenLastCalledWith({
+      token: "0xPT",
+      spender: contracts.market,
+      amount: 50n,
+    });
+    expect(client.buildSwap).toHaveBeenCalledWith(
+      expect.objectContaining({ assetIn: "PT", assetOut: "SY", amountIn: 50n }),
+    );
+  });
+
+  it("accepts sufficient finite allowance without granting unlimited authority", async () => {
+    const client = clientMock({ getAllowance: vi.fn(async () => 100n) });
+    const steps = await exact(client);
+    expect(steps[0]!.label).toBe("Deposit");
+  });
+
+  it("stops when no new SY was received even if the wallet already holds SY", async () => {
+    const client = clientMock({
+      getPosition: vi.fn(async () => sdkPosition({ syBalance: 100n })),
+    });
+    const steps = await exact(client);
+    await steps[1]!.build();
+    await expect(steps[2]!.build()).rejects.toThrow(/No new SY/);
+    expect(client.buildSplit).not.toHaveBeenCalled();
+  });
+
+  it("preserves tokens when the final trade has no liquidity", async () => {
+    let held = sdkPosition({});
+    const client = clientMock({
+      getPosition: vi.fn(async () => held),
+      quoteSwap: vi.fn(async () => quote({ amountOut: 0n })),
+    });
+    const steps = await exact(client);
+    await steps[1]!.build();
+    held = sdkPosition({ syBalance: 50n });
+    await steps[2]!.build();
+    await steps[3]!.build();
+    held = sdkPosition({ ytBalance: 50n });
+    await steps[4]!.build();
+    await expect(steps[5]!.build()).rejects.toThrow(/No liquidity/);
+    expect(client.buildSwap).not.toHaveBeenCalled();
+  });
+});
+
+describe("six-decimal cash face", () => {
+  it("normalizes sdUSD into eighteen-decimal PT/YT face", () => {
+    expect(
+      estimateBondTokenizationFace({ exchangeRate: 2n * WAD }, 100_000_000n, 6),
+    ).toEqual({ faceAmount: 100n * WAD });
   });
 });

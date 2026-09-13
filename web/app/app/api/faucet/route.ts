@@ -13,7 +13,12 @@ import {
 } from "viem";
 import { hederaTestnet } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { PrivyClient } from "@privy-io/server-auth";
+import { PrivyClient } from "@privy-io/node";
+import {
+  fundingStoreConfigured,
+  reserveFunding,
+  recordFunding,
+} from "@/lib/faucetStore";
 import { appConfig } from "@/lib/config";
 
 export const runtime = "nodejs";
@@ -75,7 +80,6 @@ const ATS_ADMIN_ABI = [
   },
 ] as const;
 
-const FUNDED = new Set<string>();
 const ONE_YEAR_SECONDS = 365n * 24n * 60n * 60n;
 
 function noStore(body: unknown, init?: ResponseInit): NextResponse {
@@ -85,41 +89,62 @@ function noStore(body: unknown, init?: ResponseInit): NextResponse {
 }
 
 function cashAmount(cfg: ReturnType<typeof appConfig>): bigint {
-  return parseUnits(process.env.FAUCET_CASH_AMOUNT ?? cfg.faucetAmount, cfg.underlyingDecimals);
+  return parseUnits(
+    process.env.FAUCET_CASH_AMOUNT ?? cfg.faucetAmount,
+    cfg.underlyingDecimals,
+  );
 }
 
-/**
- * When a Privy app secret is configured, funding is bound to the authenticated
- * Privy user: the bearer token is verified and the requested address must be one
- * of that user's linked wallets. Without the secret the route stays in demo mode
- * (no identity binding), which is acceptable only for a public testnet faucet.
- */
-async function privyOwnershipError(request: Request, recipient: string): Promise<string | null> {
+/** Fail closed: funding always requires an authenticated owner of the embedded wallet. */
+async function verifyFundingOwner(
+  request: Request,
+  recipient: string,
+): Promise<{ userId?: string; error?: string; status?: number }> {
   const secret = process.env.PRIVY_APP_SECRET;
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  if (!secret) return null;
-  if (!appId) return "Privy app id is not configured";
+  if (!secret?.trim() || !appId?.trim())
+    return { error: "Privy authentication is not configured", status: 503 };
   const header = request.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-  if (!token) return "A Privy session token is required to fund this wallet";
+  if (!token)
+    return {
+      error: "A Privy session token is required to fund this wallet",
+      status: 401,
+    };
   try {
-    const privy = new PrivyClient(appId, secret);
-    const claims = await privy.verifyAuthToken(token);
-    const user = await privy.getUser(claims.userId);
-    const owns = user.linkedAccounts.some(
+    const privy = new PrivyClient({ appId, appSecret: secret });
+    const claims = await privy.utils().auth().verifyAccessToken(token);
+    const user = await privy.users()._get(claims.user_id);
+    const owns = user.linked_accounts.some(
       (account) =>
         account.type === "wallet" &&
-        (account as { address?: string }).address?.toLowerCase() === recipient.toLowerCase(),
+        account.wallet_client_type === "privy" &&
+        account.chain_type === "ethereum" &&
+        account.address.toLowerCase() === recipient.toLowerCase(),
     );
-    return owns ? null : "The requested address is not linked to this Privy user";
+    return owns
+      ? { userId: claims.user_id }
+      : {
+          error:
+            "The requested address is not an embedded wallet linked to this Privy user",
+          status: 403,
+        };
   } catch {
-    return "Privy authentication failed";
+    return { error: "Privy authentication failed", status: 401 };
   }
 }
 
 export async function GET() {
   const cfg = appConfig();
-  const enabled = Boolean(process.env.FAUCET_PRIVATE_KEY) && cfg.faucetEnabled && cfg.chainId === 296;
+  const enabled =
+    Boolean(
+      process.env.FAUCET_PRIVATE_KEY &&
+        process.env.PRIVY_APP_SECRET &&
+        process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+    ) &&
+    fundingStoreConfigured() &&
+    cfg.faucetEnabled &&
+    cfg.chainId === 296;
   return noStore({
     enabled,
     token: cfg.yieldSource.underlyingAddress,
@@ -137,7 +162,10 @@ export async function POST(request: Request) {
     return noStore({ error: "Test cash faucet is disabled" }, { status: 403 });
   }
   if (cfg.chainId !== 296) {
-    return noStore({ error: "The test cash faucet only runs on Hedera testnet" }, { status: 403 });
+    return noStore(
+      { error: "The test cash faucet only runs on Hedera testnet" },
+      { status: 403 },
+    );
   }
 
   let payload: unknown;
@@ -149,23 +177,88 @@ export async function POST(request: Request) {
 
   const address = (payload as { address?: unknown } | null)?.address;
   if (typeof address !== "string" || !isAddress(address)) {
-    return noStore({ error: "address must be a 0x EVM address" }, { status: 400 });
+    return noStore(
+      { error: "address must be a 0x EVM address" },
+      { status: 400 },
+    );
   }
 
   const recipient = getAddress(address);
-  const authError = await privyOwnershipError(request, recipient);
-  if (authError) {
-    return noStore({ error: authError }, { status: 401 });
-  }
-  if (FUNDED.has(recipient.toLowerCase())) {
-    return noStore({ error: "This wallet already received test funds" }, { status: 429 });
-  }
+  const owner = await verifyFundingOwner(request, recipient);
+  if (owner.error || !owner.userId)
+    return noStore({ error: owner.error }, { status: owner.status ?? 401 });
+  if (!fundingStoreConfigured())
+    return noStore(
+      { error: "Durable faucet storage is not configured" },
+      { status: 503 },
+    );
+  let allocationId: string | null = null;
+  let phase = "reserved";
+  const hashes: { kind: string; hash: string }[] = [];
 
   try {
+    // Validate amounts before reserving or submitting any transaction.
+    const amount = cashAmount(cfg);
+    const hbar = parseEther(process.env.FAUCET_HBAR_AMOUNT ?? "20");
+    if (amount <= 0n || hbar < 0n)
+      return noStore(
+        { error: "Invalid faucet funding amount" },
+        { status: 500 },
+      );
+    const reservation = await reserveFunding(owner.userId, recipient);
+    if (!reservation.created) {
+      const existing = reservation.allocation;
+      // Never expose another identity's funding record if its wallet was relinked.
+      if (
+        existing.user_id !== owner.userId ||
+        existing.wallet !== recipient.toLowerCase()
+      ) {
+        return noStore(
+          { error: "This identity or wallet already has a funding allocation" },
+          { status: 429 },
+        );
+      }
+      if (existing.status === "complete")
+        return noStore({
+          ok: true,
+          hashes: JSON.parse(existing.hashes),
+          allocationId: existing.id,
+        });
+      return noStore(
+        {
+          error:
+            "Funding was already started. Contact the demo operator to reconcile pending or partial funding; retrying will not send duplicate funds.",
+          allocationId: existing.id,
+          phase: existing.phase,
+          hashes: JSON.parse(existing.hashes),
+        },
+        { status: 409 },
+      );
+    }
+    allocationId = reservation.allocation.id;
+    const checkpoint = async (nextPhase: string) => {
+      phase = nextPhase;
+      await recordFunding(allocationId!, "running", phase, hashes);
+    };
+    const confirm = async (hash: `0x${string}`) => {
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+        ...receiptWait,
+      });
+      if (receipt.status !== "success")
+        throw new Error("Funding transaction reverted");
+    };
     const account = privateKeyToAccount(key as `0x${string}`);
     const transport = http(cfg.rpcUrl);
-    const publicClient = createPublicClient({ chain: hederaTestnet, transport });
-    const walletClient = createWalletClient({ account, chain: hederaTestnet, transport });
+    const publicClient = createPublicClient({
+      chain: hederaTestnet,
+      transport,
+    });
+    const walletClient = createWalletClient({
+      account,
+      chain: hederaTestnet,
+      transport,
+    });
     const receiptWait = { timeout: 120_000, pollingInterval: 2_000 };
 
     const security = (await publicClient.readContract({
@@ -174,8 +267,6 @@ export async function POST(request: Request) {
       functionName: "securityToken",
     })) as Address;
 
-    const hashes: { kind: string; hash: string }[] = [];
-
     const kycStatus = (await publicClient.readContract({
       address: security,
       abi: ATS_ADMIN_ABI,
@@ -183,6 +274,7 @@ export async function POST(request: Request) {
       args: [recipient],
     })) as bigint;
     if (kycStatus !== 1n) {
+      await checkpoint("kyc-submitting");
       const hash = await walletClient.writeContract({
         address: security,
         abi: ATS_ADMIN_ABI,
@@ -195,34 +287,53 @@ export async function POST(request: Request) {
           account.address,
         ],
       });
-      await publicClient.waitForTransactionReceipt({ hash, ...receiptWait });
       hashes.push({ kind: "kyc", hash });
+      await checkpoint("kyc-submitted");
+      await confirm(hash);
+      await checkpoint("kyc-confirmed");
     }
 
-    const amount = cashAmount(cfg);
-    if (amount <= 0n) {
-      return noStore({ error: "Faucet amount must be positive" }, { status: 500 });
-    }
+    await checkpoint("cash-submitting");
     const cashHash = await walletClient.writeContract({
       address: cfg.yieldSource.underlyingAddress as Address,
       abi: ERC20_ABI,
       functionName: "transfer",
       args: [recipient, amount],
     });
-    await publicClient.waitForTransactionReceipt({ hash: cashHash, ...receiptWait });
     hashes.push({ kind: "cash", hash: cashHash });
+    await checkpoint("cash-submitted");
+    await confirm(cashHash);
+    await checkpoint("cash-confirmed");
 
-    const hbar = parseEther(process.env.FAUCET_HBAR_AMOUNT ?? "20");
     if (hbar > 0n) {
-      const hbarHash = await walletClient.sendTransaction({ to: recipient, value: hbar });
-      await publicClient.waitForTransactionReceipt({ hash: hbarHash, ...receiptWait });
+      await checkpoint("hbar-submitting");
+      const hbarHash = await walletClient.sendTransaction({
+        to: recipient,
+        value: hbar,
+      });
       hashes.push({ kind: "hbar", hash: hbarHash });
+      await checkpoint("hbar-submitted");
+      await confirm(hbarHash);
+      await checkpoint("hbar-confirmed");
     }
 
-    FUNDED.add(recipient.toLowerCase());
-    return noStore({ ok: true, hashes });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return noStore({ error: `Faucet funding failed: ${message}` }, { status: 502 });
+    await recordFunding(allocationId, "complete", "complete", hashes);
+    return noStore({ ok: true, hashes, allocationId });
+  } catch {
+    if (allocationId)
+      await recordFunding(allocationId, "failed", phase, hashes).catch(
+        () => undefined,
+      );
+    // RPC error messages may include the signed payload; keep them off the public endpoint.
+    return noStore(
+      {
+        error:
+          "Faucet funding failed. Contact the demo operator before retrying.",
+        allocationId,
+        phase,
+        hashes,
+      },
+      { status: 502 },
+    );
   }
 }

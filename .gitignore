@@ -6,3 +6,6 @@
 .env
 .env.*
 !.env.example
+
+# Wrangler local caches and deployment staging
+.wrangler/

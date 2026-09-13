@@ -137,7 +137,9 @@ export function networkLabel(
       : network === "testnet"
         ? "testnet"
         : "configured network";
-  return casing === "lower" ? base : base.replace(/\b\w/g, (char) => char.toUpperCase());
+  return casing === "lower"
+    ? base
+    : base.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function yieldSourceKind(value: string | undefined): YieldSourceKind {
@@ -156,15 +158,30 @@ export function appConfig(): AppConfig {
   // NEXT_PUBLIC_* addresses are absent, so a fresh clone still works without
   // any gating or manual setup. Mainnet never falls back.
   const fallback = network === "testnet" ? TESTNET_DEPLOYMENT.contracts : null;
-  const deployed = (env: string | undefined, key: keyof ContractAddresses): string =>
-    publicEnv(env, fallback?.[key] ?? "");
+  const deployed = (
+    env: string | undefined,
+    key: keyof ContractAddresses,
+  ): string => publicEnv(env, fallback?.[key] ?? "");
   const bondAddress = deployed(process.env.NEXT_PUBLIC_BOND_ADDRESS, "bond");
-  const strategyAddress = deployed(process.env.NEXT_PUBLIC_STRATEGY_ADDRESS, "strategy");
-  const underlyingAddress = deployed(process.env.NEXT_PUBLIC_UNDERLYING_ADDRESS, "underlying");
-  const decimals = Number(publicEnv(process.env.NEXT_PUBLIC_TOKEN_DECIMALS, "18"));
+  const strategyAddress = deployed(
+    process.env.NEXT_PUBLIC_STRATEGY_ADDRESS,
+    "strategy",
+  );
+  const underlyingAddress = deployed(
+    process.env.NEXT_PUBLIC_UNDERLYING_ADDRESS,
+    "underlying",
+  );
+  const decimals = Number(
+    publicEnv(process.env.NEXT_PUBLIC_TOKEN_DECIMALS, "18"),
+  );
+  const fallbackCashDecimals =
+    fallback &&
+    underlyingAddress.toLowerCase() === fallback.underlying?.toLowerCase()
+      ? "6"
+      : String(decimals);
   const faucetOverride = process.env.NEXT_PUBLIC_FAUCET_ENABLED;
-  // Default to on for testnet markets whose underlying is a mintable mock;
-  // an explicit env value always wins (e.g. disable for a real testnet asset).
+  // Testnet funding still requires server-side keys, authentication and durable
+  // storage; this flag controls whether the interface offers it.
   const faucetEnabled =
     faucetOverride === undefined || faucetOverride === ""
       ? network === "testnet" && underlyingAddress.length > 0
@@ -174,12 +191,19 @@ export function appConfig(): AppConfig {
     network,
     chainId,
     rpcUrl: publicEnv(process.env.NEXT_PUBLIC_HEDERA_RPC_URL, defaultRpcUrl),
-    rpcFallbackUrls: publicEnvList(process.env.NEXT_PUBLIC_HEDERA_RPC_FALLBACK_URLS),
+    rpcFallbackUrls: publicEnvList(
+      process.env.NEXT_PUBLIC_HEDERA_RPC_FALLBACK_URLS,
+    ),
     networkPassphrase: networkDescriptor(network),
     simulationSourceAccount: ZERO_ADDRESS,
     marketId: publicEnv(process.env.NEXT_PUBLIC_MARKET_ID, "hedera-bond-q4"),
     decimals,
-    underlyingDecimals: Number(publicEnv(process.env.NEXT_PUBLIC_UNDERLYING_DECIMALS, String(decimals))),
+    underlyingDecimals: Number(
+      publicEnv(
+        process.env.NEXT_PUBLIC_UNDERLYING_DECIMALS,
+        fallbackCashDecimals,
+      ),
+    ),
     shareDecimals: 18,
     yieldSource: {
       kind: yieldKind,
@@ -196,7 +220,10 @@ export function appConfig(): AppConfig {
       sy: deployed(process.env.NEXT_PUBLIC_SY_ADDRESS, "sy"),
       pt: deployed(process.env.NEXT_PUBLIC_PT_ADDRESS, "pt"),
       yt: deployed(process.env.NEXT_PUBLIC_YT_ADDRESS, "yt"),
-      tokenizer: deployed(process.env.NEXT_PUBLIC_TOKENIZER_ADDRESS, "tokenizer"),
+      tokenizer: deployed(
+        process.env.NEXT_PUBLIC_TOKENIZER_ADDRESS,
+        "tokenizer",
+      ),
       market: deployed(process.env.NEXT_PUBLIC_MARKET_ADDRESS, "market"),
       orderbook: publicEnv(
         process.env.NEXT_PUBLIC_ORDERBOOK_ADDRESS,

@@ -9,7 +9,7 @@ function shorten(addr: string): string {
 }
 
 export function WalletButton() {
-  const { address, connecting, connect, disconnect } = useWallet();
+  const { address, connecting, connect, disconnect, walletKind } = useWallet();
 
   if (address) {
     return (
@@ -33,7 +33,11 @@ export function WalletButton() {
       className="rounded-pill border border-white/30 px-4 py-2 text-[13px] uppercase tracking-[0.12em] text-paper transition hover:bg-paper hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
       data-tour="wallet"
     >
-      {connecting ? "Connecting..." : "Connect wallet"}
+      {connecting
+        ? "Connecting..."
+        : walletKind === "privy"
+          ? "Continue with email"
+          : "Connect wallet"}
     </button>
   );
 }

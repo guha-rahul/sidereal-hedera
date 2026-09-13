@@ -18,9 +18,15 @@ import { appConfig, evmChainParams } from "./config";
 type Hex = `0x${string}`;
 
 interface InjectedProvider {
-  request: (args: { method: string; params?: unknown[] | object }) => Promise<unknown>;
+  request: (args: {
+    method: string;
+    params?: unknown[] | object;
+  }) => Promise<unknown>;
   on?: (event: string, handler: (...args: unknown[]) => void) => void;
-  removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
+  removeListener?: (
+    event: string,
+    handler: (...args: unknown[]) => void,
+  ) => void;
   isMetaMask?: boolean;
 }
 
@@ -30,7 +36,9 @@ declare global {
   }
 }
 
-interface WalletContextValue {
+export interface WalletContextValue {
+  walletKind?: "injected" | "privy";
+  getAccessToken?: () => Promise<string | null>;
   address: string | null;
   chainId: number | null;
   connecting: boolean;
@@ -44,7 +52,7 @@ interface WalletContextValue {
   networkMismatch: boolean;
 }
 
-const WalletContext = createContext<WalletContextValue | null>(null);
+export const WalletContext = createContext<WalletContextValue | null>(null);
 
 function injectedProvider(): InjectedProvider | null {
   if (typeof window === "undefined") return null;
@@ -94,7 +102,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
     })();
 
-    const onAccounts = (accounts: unknown) => setAddress(firstAccount(accounts));
+    const onAccounts = (accounts: unknown) =>
+      setAddress(firstAccount(accounts));
     const onChain = (chain: unknown) => setChainId(parseChainId(chain));
     provider.on?.("accountsChanged", onAccounts);
     provider.on?.("chainChanged", onChain);
@@ -112,7 +121,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
     setConnecting(true);
     try {
-      const accounts = await provider.request({ method: "eth_requestAccounts" });
+      const accounts = await provider.request({
+        method: "eth_requestAccounts",
+      });
       setAddress(firstAccount(accounts));
       const chain = await provider.request({ method: "eth_chainId" });
       setChainId(parseChainId(chain));
@@ -200,7 +211,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
+  return (
+    <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
+  );
 }
 
 export function useWallet(): WalletContextValue {
