@@ -148,6 +148,18 @@ Then run lifecycle phases with `script/ATSLifecycle.s.sol`. See
 [`contracts/ATS_DEPLOYMENT.md`](contracts/ATS_DEPLOYMENT.md) for timing rules,
 including the PT-heavy first seed the AMM requires.
 
+### Frontend (Vercel)
+
+The frontend deploys to Vercel as the `sidereal-ats` project. Pushes to `main`
+that touch `web/**` or the ATS manifests trigger
+[`.github/workflows/deploy-web.yml`](.github/workflows/deploy-web.yml), which
+builds the SDK, stages a self-contained app, and runs `vercel deploy --prod`.
+
+Add a `VERCEL_TOKEN` repository secret from the Vercel account that owns the
+project to enable it; without the secret the workflow logs a warning and skips.
+Connecting the Vercel project to Git is the alternative, but it needs the Vercel
+GitHub App installed on this repository by an owner.
+
 ### Test-cash faucet
 
 `sdUSD` has no public `mint`, so the app's [`/api/faucet`](web/app/app/api/faucet/route.ts)

@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: Apache-2.0
+name: deploy-web
+
+# Redeploys the frontend to Vercel on every push to main. Requires a
+# `VERCEL_TOKEN` repository secret from the Vercel account that owns the
+# `sidereal-ats` project; without it the deploy steps are skipped.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "contracts/deployments/hedera-ats.json"
+      - "contracts/deployments/hedera-ats-short.json"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: vercel production
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_m89t6Xfiqd5LHZTlqsnYdH2y
+      VERCEL_PROJECT_ID: prj_2uP97UHHSpaAAV33otuGiVTpsArU
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip without a Vercel token
+        if: env.VERCEL_TOKEN == ''
+        run: echo "::warning::VERCEL_TOKEN is not set; add it as a repository secret to enable deploys."
+
+      - if: env.VERCEL_TOKEN != ''
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - if: env.VERCEL_TOKEN != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install workspace
+        if: env.VERCEL_TOKEN != ''
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the SDK
+        if: env.VERCEL_TOKEN != ''
+        working-directory: web
+        run: pnpm --filter @sidereal/sdk build
+
+      # The app lives in a pnpm workspace whose root is `web/`, but Vercel CLI
+      # uploads only the directory it is run from. Stage a self-contained copy
+      # that references the packed SDK so the deploy needs no workspace.
+      - name: Stage a self-contained app
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          set -euo pipefail
+          stage="$RUNNER_TEMP/app"
+          mkdir -p "$stage"
+          ( cd web/sdk && npm pack --pack-destination "$RUNNER_TEMP" >/dev/null )
+          rsync -a --exclude node_modules --exclude .next --exclude .vercel --exclude '.env.local' web/app/ "$stage/"
+          cd "$stage"
+          tarball=$(basename "$(ls "$RUNNER_TEMP"/sidereal-sdk-*.tgz)")
+          mv "$RUNNER_TEMP/$tarball" .
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.dependencies['@sidereal/sdk']='file:./'+process.argv[1];p.engines={node:'22.x'};fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')" "$tarball"
+          printf '{\n  "$schema": "https://openapi.vercel.sh/vercel.json",\n  "buildCommand": "next build",\n  "installCommand": "npm install --legacy-peer-deps"\n}\n' > vercel.json
+
+      - name: Deploy to production
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          cd "$RUNNER_TEMP/app"
+          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
