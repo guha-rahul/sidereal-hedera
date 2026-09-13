@@ -21,7 +21,7 @@ contract Codex2ATSFactoryTest is Test, DeployATS {
 
     function testRealFactoryIssuanceAndPaidLifecycleOnFork() public {
         if (!vm.envOr("RUN_ATS_LIVE",false)) { vm.skip(true); return; }
-        vm.createSelectFork("https://testnet.hashio.io/api",40433521);
+        vm.createSelectFork("https://testnet.hashio.io/api",vm.envOr("ATS_FORK_BLOCK", uint256(40433521)));
         address issuer = address(0xA11CE);
         address buyer = address(0xB0B);
         vm.startPrank(issuer);
@@ -48,7 +48,7 @@ contract Codex2ATSFactoryTest is Test, DeployATS {
     ///      through the same `_deploy` the broadcast script uses, so a wiring or
     ///      timing mistake fails here instead of after spending testnet HBAR.
     function _fork() internal returns (Market memory m) {
-        vm.createSelectFork("https://testnet.hashio.io/api", 40433521);
+        vm.createSelectFork("https://testnet.hashio.io/api", vm.envOr("ATS_FORK_BLOCK", uint256(40433521)));
         vm.startPrank(ISSUER);
         m = _deploy(ISSUER, BUYER, 1800, 600);
         vm.stopPrank();

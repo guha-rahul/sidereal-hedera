@@ -43,9 +43,14 @@ contract ATSLifecycle is Script {
             sy.deposit(4_000e6, 0);
             IERC20(syAddress).approve(address(tokenizer),2_000e18);
             tokenizer.split(2_000e18);
-            IERC20(pt).approve(address(amm),1_000e18);
-            IERC20(syAddress).approve(address(amm),1_000e18);
-            amm.addLiquidity(1_000e18,1_000e18,0);
+            // Seed PT-heavy (60/40), not 50/50. The AMM's first addLiquidity
+            // reverts `ExchangeRateBelowOne` when the SY rate is above 1 because
+            // a 50/50 seed sits on the curve's `exchangeRate >= 1` boundary. A
+            // live bond accrues value every second, so at seed time the rate is
+            // usually above 1. 1200/800 clears the boundary for any rate < 1.5.
+            IERC20(pt).approve(address(amm),1_200e18);
+            IERC20(syAddress).approve(address(amm),800e18);
+            amm.addLiquidity(1_200e18,800e18,0);
             IERC20(pt).approve(address(book),100e18);
             book.placeOrder(Orderbook.Side.Ask,100e18,0.98e18,vm.parseJsonUint(json,".maturity"),0);
         } else if (keccak256(bytes(phase)) == keccak256("trade")) {

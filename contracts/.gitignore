@@ -13,3 +13,10 @@ broadcast/
 # they are the submission's address evidence, and both
 # web/app/scripts/manifest-to-env.mjs and web/app/lib/deployments.ts read them.
 deployments/codex2-fork-*.json
+
+# Python evidence tooling
+__pycache__/
+
+# Raw Foundry broadcast dumps. The collector evidence (`evidence/*.json`) already
+# embeds the same receipts, so these intermediate exports stay out of the repo.
+deployments/evidence/*-broadcast.json

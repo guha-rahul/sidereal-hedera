@@ -24,3 +24,7 @@ fail_on_revert = false
 line_length = 100
 tab_width = 4
 bracket_spacing = false
+
+# Current ATS factory bytecode requires Cancun execution during live simulation.
+[profile.hedera_live]
+evm_version = "cancun"
