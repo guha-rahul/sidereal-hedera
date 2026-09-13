@@ -8,14 +8,14 @@ import { LiveValue } from "@/components/LiveValue";
 function sourceStatus(source: YieldSourceConfig): { label: string; body: string; tone: "live" | "idle" } {
   if (source.kind === "bond") {
     return {
-      label: "Real yield source",
+      label: "ATS bond",
       body: "Deposits are routed by the vault's strategy into an ERC-3643 tokenized bond. The SY exchange rate tracks the bond's accrued value.",
       tone: "live",
     };
   }
   return {
     label: "Simulated rate",
-    body: "This market uses the mock rate path. It is useful for contract flows, not real protocol yield.",
+    body: "This market uses the mock rate path. Use it for local contract checks.",
     tone: "idle",
   };
 }

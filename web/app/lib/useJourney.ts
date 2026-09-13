@@ -57,12 +57,7 @@ const EMPTY: Omit<JourneyData, "refresh"> = {
   cashBalance: null,
 };
 
-/**
- * Loads every value the judge journey needs in one pass and, crucially, keeps
- * failures visible: the core market read gates `status`, and any secondary read
- * that fails is collected in `warnings` rather than silently rendered as zero.
- * Nothing is fabricated when a call fails.
- */
+/** Loads market and wallet state, retaining failures as status or warnings. */
 export function useJourney(address: string | null, refreshKey: unknown = 0): JourneyData {
   const [state, setState] = useState<Omit<JourneyData, "refresh">>(EMPTY);
   const [nonce, setNonce] = useState(0);

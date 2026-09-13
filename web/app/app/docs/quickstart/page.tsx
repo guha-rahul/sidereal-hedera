@@ -8,12 +8,12 @@ export const metadata: Metadata = { title: "Quickstart" };
 
 const STEPS: { title: string; body: React.ReactNode }[] = [
   {
-    title: "Connect a wallet",
+    title: "Sign in and fund your wallet",
     body: (
       <>
-        Open the app and connect an injected EVM wallet (MetaMask, or the HashPack EVM provider).
-        You need the deployment&rsquo;s cash token and a little HBAR to pay network fees, which are
-        a fraction of a cent per transaction.
+        Open <Link href="/privy">Invest</Link>, sign in with email, and close wallet setup with
+        All Done. Request demo funding for sdUSD, HBAR and ATS eligibility. sdUSD is a
+        demonstration token. This market does not require USDC.
       </>
     ),
   },
@@ -33,7 +33,7 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
       <>
         Split your SY. The protocol locks it up and gives you equal amounts of PT and YT. You now
         hold the fixed side and the floating side of your own deposit as two separate tokens.
-        Moving tokens into the protocol needs a one-time ERC-20 approval per asset.
+        Each asset needs an ERC-20 approval when its allowance is insufficient.
       </>
     ),
   },
@@ -54,8 +54,8 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         YT holders collect their accrued interest on the <strong>Portfolio</strong> page whenever
-        they like; there is no need to wait for maturity. PT holders get their principal back
-        one-for-one on the same page once the market matures.
+        they like; there is no need to wait for maturity. PT holders redeem through SY after maturity, subject to the frozen exchange rate
+        and available backing.
       </>
     ),
   },
@@ -89,7 +89,7 @@ export default function QuickstartPage() {
         <ul>
           <li>
             New to yield splitting? Read <Link href="/docs/concepts">SY, PT and YT</Link> first. It
-            explains what each token is actually worth, in plain terms.
+            explains the units and rights of each token.
           </li>
           <li>
             Ready to act? The <Link href="/docs/guides/mint">Deposit and split guide</Link> walks

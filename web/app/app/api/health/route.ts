@@ -9,7 +9,7 @@ export function GET() {
   return NextResponse.json(
     {
       ok: true,
-      service: "sidereal-demo-runner",
+      service: "sidereal-web",
     },
     {
       headers: {

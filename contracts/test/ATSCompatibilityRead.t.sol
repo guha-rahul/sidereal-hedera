@@ -5,8 +5,8 @@ import {IATSBond} from "../src/interfaces/IATSBond.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @notice Explicit opt-in live compatibility test, not our asset or deployment.
-/// @dev RUN_ATS_LIVE=true forge test --match-contract Codex1ATSLiveReadTest -vv
-contract Codex1ATSLiveReadTest is Test {
+/// @dev RUN_ATS_LIVE=true forge test --match-contract ATSCompatibilityReadTest -vv
+contract ATSCompatibilityReadTest is Test {
     function testPinnedATSABIAndSnapshotCallOnHederaFork() public {
         if (!vm.envOr("RUN_ATS_LIVE", false)) vm.skip(true);
         return;

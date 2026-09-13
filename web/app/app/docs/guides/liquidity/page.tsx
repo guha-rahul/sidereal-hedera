@@ -12,7 +12,7 @@ export default function LiquidityGuidePage() {
       <DocsHeader
         kicker="Guides"
         title="Provide liquidity"
-        summary="Liquidity providers fill the pool that everyone else trades against, and earn fees for it. This guide covers adding and removing liquidity on the Pool page, what LPs earn, and the honest risks."
+        summary="Liquidity providers fill the pool that everyone else trades against, and earn fees for it. This guide covers adding and removing liquidity on the Pool page, what LPs earn, and liquidity risks."
       />
 
       <div className="docs-prose mt-8">

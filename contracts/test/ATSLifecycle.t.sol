@@ -14,13 +14,13 @@ import {Orderbook} from "../src/Orderbook.sol";
 /// @notice Drives every `ATSLifecycle` phase against a market built by the real ATS
 ///         factory. The demo receipts come from these phases, so a reverting phase
 ///         must surface here rather than mid-demonstration on testnet.
-contract Codex2LifecycleTest is Test, DeployATS {
-    uint256 constant ISSUER_KEY = uint256(keccak256("codex2.fork.issuer"));
-    uint256 constant BUYER_KEY = uint256(keccak256("codex2.fork.buyer"));
+contract ATSLifecycleTest is Test, DeployATS {
+    uint256 constant ISSUER_KEY = uint256(keccak256("sidereal.fork.issuer"));
+    uint256 constant BUYER_KEY = uint256(keccak256("sidereal.fork.buyer"));
     // Distinct manifest files: forge runs test functions concurrently, so two tests
     // writing one path would race on the file as well as on the phase selection.
-    string constant PATH_FULL = "deployments/codex2-fork-lifecycle.json";
-    string constant PATH_ACCESS = "deployments/codex2-fork-access.json";
+    string constant PATH_FULL = "deployments/ats-fork-lifecycle.json";
+    string constant PATH_ACCESS = "deployments/ats-fork-access.json";
 
     /// @notice A live bond accrues value every second, so by the time a real
     ///         seed broadcasts the SY rate is usually above 1. The AMM rejects a

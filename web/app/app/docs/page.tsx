@@ -67,8 +67,8 @@ export default function IntroductionPage() {
           <code>BondStrategy</code> adapter, and the bond&rsquo;s coupon and maturity cashflow is
           the yield being split. The rate Sidereal reports is the SY vault&rsquo;s derived exchange
           rate, read straight from the strategy&rsquo;s holdings; no person sets it. Each market
-          has a fixed maturity date. After it, PT holders take their principal back one-for-one and
-          the market winds down.
+          has a fixed maturity date. After settlement is ready, PT redeems through SY at the
+          frozen rate, subject to available backing.
         </p>
 
         <h2>How the pieces fit</h2>

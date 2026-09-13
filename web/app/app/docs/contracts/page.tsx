@@ -4,27 +4,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Callout, DocsHeader, DocsPager } from "@/components/DocsBlocks";
 import { appConfig } from "@/lib/config";
+import { TESTNET_DEPLOYMENT } from "@/lib/deployments";
 
 export const metadata: Metadata = { title: "Deployed contracts" };
-
-// Issued through the real ATS factory. The factory and the resulting security
-// are not part of the app's address config, so they are listed here; everything
-// else is read from the same NEXT_PUBLIC_* values the app uses, whose source of
-// truth is `contracts/deployments/hedera-ats.json`.
-const ATS_FACTORY = "0x5fA65CA30d1984701F10476664327f97c864A9D3";
-const ATS_SECURITY = "0xB8012a1c3227C454059Ee115Db2f1A7947903e22";
 
 export default function ContractsPage() {
   const cfg = appConfig();
   const rows: { name: string; address: string; note: string }[] = [
     {
       name: "ATS factory",
-      address: ATS_FACTORY,
+      address: TESTNET_DEPLOYMENT.atsFactory,
       note: "The factory that issued the bond and applied its controls",
     },
     {
       name: "ATS bond (security token)",
-      address: ATS_SECURITY,
+      address: TESTNET_DEPLOYMENT.atsSecurity,
       note: "The ATS-issued ERC-3643 bond; coupons and maturity cashflow",
     },
     {
@@ -145,7 +139,7 @@ export default function ContractsPage() {
           </li>
           <li>
             <strong>Maturity:</strong> fixed per deployment and shown in the app. A separate
-            short-maturity market demonstrates settlement after maturity.
+            historical short-maturity market demonstrates settlement after maturity; the current market has a 90-day term.
           </li>
           <li>
             <strong>Fees:</strong> the swap and orderbook taker fees are bounded and adjustable only
@@ -157,8 +151,8 @@ export default function ContractsPage() {
         <p>
           The contracts are built reproducibly from the Foundry project. Dependencies are pinned in{" "}
           <code>contracts/dependencies.lock.json</code>, and the build inputs are recorded with the
-          deployment evidence. Hedera verification runs through Sourcify, which HashScan reads from.
-          Each contract was verified with:
+          deployment evidence. Source verification for this new deployment is still outstanding;
+          earlier verification records apply to historical addresses. To verify a contract, run:
         </p>
         <pre>
           <code>{`forge verify-contract <address> <path/to/Contract.sol:Contract> \\
@@ -166,7 +160,7 @@ export default function ContractsPage() {
         </pre>
         <p>
           A <code>match</code> means Sourcify recompiled the source and reproduced the deployed
-          bytecode. The same status appears on the contract&rsquo;s HashScan page. Rebuild locally
+          bytecode. Check the contract&rsquo;s HashScan page separately for its displayed verification status. Rebuild locally
           with <code>forge build</code> and compare against the recorded build inputs; the contracts
           repository is the source of truth for the deployed bytecode.
         </p>
@@ -183,8 +177,8 @@ export default function ContractsPage() {
 
       <div className="mt-8">
         <Callout label="Address drift">
-          This page and the app both read the same <code>NEXT_PUBLIC_*</code> configuration at build
-          time, whose source of truth is the deployment manifest. If they ever disagree, the
+          The app components use <code>NEXT_PUBLIC_*</code> configuration with the current manifest
+          as their fallback. ATS factory and security provenance use that same checked-in deployment. If they ever disagree, the
           on-chain address in the manifest is authoritative.
         </Callout>
       </div>

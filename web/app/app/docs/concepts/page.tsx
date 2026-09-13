@@ -69,15 +69,14 @@ export default function ConceptsPage() {
 
         <h2>The identity that binds them</h2>
         <pre>
-          <code>1 SY = 1 PT + 1 YT</code>
+          <code>1 SY share → R PT + R YT face units</code>
         </pre>
         <p>
-          Splitting SY mints equal amounts of PT and YT. Recombining equal amounts gives the SY
-          back. The split is exact because the two tokens divide the deposit&rsquo;s payouts with
-          nothing left over: everything paid before maturity belongs to YT, everything paid at
-          maturity belongs to PT.
+          R is the SY exchange rate in cash units per share. Splitting creates equal PT
+          and YT face amounts, subject to fees and integer rounding. Recombining matched
+          amounts returns SY at the current rate, capped pro rata if backing is insufficient.
         </p>
-        <p>Three consequences worth internalizing:</p>
+        <p>The resulting claims:</p>
         <ul>
           <li>
             <strong>Holding PT + YT is holding SY.</strong> Splitting on its own changes nothing

@@ -21,7 +21,7 @@ function Cell({ label, value, signal }: { label: string; value: string; signal?:
 
 /**
  * Compact view of a holder's SY/PT/YT balances and claimable yield. Renders an
- * em dash (not a fabricated zero) when there is no position to read, so a
+ * em dash when there is no position to read, so a
  * disconnected wallet or a failed read is never mistaken for a real zero
  * balance. The claimable yield uses the surplus-capped net (see SDK
  * `getPosition`), so the card agrees with what `claimYield` actually pays.

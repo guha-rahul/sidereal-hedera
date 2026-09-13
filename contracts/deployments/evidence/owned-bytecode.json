@@ -1,0 +1,470 @@
+{
+  "chainId": 296,
+  "blockNumber": 40473919,
+  "contracts": [
+    {
+      "contract": "DemoCash",
+      "address": "0x71311092cf6486941acb34d3631cf4ad8f442b07",
+      "creationTransaction": "0x23cc1380eebfc80f915a1fdb037a0c98669631f9d820c8e90874ffcc2c91ca11",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "ce50d0d6dfc1d20fba7f3b014e90f6006b11de6e2d2e383b104734708d8b78e4",
+      "immutableReferenceCount": 0,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "script/ats/DemoCash.sol": "DemoCash"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol": "0x1b88b3fb3d85ba5496d7d5f396f83ee1fddcdd6762059ff65992655b67920998",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol": "0x669464167428061ee0f8618b73b3ee90aff8405683e7ddde8cd77dadaa1afe29",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+        "script/ats/DemoCash.sol": "0x28a6a6fb789c4282c92e13b3b7d5c289a29a4cdfdad77f54c0672e669dd6b163"
+      },
+      "constructorArguments": "0x000000000000000000000000ab76e285b5c458638846c474fda8e51ebbb81c43000000000000000000000000000000000000000000000000000000174876e800"
+    },
+    {
+      "contract": "ATSBondAdapter",
+      "address": "0xf7e9a16e6820e1b1227b9c271307602f7d702a65",
+      "creationTransaction": "0xcb494848015523088d6799260abcb5bb96fed4b909606c5de4d447f79a96e917",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "34bf1f18a7cd2ee5cf79c138b2a0d1c1f1d1a22411cb0e04061584f2fd3a8eb6",
+      "immutableReferenceCount": 40,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/sy/ATSBondAdapter.sol": "ATSBondAdapter"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol": "0xd735962e3d6660884153ba8a972b5f100dde4c482f2ff1c525ba7fdefb154cbd",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": "0x318ea37780610ca7808852275651885d428669402b81488cb7434fde361e9704",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol": "0xa516cbf1c7d15d3517c2d668601ce016c54395bf5171918a14e2686977465f53",
+        "lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol": "0xcf74f855663ce2ae00ed8352666b7935f6cddea2932fdf2c3ecd30a9b1cd0e97",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "src/interfaces/IATSBond.sol": "0xa878ca2eca1feec229f0a539cd71cf4a3f3e8d1066735283f0d2f6650fefdbd3",
+        "src/interfaces/IBond3643.sol": "0xf7647a2dde0c1887bea68cdd4ee2a4036492a2b9ed247babc21adf16fa2a7f79",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf",
+        "src/sy/ATSBondAdapter.sol": "0xadfd06f79447697c7016504fd7e83ef24d639158c58d2bd08b0126c1d4609d8a"
+      },
+      "constructorArguments": "0x00000000000000000000000010810626c3d4b6dcd9ebd4e91ba64eb5ff8c50ff00000000000000000000000071311092cf6486941acb34d3631cf4ad8f442b07000000000000000000000000ab76e285b5c458638846c474fda8e51ebbb81c4300000000000000000000000000000000000000000000000000000000000e7ef0"
+    },
+    {
+      "contract": "StandardizedYieldVault",
+      "address": "0xfe820cb2841b5cf694f29b6d22b0b73513313191",
+      "creationTransaction": "0xa2b3f76454ecfbf5ef337c2f751cfe564e7e650b99b10a01323c10aa859bbcd3",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "7ad0fd087f3b602a559568ad83b08283e1b5ab9d4183fbcb695e3e8c16678710",
+      "immutableReferenceCount": 1,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/sy/StandardizedYieldVault.sol": "StandardizedYieldVault"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol": "0xd735962e3d6660884153ba8a972b5f100dde4c482f2ff1c525ba7fdefb154cbd",
+        "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol": "0x1b88b3fb3d85ba5496d7d5f396f83ee1fddcdd6762059ff65992655b67920998",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol": "0x669464167428061ee0f8618b73b3ee90aff8405683e7ddde8cd77dadaa1afe29",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": "0x318ea37780610ca7808852275651885d428669402b81488cb7434fde361e9704",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol": "0xa516cbf1c7d15d3517c2d668601ce016c54395bf5171918a14e2686977465f53",
+        "lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol": "0xcf74f855663ce2ae00ed8352666b7935f6cddea2932fdf2c3ecd30a9b1cd0e97",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "src/interfaces/IYieldStrategy.sol": "0xf03e22651897b4759ee3515e799ab93ba3c3554778d6707086525a77acde98bd",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf",
+        "src/sy/StandardizedYieldVault.sol": "0x01e035a2bdac8e3e0cb42d12fbd06293e2d4e71b979cbc51ad8719befc8b2de8"
+      },
+      "constructorArguments": "0x"
+    },
+    {
+      "contract": "ERC3643BondStrategy",
+      "address": "0xc5c69cd67f2fc189d7e4085fa3a090651c490675",
+      "creationTransaction": "0x6e97e1a6a6f48490d238ecb1c7183d514bd7002814c7ce1b93840f8fa6ee51a7",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "69483a665c817e384450749a617029753ca2e477810b7e8555b627a157381098",
+      "immutableReferenceCount": 24,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/sy/ERC3643BondStrategy.sol": "ERC3643BondStrategy"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol": "0xd735962e3d6660884153ba8a972b5f100dde4c482f2ff1c525ba7fdefb154cbd",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": "0x318ea37780610ca7808852275651885d428669402b81488cb7434fde361e9704",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol": "0xa516cbf1c7d15d3517c2d668601ce016c54395bf5171918a14e2686977465f53",
+        "lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol": "0xcf74f855663ce2ae00ed8352666b7935f6cddea2932fdf2c3ecd30a9b1cd0e97",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "lib/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol": "0x31bf22251af55c0516d1d536a6953f7684c223d6c26f48fda31c99409f42125a",
+        "src/interfaces/IBond3643.sol": "0xf7647a2dde0c1887bea68cdd4ee2a4036492a2b9ed247babc21adf16fa2a7f79",
+        "src/interfaces/IYieldStrategy.sol": "0xf03e22651897b4759ee3515e799ab93ba3c3554778d6707086525a77acde98bd",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf",
+        "src/sy/ERC3643BondStrategy.sol": "0xe2918a348b4844ab02bf161bd59ec371ebf8bfa4b5d320452b15a3097420abe7"
+      },
+      "constructorArguments": "0x000000000000000000000000fe820cb2841b5cf694f29b6d22b0b73513313191000000000000000000000000f7e9a16e6820e1b1227b9c271307602f7d702a65"
+    },
+    {
+      "contract": "PrincipalToken",
+      "address": "0x67f22b76e7cb722394118fc4805b45cc428bd8ef",
+      "creationTransaction": "0x98e32f7d1563fc0298ac8ff824514dc8e86ff0d179143fc0a10d25e05232a1ef",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "22f605d07125ff5afa2f8676bfe19ed1bef4bad428bd226cd45978e923554479",
+      "immutableReferenceCount": 1,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/tokens/PrincipalToken.sol": "PrincipalToken"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol": "0x1b88b3fb3d85ba5496d7d5f396f83ee1fddcdd6762059ff65992655b67920998",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol": "0x669464167428061ee0f8618b73b3ee90aff8405683e7ddde8cd77dadaa1afe29",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+        "src/interfaces/IMarketAccess.sol": "0x302836134f86906ef2754ec7383633d41eb21d2b197c90e35623ac4eb0e767c7",
+        "src/tokens/PrincipalToken.sol": "0xd6c61daddfb01985ffaf6a3391e067f86f28ed6b1ad9ec20bfc14bc576ec653a",
+        "src/tokens/ProtocolTokenBase.sol": "0x350824992461607c9afe091771c032a0c2f131aad139548315fd1bc2cc4934ec"
+      },
+      "constructorArguments": "0x"
+    },
+    {
+      "contract": "YieldToken",
+      "address": "0x0b28a594d5af6f5c893b82de3b8ff69b63f1d5cf",
+      "creationTransaction": "0x1bce469f009dbd8b0b74c20f7ccebd4a249f63b1519f29eb838b88b461b9de51",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "9bc5cc23444ea4ccc8cb9ca7ed971008e91e15f66cf0b45327bba2c1606e9f1d",
+      "immutableReferenceCount": 1,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/tokens/YieldToken.sol": "YieldToken"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol": "0x1b88b3fb3d85ba5496d7d5f396f83ee1fddcdd6762059ff65992655b67920998",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol": "0x669464167428061ee0f8618b73b3ee90aff8405683e7ddde8cd77dadaa1afe29",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "src/interfaces/IMarketAccess.sol": "0x302836134f86906ef2754ec7383633d41eb21d2b197c90e35623ac4eb0e767c7",
+        "src/interfaces/IStandardizedYield.sol": "0xb337d0caefd08364a83fa92650cecd0c4d66a935a505083c9831793e7ce5ef2d",
+        "src/interfaces/ITokenizer.sol": "0x2ed822cd9852d20559c55f8ad6863991776a0b400f950000f56340b32a6cc908",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf",
+        "src/tokens/ProtocolTokenBase.sol": "0x350824992461607c9afe091771c032a0c2f131aad139548315fd1bc2cc4934ec",
+        "src/tokens/YieldToken.sol": "0x3f4a714adf5fdd9ffbb93bf7026285a9ced6f67fb8a309153eb9a6293af0fffb"
+      },
+      "constructorArguments": "0x"
+    },
+    {
+      "contract": "Tokenizer",
+      "address": "0xb51ec9e8f0f0c2a57c42b50d61cc17505d8bcf6d",
+      "creationTransaction": "0x48ce87181acb3b72b61bc17c2293ddb06338bc4cd7376f6c115524d5fd8fccf4",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "0c510761e5628b09e99aa93eea2619e7e6c529d2957fd5bfbe0cfefe5f150d1b",
+      "immutableReferenceCount": 1,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/Tokenizer.sol": "Tokenizer"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol": "0xd735962e3d6660884153ba8a972b5f100dde4c482f2ff1c525ba7fdefb154cbd",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": "0x318ea37780610ca7808852275651885d428669402b81488cb7434fde361e9704",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "src/Tokenizer.sol": "0xae0defc8149bc9f4ff5147fcb3f30ee6221ec278b6182e7ce85dff1b8c9c2fb1",
+        "src/interfaces/IProtocolToken.sol": "0xec5a8946383d02b3963d986da240c07b2a33d1ca02d35fc4e118fa05413dfd15",
+        "src/interfaces/IStandardizedYield.sol": "0xb337d0caefd08364a83fa92650cecd0c4d66a935a505083c9831793e7ce5ef2d",
+        "src/interfaces/IYieldToken.sol": "0x8ca3c0baca5dc71d023a6e8811cb96fdae3bf002e58966a822f706a111e43751",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf"
+      },
+      "constructorArguments": "0x"
+    },
+    {
+      "contract": "AmmMarket",
+      "address": "0xf816cec720c78af2870f323b6374ad6f3e41861e",
+      "creationTransaction": "0x15d8befb36350ded995103d4ed870df1c218ac94ccaf371fa643832ae356f855",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "1b893a8352d6e267d023820f435b43979b101e1428408a6cac0c59360806faad",
+      "immutableReferenceCount": 1,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/AmmMarket.sol": "AmmMarket"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol": "0xd735962e3d6660884153ba8a972b5f100dde4c482f2ff1c525ba7fdefb154cbd",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": "0x318ea37780610ca7808852275651885d428669402b81488cb7434fde361e9704",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "src/AmmMarket.sol": "0xc9a73a7111ae1b84020bfca9a19d44df00e7e6bfce67be87f681421461291f34",
+        "src/interfaces/IMarket.sol": "0xe0ede528f798c2228cc786c533071593e4ea167611229c1b75891a418eff7574",
+        "src/interfaces/IStandardizedYield.sol": "0xb337d0caefd08364a83fa92650cecd0c4d66a935a505083c9831793e7ce5ef2d",
+        "src/interfaces/ITokenizer.sol": "0x2ed822cd9852d20559c55f8ad6863991776a0b400f950000f56340b32a6cc908",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf"
+      },
+      "constructorArguments": "0x"
+    },
+    {
+      "contract": "Orderbook",
+      "address": "0xd8de4ae33a0b05578381018b428fd4c72fc51d48",
+      "creationTransaction": "0xcd59826efd7735506efbdc0ac80770479d4e5bc08c6cc074135129e93026bc91",
+      "creationBytecodeMatches": true,
+      "runtimeMatchesOutsideImmutables": true,
+      "runtimeSha256": "6cdea129ef2b40a6f6690fe7d3377aa3d0d03ec75408142536613c91e0b336c6",
+      "immutableReferenceCount": 1,
+      "compiler": {
+        "version": "0.8.28+commit.7893614a"
+      },
+      "settings": {
+        "remappings": [
+          "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+          "erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+          "forge-std/=lib/forge-std/src/",
+          "halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/",
+          "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+        ],
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "metadata": {
+          "bytecodeHash": "none"
+        },
+        "compilationTarget": {
+          "src/Orderbook.sol": "Orderbook"
+        },
+        "evmVersion": "cancun",
+        "libraries": {},
+        "viaIR": true
+      },
+      "sourceHashes": {
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+        "lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol": "0xd735962e3d6660884153ba8a972b5f100dde4c482f2ff1c525ba7fdefb154cbd",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": "0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": "0x318ea37780610ca7808852275651885d428669402b81488cb7434fde361e9704",
+        "lib/openzeppelin-contracts/contracts/utils/Panic.sol": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+        "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": "0x59973a93b1f983f94e10529f46ca46544a9fec2b5f56fb1390bbe9e0dc79f857",
+        "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": "0xc8cae21c9ae4a46e5162ff9bf5b351d6fa6a6eba72d515f3bc1bdfeda7fdf083",
+        "src/Orderbook.sol": "0xfa5b7d41ceaca317bc44cd2ed7b065c699b5fdafaf2cfc4ed0601859c6315a81",
+        "src/libraries/WadMath.sol": "0x28528f9ba3a89451f0419777cb93dd6ac22fcf8c18d6d699d013cf061040f8cf"
+      },
+      "constructorArguments": "0x"
+    }
+  ],
+  "scope": "Sidereal contracts only; upstream ATS factory, resolver and security are excluded.",
+  "status": "matched"
+}

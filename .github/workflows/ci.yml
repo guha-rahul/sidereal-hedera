@@ -26,12 +26,13 @@ jobs:
       # committed, so the imports resolve once the sources are in place.
       - name: Install Solidity dependencies
         run: |
-          git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
-          git clone --depth 1 --branch v5.7.0 https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts
+          python3 scripts/install-deps.py
       - name: Build
         run: forge build
       - name: Test
         run: forge test
+      - name: Build Hedera deployment artifacts
+        run: FOUNDRY_PROFILE=hedera_live forge build --out "$RUNNER_TEMP/sidereal-hedera-out" --cache-path "$RUNNER_TEMP/sidereal-hedera-cache"
 
   sdk:
     name: sdk (typecheck + test + build)

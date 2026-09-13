@@ -1,7 +1,12 @@
-# Update: ATS testnet run
+# Historical update: previous ATS testnet run
 
 Date: 2026-09-13
 Network: Hedera testnet, chain 296.
+
+This report describes earlier markets, not the current application deployment.
+Current addresses and live Privy evidence are in [README.md](README.md) and
+[WORKFLOW_CHECK.md](web/WORKFLOW_CHECK.md). The historical main manifest is
+`contracts/deployments/hedera-ats-previous.json`.
 
 ## Summary
 
@@ -21,7 +26,7 @@ The bond matures in about 90 days.
 
 Completed phases:
 
-- The issuer created the bond through the real ATS factory. Manifest: `contracts/deployments/hedera-ats.json`.
+- The issuer created the bond through the real ATS factory. Manifest: `contracts/deployments/hedera-ats-previous.json`.
 - The market was seeded.
 - The buyer traded against the issuer.
 - The issuer revoked the buyer. A redeem then failed. Evidence: `main-expected-revert-revoked-redeem.json`.
@@ -123,7 +128,7 @@ Minimum convincing demonstration:
 - [x] Demonstrate settlement on a separate short-market.
 - [x] Show before and after principal, yield, residual balance, and explorer links.
 
-Codex 2 dispatch:
+Deployment checks:
 
 - [x] Reproduce the four findings with tests.
 - [x] Pin contract dependencies and provide setup steps.

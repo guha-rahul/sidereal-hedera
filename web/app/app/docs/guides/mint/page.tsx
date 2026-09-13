@@ -18,10 +18,10 @@ export default function MintGuidePage() {
       <div className="docs-prose mt-8">
         <h2>Before you start</h2>
         <ul>
-          <li>A connected injected EVM wallet (MetaMask, or the HashPack EVM provider).</li>
+          <li>A connected wallet. The public demo uses the embedded wallet created by email sign-in.</li>
           <li>
             A balance of the market&rsquo;s underlying cash token, plus a little HBAR for network
-            fees. Each transaction costs a fraction of a cent.
+            fees. The wallet shows the network fee before confirmation.
           </li>
         </ul>
 

@@ -91,14 +91,14 @@ export default function TokenizerPage() {
           selling never forfeits yours.
         </p>
 
-        <h2>The escrow always covers what it owes</h2>
-        <p>At every state change, the protocol maintains:</p>
+        <h2>Escrow and shortfalls</h2>
+        <p>The full-backing target is:</p>
         <pre>
           <code>escrow value ≥ all PT principal + all uncollected YT interest</code>
         </pre>
         <p>
-          The locked SY, valued at the current rate, always covers every PT at full face value plus
-          every YT holder&rsquo;s uncollected interest. The property is checked by randomized
+          Locked SY backs the claims. If its value falls, full face value may not be
+          covered: principal redemptions are capped pro rata and YT claims use only junior surplus. The property is checked by randomized
           invariant tests that hammer the contracts with random splits, transfers, collections,
           recombines and redemptions under changing rates. And the numbers needed to re-check it
           against the live deployment (escrow size, exchange rate, PT supply) are all publicly
@@ -118,9 +118,8 @@ export default function TokenizerPage() {
             redeeming faster than everyone else.
           </li>
           <li>
-            <strong>YT collections are never blocked.</strong> The math itself is the safety: a
-            collection pays zero unless the rate has actually risen past the holder&rsquo;s
-            checkpoint. A fallen rate simply pays nothing until it recovers, and the holder keeps
+            <strong>YT collections require eligibility and surplus.</strong> A collection
+            pays accrued interest only from shares remaining after reserving PT principal. A fallen rate simply pays nothing until it recovers, and the holder keeps
             everything already credited to their ledger.
           </li>
         </ul>
@@ -129,9 +128,9 @@ export default function TokenizerPage() {
       <div className="mt-8">
         <Callout label="Previews are snapshots">
           The app&rsquo;s previews for collecting and recombining read the live rate at the moment
-          you ask, and the rate can tick up before your transaction lands. The drift always works
-          in your favor or not at all: collections pay at least the preview, and recombining
-          returns slightly fewer SY that are each worth slightly more (the value is identical).
+          you ask. Rates, available surplus, fees and eligibility can change before
+          confirmation. Check the confirmed balances and receipt rather than treating a
+          preview as a guaranteed payout.
         </Callout>
       </div>
 

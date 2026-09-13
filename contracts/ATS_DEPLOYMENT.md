@@ -1,21 +1,15 @@
-# Codex 2: ATS deployment, lifecycle, and evidence runbook
+# ATS deployment and lifecycle runbook
 
-Owner of this document: Codex 2 (regression tests, `script/**`, manifests,
-dependency setup). Contract source belongs to Codex 1; send findings there rather
-than editing `src/**`.
+## Current deployment
 
-## What is proven now
+The application targets `deployments/hedera-ats.json`, issued by the controlled
+administrator on 13 September 2026. Deployment, seeding, fixed/variable
+investments, order-book trading, liquidity and a real Privy investment have
+confirmed receipts. See [OWNED_MARKET.md](deployments/OWNED_MARKET.md).
 
-Two live Hedera testnet markets exist, with receipts, issued through the real ATS
-factory `0x5fA65CA30d1984701F10476664327f97c864A9D3`:
-
-- Main market (`deployments/hedera-ats.json`): `deploy`, `seed`, `trade`,
-  `revoke`, rejected redeem, `reinstate`, `coupon`. It stays open for judges.
-- Short-maturity market (`deployments/hedera-ats-short.json`): `deploy`, `seed`,
-  `trade`, `coupon`, `settle` for issuer and buyer.
-- Every phase reconciles to a zero tracked-cash delta. Receipts, balances, and
-  block-pinned reads are in `deployments/evidence/`; the summary is
-  `deployments/VERIFICATION_STATUS.md`.
+Historical coupon, revocation and maturity receipts belong to
+`hedera-ats-previous.json` and `hedera-ats-short.json`. The new market's future
+maturity and source verification remain outstanding.
 
 The fork tests below prove the same phases without a broadcast and need no key.
 Run them before any change to `src/**` or `script/**`.
@@ -38,7 +32,7 @@ Pinned in `dependencies.lock.json`: solc `0.8.28`, OpenZeppelin `v5.0.2`
 ```bash
 cd contracts
 python3 scripts/install-deps.py   # clones at the locked refs; never resets an existing checkout
-forge build
+FOUNDRY_PROFILE=hedera_live forge build
 ```
 
 `install-deps.py` fails loudly if an existing checkout is dirty or at a different
@@ -48,8 +42,8 @@ commit, rather than discarding local work. Resolve it by hand if that happens.
 
 ```bash
 cd contracts
-forge test                                    # 51 offline tests
-RUN_ATS_LIVE=true forge test                  # 58 tests, adds the live fork checks
+forge test                                    # offline contract checks
+RUN_ATS_LIVE=true forge test                  # includes network-dependent fork checks
 ```
 
 The live checks read Hedera testnet at a pinned block and need an
@@ -63,11 +57,25 @@ Use `FOUNDRY_PROFILE=hedera_live` for all current testnet simulations and
 broadcasts. This profile keeps solc 0.8.28, optimizer 200, and via-IR, but targets
 Cancun. Live factory simulation at block 40454448 rejected Paris and Shanghai
 execution with `NotActivated`. Historical fork success alone did not cover this.
-Run the six deployment/lifecycle tests against a freshly observed block as well:
+The default Paris build does not reproduce the current market's bytecode. Use
+this same Cancun profile for source verification and bytecode comparisons:
+
+```bash
+FOUNDRY_PROFILE=hedera_live forge build
+python3 scripts/check-deployed-bytecode.py --out /tmp/sidereal-bytecode-check.json
+```
+
+All nine Sidereal contracts match with these settings; the recorded compiler
+settings, source hashes, constructor arguments and runtime hashes are in
+[`owned-bytecode.json`](deployments/evidence/owned-bytecode.json). Runtime
+comparison accounts for compiler-declared immutable slots; creation bytecode is
+compared exactly. Upstream ATS contracts require their own source artifacts.
+
+Run the deployment/lifecycle tests against a freshly observed block as well:
 
 ```bash
 FOUNDRY_PROFILE=hedera_live RUN_ATS_LIVE=true ATS_FORK_BLOCK=<current-block> \
-  forge test --match-contract 'Codex2(ATSFactory|Lifecycle)Test' -vv
+  forge test --match-contract '(ATSFactory|ATSLifecycle)Test' -vv
 ```
 
 
@@ -92,13 +100,13 @@ need testnet HBAR for gas.
   `addLiquidity` reverts `ExchangeRateBelowOne` when the SY rate is above 1, and
   a 50/50 seed sits exactly on the curve's `exchangeRate >= WAD` boundary. A live
   bond accrues every second, so the rate is usually above 1 by seed time.
-  `Codex2LifecycleTest.testSeedAfterBondStartRequiresPtHeavyLiquidity` pins this.
+  `ATSLifecycleTest.testSeedAfterBondStartRequiresPtHeavyLiquidity` pins this.
   Seeding before `startingDate` also works, but PT-heavy does not depend on
   sub-second timing.
 
 ### Main demo market
 
-Keep it open well past judging so judges never land on a matured screen.
+Use a term long enough for participants to try the active market.
 
 ```bash
 cd contracts
@@ -134,7 +142,7 @@ PHASE=seed  forge script script/ATSLifecycle.s.sol:ATSLifecycle \
 | `revoke` / `reinstate` | issuer | any time; this is the rejected-operation demo |
 | `settle` | each account | at or after maturity |
 
-Run `settle` once per account. `revoke` is the honest way to show a rejected
+Run `settle` once per account. `revoke` demonstrates a rejected
 operation: the contract refuses a revoked holder, and `reinstate` restores it.
 
 ### Short-maturity settlement market
@@ -179,7 +187,7 @@ Foundry also writes the raw transaction records under `broadcast/`, which is
 git-ignored; copy the hashes you need into the evidence record rather than
 committing that directory.
 
-## Honest-labelling rules for this deployment
+## Asset labels and evidence
 
 - The cash token is `sdUSD`, a testnet demonstration ERC-20 minted by
   `script/ats/DemoCash.sol`. It is not USDC and not redeemable. The manifest

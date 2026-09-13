@@ -12,7 +12,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         No. This is a Hedera <strong>testnet</strong> demonstration. The bond is issued through the
-        real ATS factory and the full lifecycle runs on testnet, but the cash is test-only sdUSD and
+        ATS factory; current investment and trading flows run on testnet, but the cash is test-only sdUSD and
         no real funds are involved. It is early and unaudited; see{" "}
         <Link href="/docs/security">Security and risks</Link>.
       </>
@@ -46,7 +46,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
         Earning is automatic; collecting is not. Interest builds up on your YT as rates tick
         along, and it is credited to your personal ledger whenever your balance changes. It only
         lands in your wallet when you claim on the Portfolio page. Unclaimed interest survives
-        transfers and even maturity (there is a grace window). Claiming just cashes it out.
+        transfers and maturity. Collecting requires ATS eligibility and available junior surplus.
       </>
     ),
   },
@@ -65,7 +65,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         That discount is the product. PT works like a savings bond: pay less than face value
-        today, receive exactly face value at maturity. The gap, expressed as a yearly rate, is
+        today, redeem principal exposure through SY at maturity, subject to backing. The gap, expressed as a yearly rate, is
         the fixed return you lock by buying. See <Link href="/docs/concepts">SY, PT and YT</Link>.
       </>
     ),
@@ -75,8 +75,8 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         Every PT/YT pair is created against SY locked in the protocol&rsquo;s vault, and the vault
-        valued at the current rate always covers all PT at face value plus all uncollected YT
-        interest. The numbers to verify this are publicly readable on-chain. Only the protocol can
+        backs the claims. If its value falls, redemptions are capped pro rata; full
+        face-value coverage is not guaranteed. The numbers to verify this are publicly readable on-chain. Only the protocol can
         create or destroy the tokens; there is no other path.
       </>
     ),

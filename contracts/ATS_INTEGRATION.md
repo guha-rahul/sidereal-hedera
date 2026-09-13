@@ -1,4 +1,4 @@
-# Codex 1: ATS integration handoff
+# ATS bond integration
 
 ## Supported route
 
@@ -23,7 +23,7 @@ Coupon claims use ATS `getCouponAmountFor` and record-date holder balances.
 The adapter converts ATS's fractional whole-currency entitlement into cash-token
 base units. Coupon reserves are separate from principal reserves.
 
-## Deliberately bounded support
+## Supported assets and limits
 
 - USD-denominated bonds; cash and bond decimals from 0 through 18.
 - Single-partition ATS transfers. The default partition is bytes32(uint256(1)).
@@ -43,9 +43,9 @@ base units. Coupon reserves are separate from principal reserves.
 - Unsupported fee-on-transfer cash fails measured-delta checks.
 - Book accretion is not a market oracle or proof of issuer solvency.
 
-## Owner-approved access policy
+## Eligibility policy
 
-The owner selected permissioned claims and blocked exit after revocation.
+Claims and exits require current ATS eligibility.
 Every nonzero SY/PT/YT sender and recipient must remain eligible, including mint
 and burn. A revoked holder cannot transfer, redeem, recombine, or collect SY yield
 until reinstated. The permanent SY minimum-share lock is the sole mint exception.
@@ -57,7 +57,7 @@ orderbook, fee recipient, and participating wallets. This is the explicit market
 policy, not a claim that every possible ATS compliance module is replicated in
 the derivative tokens. Actual ATS token movement still runs upstream controls.
 
-## Deployment sequence for Codex 2
+## Deployment sequence
 
 1. Issue a supported bond through ATS; save factory/asset/version and issuance
    receipts. Configure the coupon schedule before deploying the adapter.
@@ -80,7 +80,7 @@ the derivative tokens. Actual ATS token movement still runs upstream controls.
 9. Verify contracts, save a manifest, execute the paid lifecycle and negative tests,
    and only then configure the frontend.
 
-## ABI changes for Claude Code 1
+## Contract interface
 
 - Existing SY deposit/redeem and tokenizer transaction signatures remain.
 - SY/PT/YT always have 18 decimals. `underlying()` cash uses its ERC-20 decimals.
@@ -118,11 +118,12 @@ That is compatibility evidence, not Sidereal's issuance, asset ownership, or a
 paid Sidereal transaction. The fork test broadcasts nothing.
 
 Run ordinary checks with `forge test`. Run the external compatibility check with
-`RUN_ATS_LIVE=true forge test --match-contract Codex1ATSLiveReadTest -vv`.
+`RUN_ATS_LIVE=true forge test --match-contract ATSCompatibilityReadTest -vv`.
 The latter pins Hedera block 40433521 and needs an archive-capable RPC.
 
 Review dependencies used: OpenZeppelin v5.0.2 and forge-std v1.9.7, solc 0.8.28.
-Codex 2 owns pinning/install setup; these libraries are not vendored by this task.
+Install the locked dependencies with `python3 scripts/install-deps.py`.
 
-Remaining external acceptance: deploy a Sidereal-owned supported ATS market,
-complete real paid testnet transactions, and validate the public browser flow.
+The user-controlled market and its completed Privy investment are recorded in
+[OWNED_MARKET.md](deployments/OWNED_MARKET.md). New-market source verification
+and future maturity remain outstanding.

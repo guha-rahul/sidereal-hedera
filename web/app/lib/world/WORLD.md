@@ -1,35 +1,12 @@
-# The Sidereal world bible
+# Landing-page 3D scene
 
-The contract for the landing page's 3D world. Written before the geometry, and
-authoritative over it: if the runtime and this file disagree, the runtime is
-wrong. Chapter data lives beside this in `chapters.ts` so thresholds are not
-scattered through CSS and the render loop.
+The scene uses an astronomical instrument to illustrate deposit, principal/yield
+splitting and maturity. Chapter thresholds live in `chapters.ts`.
 
-## 1. World sentence
+Scroll sets camera position and token state. Pointer motion adds bounded
+parallax. Geometry, lighting and motion constraints follow below.
 
-> Travel from the outer graduation ring of a dark astronomical instrument in to
-> its central gimbal and back out again, while one luminous position riding the
-> machine resolves into two and the whole thing turns from live to settled.
-
-Interaction contract:
-
-> Scroll drives the camera and the machine's time. Pointer nudges the frame and
-> warms the nearest surface; it cannot leave the route.
-
-### Why this world
-
-The protocol has exactly one axis — time to maturity — and the brand is named
-for a way of measuring time against the stars. An orrery is the machine that
-does that. It is not decoration borrowed from space imagery: the thing the
-camera travels through is a literal rendering of what the contract does. One
-position enters at the outer ring, splits at the gimbal into a principal and a
-yield leg, the two ride separate rings at different rates, and at maturity the
-yield is spent and the principal seats into a detent at par.
-
-Reject anything that cannot be justified as part of that machine. No nebulae, no
-drifting crypto particles, no lens flares.
-
-## 2. Visual bible
+## 2. Geometry and lighting
 
 ### Scale and shape
 
@@ -45,7 +22,7 @@ drifting crypto particles, no lens flares.
 
 ### Palette
 
-Inherited from the existing design system, unchanged. One accent, one job.
+Use the site palette. Amber identifies the yield token.
 
 | role | value | use |
 | --- | --- | --- |
@@ -199,7 +176,7 @@ downloads it and the marketing route's initial JS is unchanged.
 
 | gate | target |
 | --- | --- |
-| initial route JS | unchanged from today (world is dynamically imported) |
+| initial route JS | keep 3D dependencies in the dynamically imported world chunk |
 | world chunk | three.js core only; no examples, no postprocessing library |
 | device pixel ratio | capped at 1.75 |
 | draw calls | ≤ 60 desktop, ≤ 30 LOW |
@@ -207,9 +184,9 @@ downloads it and the marketing route's initial JS is unchanged.
 | per-frame allocation | none in the render loop |
 | hidden tab | render loop stops with the conductor |
 
-## 10. Approval gates
+## 10. Verification checklist
 
-1. World bible and camera ledger agreed — this file.
+1. Check chapter thresholds and camera positions against this specification.
 2. Instrument builds and holds a single static composition.
 3. Camera travels all five chapters, forward and reverse, no seams.
 4. Bodies, split, and amber decay driven by tau and correct at both ends.

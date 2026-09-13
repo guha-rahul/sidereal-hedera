@@ -3,7 +3,7 @@
 Open https://sidereal-hedera.hypersettle.workers.dev/privy.
 
 1. **Explain the problem:** Sidereal separates principal and yield exposure for a permissioned ATS bond. Privy lets users enter with email instead of installing an injected wallet or configuring Hedera manually.
-2. **Sign in:** Click Continue with email and complete the real OTP, then close the wallet-creation success screen with All Done. Show the embedded address in the shared wallet button. This is authentication, not real-world KYC.
+2. **Sign in:** Click Continue with email and complete email verification, then close the wallet-creation success screen with All Done. Show the embedded address in the shared wallet button. This is authentication, not real-world KYC.
 3. **Fund the demo wallet:** Request demo funding. The backend verifies the Privy token and embedded-wallet ownership, grants issuer-controlled test eligibility, and supplies sdUSD and HBAR. sdUSD is a testnet demonstration token, not USDC.
 4. **Make a financial choice:** Enter 100 sdUSD and choose Fixed principal. Click Invest and approve once; the deposit, split and YT sale then run without a wallet prompt for each step. Explain the progress as depositing, separating exposure, and selling YT to retain PT. Exact approvals limit each requested allowance.
 5. **Show the outcome:** Show the updated sdUSD, SY, PT and YT balances and download the investment receipts before navigating away. Fixed principal retains newly minted PT and sells newly minted YT; Variable yield does the reverse.

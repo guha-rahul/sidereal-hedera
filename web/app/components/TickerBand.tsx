@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// Statement entries carry paper, supporting facts stay ash: the band gets a
-// pulse instead of reading as one grey smear.
+// Highlight the main statements; render supporting facts in muted text.
 const FACTS: Array<{ text: string; statement?: boolean }> = [
-  { text: "1 PT + 1 YT = 1 SY", statement: true },
+  { text: "SY → principal + yield", statement: true },
   { text: "Internal TWAP" },
   { text: "No external oracles", statement: true },
   { text: "Client-side signing" },

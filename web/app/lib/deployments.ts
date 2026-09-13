@@ -16,6 +16,8 @@ import type { ContractAddresses } from "@sidereal/sdk";
  */
 
 export interface DeploymentInfo {
+  atsFactory: string;
+  atsSecurity: string;
   contracts: ContractAddresses;
   maturity: number;
   couponId: number;
@@ -25,6 +27,8 @@ export interface DeploymentInfo {
 }
 
 export const TESTNET_DEPLOYMENT: DeploymentInfo = {
+  atsFactory: "0x5fA65CA30d1984701F10476664327f97c864A9D3",
+  atsSecurity: "0x10810626c3D4b6DcD9EBD4e91bA64eb5FF8c50ff",
   contracts: {
     sy: "0xfe820Cb2841b5cF694f29B6d22b0B73513313191",
     pt: "0x67F22b76E7Cb722394118Fc4805b45CC428BD8eF",

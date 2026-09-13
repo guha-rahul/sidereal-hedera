@@ -28,7 +28,7 @@ contracts/
 │   ├── Orderbook.sol                    # Layer 3: PT/SY limit-order book
 │   ├── interfaces/
 │   │   ├── erc3643/                     # IIdentityRegistry, ICompliance (T-REX seams)
-│   │   ├── IBond3643.sol                # the real bond surface the strategy reads
+│   │   ├── IBond3643.sol                # the bond interface read by the strategy
 │   │   └── ...                          # IYieldStrategy, IStandardizedYield, IMarket, ...
 │   ├── libraries/WadMath.sol            # WAD fixed point, integer ln/exp/sqrt, mulDiv
 │   ├── sy/
@@ -50,7 +50,7 @@ contracts/
 |---|---|---|
 | 1 | `sy/StandardizedYieldVault.sol` | derived-rate SY vault (sSY), `MINIMUM_SHARES` lock, deposit cap |
 | 1 | `sy/ERC3643BondStrategy.sol` | `IYieldStrategy` adapter over an ERC-3643 bond; claims coupons, redeems |
-| 1 | `sy/ERC3643Bond.sol` | real bond: permissioned, issuer-funded cash coupons, maturity redemption |
+| 1 | `sy/ERC3643Bond.sol` | local reference bond: permissioned coupons and maturity redemption |
 | 1 | `tokens/ERC3643Base.sol` | ERC-3643 (T-REX) permissioned ERC-20: verified + compliant transfers |
 | 1 | `interfaces/IBond3643.sol` | bond surface: terms, coupons, purchase/redeem, liquidity |
 | 1 | `interfaces/erc3643/*` | identity registry and compliance seams |
@@ -113,6 +113,23 @@ forge test
 forge test --gas-report
 ```
 
+These commands use the Paris profile for offline checks. The current testnet
+market was compiled with the Cancun profile; a default build produces different
+bytecode. To reproduce and check the deployed Sidereal contracts without signing
+transactions:
+
+```bash
+FOUNDRY_PROFILE=hedera_live forge build
+python3 scripts/check-deployed-bytecode.py --out /tmp/sidereal-bytecode-check.json
+```
+
+The checker compares creation bytecode against live deployment transactions and
+runtime code outside compiler-declared immutable slots. It exits unsuccessfully
+on a mismatch. It excludes the upstream ATS factory, resolver and security.
+See [owned-bytecode.json](deployments/evidence/owned-bytecode.json) for the
+nine-contract match recorded on 2026-09-13. This is a bytecode comparison, not
+HashScan source verification.
+
 The suite covers the protocol lifecycle (deposit → split → trade → claim →
 recombine → redeem), the AMM curve and both YT flash routes, the orderbook's
 price-time priority, fuzz properties for principal round-trips and escrow
@@ -130,7 +147,7 @@ Hedera networks:
 
 The script wraps an existing settlement contract. For an ATS market, deploy and
 configure `ATSBondAdapter` first and provide its address as `BOND`. The script
-does not grant ATS eligibility or bind the strategy; follow the handoff sequence
+does not grant ATS eligibility or bind the strategy; follow the deployment sequence
 before accepting deposits. Supply matching bond maturity and cash denomination:
 
 ```bash
@@ -158,7 +175,7 @@ the orderbook, and logs every address. Wire them into the web SDK via
 ## Testnet integration check (ERC-3643 end to end)
 
 `script/VerifyERC3643Testnet.s.sol` is a **testnet-only** harness that proves the
-real bond path on a live Hedera network. It deploys the production contracts
+local reference bond path on Hedera testnet. It deploys the production contracts
 (`ERC3643Bond`, `ERC3643BondStrategy`, the SY vault, tokenizer, PT/YT, AMM and
 orderbook) and uses the `test/mocks/` doubles only for the cash denomination,
 identity registry and compliance module that a real issuer would supply. It is
@@ -187,14 +204,34 @@ forge script script/VerifyERC3643Testnet.s.sol:VerifyERC3643Testnet \
 ## Public demo market (Hedera testnet, chain 296)
 
 The frontend judge journey reads the current ATS-issued market recorded in
-[`deployments/hedera-ats.json`](./deployments/hedera-ats.json). Its addresses are
-the checked-in fallback in `web/app/lib/deployments.ts`, so the public demo runs
-without an access-request gate or manual environment setup. See
-[`deployments/OWNED_MARKET.md`](./deployments/OWNED_MARKET.md) for the verified
-issuance and seed, and
-[`deployments/VERIFICATION_STATUS.md`](./deployments/VERIFICATION_STATUS.md) for
-the testnet lifecycle receipts. Earlier integration-check deployments and their
-addresses are superseded and no longer referenced by the app.
+[`deployments/hedera-ats.json`](./deployments/hedera-ats.json), also checked in
+as the fallback in `web/app/lib/deployments.ts`, so the public demo runs without
+an access-request gate or manual environment setup. Open
+[Sidereal Invest](https://sidereal-hedera.hypersettle.workers.dev/privy).
+
+| Component | Address |
+|---|---|
+| ATS security (the bond) | `0x10810626c3D4b6DcD9EBD4e91bA64eb5FF8c50ff` |
+| Settlement adapter (BOND) | `0xF7e9a16E6820E1b1227B9C271307602f7d702a65` |
+| Cash sdUSD (test only) | `0x71311092Cf6486941Acb34d3631CF4aD8f442b07` |
+| SY vault | `0xfe820Cb2841b5cF694f29B6d22b0B73513313191` |
+| Bond strategy | `0xC5c69cd67F2Fc189d7e4085FA3A090651c490675` |
+| PT | `0x67F22b76E7Cb722394118Fc4805b45CC428BD8eF` |
+| YT | `0x0B28a594d5Af6f5C893B82DE3b8fF69B63f1D5cf` |
+| Tokenizer | `0xB51Ec9e8F0F0C2A57c42b50d61CC17505d8BCf6d` |
+| AMM | `0xF816CEC720C78Af2870f323B6374aD6F3E41861E` |
+| Orderbook | `0xD8de4ae33a0B05578381018B428fd4c72Fc51d48` |
+| Administrator / faucet | `0xAb76e285b5C458638846c474FdA8E51EbBb81c43` |
+
+Maturity: `1797087767` (12 December 2026, 90-day term).
+Cash and the ATS bond use 6 decimals; SY, PT and YT use 18 decimals.
+
+Live deployment, seed, protocol workflow and real Privy investment evidence are
+linked from [OWNED_MARKET.md](deployments/OWNED_MARKET.md) and
+[WORKFLOW_CHECK.md](../web/WORKFLOW_CHECK.md). Earlier ERC-3643 and short-market
+manifests are historical; their balances, coupons and maturity receipts must not
+be attributed to this market. Source verification of the new deployment remains
+outstanding.
 
 ## License
 

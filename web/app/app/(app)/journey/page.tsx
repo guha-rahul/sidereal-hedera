@@ -36,8 +36,8 @@ import { TxStatus } from "@/components/TxStatus";
 // ATS provenance for the live Hedera testnet demo. The settlement adapter
 // reports the security via `securityToken()`; these constants come from
 // `contracts/deployments/hedera-ats.json`.
-const ATS_FACTORY = "0x5fA65CA30d1984701F10476664327f97c864A9D3";
-const ATS_SECURITY_FALLBACK = "0xB8012a1c3227C454059Ee115Db2f1A7947903e22";
+const ATS_FACTORY = TESTNET_DEPLOYMENT.atsFactory;
+const ATS_SECURITY_FALLBACK = TESTNET_DEPLOYMENT.atsSecurity;
 const ATS_ISSUANCE_TX =
   "0x4ab1105568c026e632d9d38ac2f05f82cb240d8e8255220db3731e062f9fc9e0";
 
@@ -128,9 +128,9 @@ function Step({
 }
 
 /**
- * One linear judge journey over the live ERC-3643 / ATS bond market. Every step
- * reads current on-chain state (never a fabricated value), executes real
- * transactions through the connected wallet, and links the real HashScan
+ * A guided walkthrough over the live ERC-3643 / ATS bond market. Every step
+ * reads current on-chain state, executes
+ * transactions through the connected wallet, and links the HashScan
  * transaction hash. Pending, confirmed, and rejected states are all surfaced by
  * the shared TxStatus; a reverting call is never shown as success.
  */
@@ -334,12 +334,12 @@ export default function JourneyPage() {
   return (
     <div className="space-y-10">
       <header className="space-y-4">
-        <p className="label-data">Judge journey · live on {cfg.network}</p>
+        <p className="label-data">Bond market · {cfg.network}</p>
         <h1 className="text-6xl font-light tracking-tight sm:text-7xl">One bond, end to end</h1>
         <p className="max-w-2xl text-smoke">
           A single linear path over the live ERC-3643 / ATS tokenized bond: identify the asset, prove
           eligibility, inspect backing, enter a position, split and trade, inspect the coupon, and
-          redeem. Every number is read from {cfg.network}; every action produces a real HashScan link.
+          redeem. Every number is read from {cfg.network}; confirmed actions include HashScan links.
         </p>
         <div className="flex flex-wrap items-center gap-3">
           {address === null ? (
@@ -363,7 +363,7 @@ export default function JourneyPage() {
 
       {journey.status === "error" ? (
         <p className="card border-red-400/30 p-4 text-sm text-red-400" role="alert">
-          Live read failed: {journey.error}. Nothing is shown as zero while the read is failing.
+          Live read failed: {journey.error}. Refresh to retry the market reads.
         </p>
       ) : null}
       {journey.warnings.length > 0 ? (
@@ -676,7 +676,7 @@ export default function JourneyPage() {
             <p className="label-data">Session transactions</p>
             {history.length === 0 ? (
               <p className="text-sm text-smoke">
-                Confirmed transactions from this session appear here with their real HashScan links.
+                Confirmed transactions from this session appear here with HashScan links.
               </p>
             ) : (
               <ul className="space-y-3">
@@ -695,8 +695,8 @@ export default function JourneyPage() {
           <div className="card space-y-4 p-6">
             <p className="label-data">Two-wallet verification</p>
             <p className="text-sm text-smoke">
-              This deployment was exercised from two distinct, identity-verified wallets, proving the
-              flow is not single-account.
+              The issuer and a separate investor account exercised this deployment. Their
+              transaction receipts are recorded in the repository.
             </p>
             <ul className="space-y-3">
               {TESTNET_DEPLOYMENT.demoWallets.map((wallet) => (

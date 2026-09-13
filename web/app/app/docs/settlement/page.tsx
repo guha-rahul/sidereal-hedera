@@ -12,42 +12,27 @@ export default function SettlementPage() {
       <DocsHeader
         kicker="Protocol design"
         title="Settlement and maturity"
-        summary="Maturity is where a fixed-income protocol either keeps its promises or doesn't. This page covers the rate freeze, who can trigger it, who gets paid first if the money falls short, and what stays open afterwards."
+        summary="This page covers the rate freeze, who can trigger it, who gets paid first if the money falls short, and what stays open afterwards."
       />
 
       <div className="docs-prose mt-8">
-        <h2>The problem the freeze solves</h2>
+        <h2>Terminal valuation</h2>
         <p>
-          The bond doesn&rsquo;t know Sidereal&rsquo;s maturity date exists. Its cashflow keeps
-          accruing right past it. If PT redemption naively read the live rate whenever each holder
-          showed up, interest earned <em>after</em> maturity would leak into payouts, and two people
-          redeeming the same claim on different days would get different amounts. The boundary that
-          defines the whole product (before maturity is YT&rsquo;s, at maturity is PT&rsquo;s) would
-          be blurry exactly where it must be sharp.
+          The ATS bond, strategy and market share a maturity date. The strategy values
+          the terminal bond position, including attributed coupon receivables. Before
+          freezing that value, the tokenizer calls SY upkeep to synchronize coupon cash.
         </p>
-
-        <h2>Freezing to an observed rate</h2>
+        <h2>Freezing the settlement rate</h2>
         <p>
-          The protocol records the exchange rate at every interaction: splits, collections,
-          recombines, even plain YT transfers report their rate through the same path. Each
-          recording is an <strong>observation</strong>. At maturity, the redemption rate freezes
-          to <strong>the last observation made at or before the maturity instant</strong>, never
-          to a reading taken afterwards. The snapshot happens automatically on the first
-          post-maturity interaction, or anyone can trigger it explicitly by calling{" "}
-          <code>freezeMaturityRate()</code>.
+          After maturity, <code>freezeMaturityRate()</code> checks
+          <code>settlementReady()</code> and records the terminal SY exchange rate once.
+          Pending settlement raises <code>SettlementPending</code>. Subsequent redemptions
+          use the frozen value. The first post-maturity operation can freeze it automatically;
+          a keeper observation immediately before maturity is not required.
         </p>
         <p>
-          &ldquo;Anyone&rdquo; is deliberate. Both maintenance calls, <code>observeRate()</code>{" "}
-          before maturity and <code>freezeMaturityRate()</code> after, are open to any caller: a
-          bot, the team, or a YT holder protecting their own interest. Whoever calls, the effect
-          is the same, so there is nothing to abuse. Frequent observations near the boundary pin
-          the frozen rate as close to the maturity instant as possible.
-        </p>
-        <p>
-          And if the market goes quiet and the last observation lands early? The small tail of
-          unrecorded interest stays in the escrow behind the principal, resolving{" "}
-          <strong>predictably in PT&rsquo;s favor</strong>. The failure mode is a known, bounded
-          lean toward the senior claim. It is never a race where the fastest claimant wins.
+          <code>observeRate()</code> records live rates before maturity for accounting.
+          It does not select the terminal rate used by the current ATS strategy.
         </p>
 
         <h2>Who gets paid first</h2>
@@ -81,7 +66,7 @@ export default function SettlementPage() {
           </li>
           <li>
             <strong>Final YT collections</strong>: interest earned up to the freeze remains
-            collectible through a grace window, paid at the frozen rate. Nothing new accrues.
+            collectible after maturity, subject to eligibility and available junior surplus. Nothing new accrues.
           </li>
           <li>
             <strong>SY withdrawal</strong>: unwrapping SY to cash has no maturity attached. It
@@ -104,11 +89,10 @@ export default function SettlementPage() {
       </div>
 
       <div className="mt-8">
-        <Callout label="Verified live" signal>
-          The freeze isn&rsquo;t just designed, it is proven against real bond cashflow: in live
-          testing, the freeze pinned the last pre-maturity observation and ignored a higher live
-          post-maturity rate, confirmed by an independent read. The full settlement sequence
-          (observe, freeze, redeem PT, final YT collection) has run end to end on-chain.
+        <Callout label="Historical settlement check" signal>
+          A previous short-maturity deployment completed observation, rate freeze, PT redemption
+          and final YT collection on testnet. Independent reads confirmed the frozen rate.
+          The current 90-day market has not reached maturity.
         </Callout>
       </div>
 

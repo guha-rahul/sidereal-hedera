@@ -12,7 +12,7 @@ export default function SecurityPage() {
       <DocsHeader
         kicker="Reference"
         title="Security and risks"
-        summary="What has been verified, what hasn't, what the admin can and cannot do, and the honest list of risks you accept by using an early, unaudited protocol."
+        summary="What has been verified, what hasn't, what the admin can and cannot do, and the risks of using this unaudited protocol."
       />
 
       <div className="mt-8">
@@ -20,8 +20,7 @@ export default function SecurityPage() {
           Sidereal runs on Hedera <strong>testnet</strong> as an unaudited demonstration. The bond is
           issued through the real ATS factory, and the cash is test-only sdUSD; no real funds are
           involved. Sidereal has <strong>not</strong> had a professional third-party audit, and the
-          contracts cannot be changed after deployment, so a defect would be permanent. Treat it as
-          early and unaudited, not as safe.
+          contracts cannot be changed after deployment, so a defect would be permanent. Use only demonstration assets.
         </Callout>
       </div>
 
@@ -39,10 +38,10 @@ export default function SecurityPage() {
             that the escrow still covers what it owes.
           </li>
           <li>
-            <strong>Live testnet lifecycle:</strong> ATS markets were issued through the real
-            factory and driven end to end on testnet: issuance, KYC, deposits, splits, a two-wallet
-            trade, revocation, coupon, and maturity settlement. Receipts and balances are recorded
-            under <code>contracts/deployments/evidence/</code>.
+            <strong>Live testnet checks:</strong> the current market has confirmed deployment,
+            funding, investment, trading and liquidity receipts, including an embedded-wallet
+            investment. Coupon, revocation and maturity records from earlier markets are
+            historical evidence. See <code>contracts/deployments/evidence/</code>.
           </li>
           <li>
             <strong>Reproducible builds:</strong> dependencies are pinned, and the ATS deployment
@@ -50,7 +49,7 @@ export default function SecurityPage() {
             against source (see <Link href="/docs/contracts">Deployed contracts</Link>).
           </li>
           <li>
-            <strong>Whole-number math by construction:</strong> Solidity has no floating-point
+            <strong>Fixed-point arithmetic:</strong> Solidity has no floating-point
             type, so the curve is implemented entirely in WAD fixed-point integer series. The
             pricing arithmetic cannot silently regress to floating point.
           </li>

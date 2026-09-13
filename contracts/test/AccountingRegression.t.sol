@@ -3,7 +3,7 @@ pragma solidity 0.8.28;
 import {ERC3643BondTest} from "./ERC3643Bond.t.sol";
 import {ERC3643BondStrategyTest} from "./ERC3643BondStrategy.t.sol";
 
-contract Codex1CouponRegression is ERC3643BondTest {
+contract CouponAccountingRegressionTest is ERC3643BondTest {
     function testTransferCannotRepeatCouponClaim() public {
         uint256 bonds = _purchase(alice, 950e18);
         vm.startPrank(issuer);
@@ -40,7 +40,7 @@ contract Codex1CouponRegression is ERC3643BondTest {
     }
 }
 
-contract Codex1StrategyRegression is ERC3643BondStrategyTest {
+contract StrategyAccountingRegressionTest is ERC3643BondStrategyTest {
     function testNonAdminCannotChangeCap() public {
         vm.prank(alice);
         vm.expectRevert();

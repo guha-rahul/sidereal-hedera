@@ -1,7 +1,8 @@
 # ATS verification status
 
 The current application uses the user-controlled market in `hedera-ats.json`.
-See [OWNED_MARKET.md](OWNED_MARKET.md) for its verified deployment and seed.
+See [OWNED_MARKET.md](OWNED_MARKET.md) for its deployment, protocol checks and
+completed Privy investment.
 The lifecycle evidence below belongs to the previous and short markets.
 
 Reviewed against repository revision
@@ -17,7 +18,7 @@ plain-language summary and `evidence/` for block-pinned receipts and balances.
   skipped as intended when `RUN_ATS_LIVE` was unset.
 - `RUN_ATS_LIVE=true forge test --summary`: all 59 tests passed, including the
   eight ATS fork checks at pinned block 40433521.
-- `Codex2Lifecycle.t.sol` passes three live checks, including actual ATS
+- `ATSLifecycle.t.sol` passes three live checks, including actual ATS
   eligibility revocation blocking SY/PT/YT transfers, recombination, SY
   redemption, and matured PT redemption, plus the PT-heavy seed regression;
   reinstatement restores exit.
@@ -29,7 +30,7 @@ plain-language summary and `evidence/` for block-pinned receipts and balances.
   passed.
 - `git diff --check`: passed.
 
-## Live main market
+## Historical main market
 
 Historical manifest: `hedera-ats-previous.json` (status `deployed-lifecycle-verified`).
 
@@ -43,7 +44,7 @@ Historical manifest: `hedera-ats-previous.json` (status `deployed-lifecycle-veri
   zero tracked-cash delta.
 - Nine Sidereal sources verified on Sourcify (`evidence/source-verification.json`).
 
-## Live short-maturity market
+## Historical short-maturity market
 
 Manifest: `hedera-ats-short.json` (status `deployed-lifecycle-settled`).
 
@@ -65,7 +66,7 @@ the curve's `exchangeRate >= WAD` boundary, which the AMM treats as the minimum.
 The AMM is correct by design (`AmmMarket.t.sol` documents that the seeder must be
 PT-heavy); the seed script was wrong. `ATSLifecycle` now seeds 1200 PT / 800 SY,
 which clears the boundary for any rate below 1.5.
-`Codex2LifecycleTest.testSeedAfterBondStartRequiresPtHeavyLiquidity` proves a
+`ATSLifecycleTest.testSeedAfterBondStartRequiresPtHeavyLiquidity` proves a
 50/50 seed reverts at a rate above 1 and the PT-heavy seed succeeds. The first
 short deployment failed for this reason
 (`evidence/short-seed-failure-finding.json`); the redeployed market seeded

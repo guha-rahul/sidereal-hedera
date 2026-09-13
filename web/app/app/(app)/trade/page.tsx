@@ -289,9 +289,7 @@ export default function TradePage() {
               max={balanceIn}
             />
 
-            {/* Direction arrow + read-only expected-out, mirroring the swap card.
-                The arrow spins while a quote is in flight: the debounce window
-                is the app's one honest "working" moment. */}
+            {/* Animate the direction arrow while a quote is loading. */}
             <div className="flex items-center justify-center">
               <span
                 aria-hidden

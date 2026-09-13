@@ -105,7 +105,7 @@ export interface EvmChainParams {
 /**
  * Chain parameters for `wallet_addEthereumChain`, so a wallet that does not yet
  * know Hedera can add it in one prompt. HBAR is the native gas token; the market's
- * sdUSD cash is a separate ERC-20 that the faucet does not mint.
+ * sdUSD cash is a separate ERC-20 supplied by the authenticated demo faucet.
  */
 export function evmChainParams(cfg: AppConfig): EvmChainParams {
   const mainnet = cfg.chainId === MAINNET_CHAIN_ID;

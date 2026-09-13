@@ -85,7 +85,7 @@ const FACTS = [
   { value: null, label: "Active market", note: "", signal: false },
   { value: "03", label: "Token legs", note: "SY · PT · YT", signal: false },
   { value: "00", label: "Price oracles", note: "Internal TWAP", signal: false },
-  { value: "1:1", label: "PT at maturity", note: "Redeems to par", signal: false },
+  { value: "PT", label: "Principal claim", note: "Redeems through SY", signal: false },
 ];
 
 export default function LandingPage() {

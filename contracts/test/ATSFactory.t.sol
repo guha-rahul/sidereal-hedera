@@ -15,7 +15,7 @@ import {YieldToken} from "../src/tokens/YieldToken.sol";
 import {AmmMarket} from "../src/AmmMarket.sol";
 import {Orderbook} from "../src/Orderbook.sol";
 
-contract Codex2ATSFactoryTest is Test, DeployATS {
+contract ATSFactoryTest is Test, DeployATS {
     address constant ISSUER = address(0xA11CE);
     address constant BUYER = address(0xB0B);
 
@@ -60,7 +60,7 @@ contract Codex2ATSFactoryTest is Test, DeployATS {
     function testManifestRoundTripCapturesDeployedAddresses() public {
         if (!vm.envOr("RUN_ATS_LIVE", false)) { vm.skip(true); return; }
         Market memory m = _fork();
-        string memory path = "deployments/codex2-fork-manifest.json";
+        string memory path = "deployments/ats-fork-manifest.json";
         _manifest(m, path);
         string memory json = vm.readFile(path);
         assertEq(vm.parseJsonAddress(json, ".security"), m.security, "security");

@@ -146,7 +146,7 @@ contract ATSFixtureToken is ERC20 {
     }
 }
 
-contract Codex1ATSAdapterTest is Test {
+contract ATSAdapterTest is Test {
     ATSFixtureToken security;
     TestERC20 cash;
     ATSBondAdapter adapter;

@@ -85,7 +85,7 @@ export default function ClaimRedeemGuidePage() {
               <tr>
                 <td>PT only</td>
                 <td>Sell on Trade, or wait</td>
-                <td>Redeem one-for-one</td>
+                <td>Redeem through SY, capped by backing</td>
               </tr>
               <tr>
                 <td>SY</td>

@@ -1,6 +1,6 @@
-# sidereal web: Hedera (EVM) port
+# Sidereal web
 
-New participants: follow the [user guide](USER_GUIDE.md). Presenters can use the
+Follow the [user guide](USER_GUIDE.md). Presenters can use the
 [three-minute hackathon walkthrough](HACKATHON_DEMO.md). The Invest page also
 includes a five-step guide.
 
@@ -49,8 +49,11 @@ Generate the env file from the manifest rather than transcribing addresses:
 ```bash
 cd app
 pnpm check:env ../../contracts/deployments/hedera-ats.json   # print, write nothing
-pnpm gen:env   ../../contracts/deployments/hedera-ats.json   # write app/.env.local
+pnpm gen:env ../../contracts/deployments/hedera-ats.json --out /tmp/sidereal-public.env
 ```
+
+The generator writes public values only. Merge them into `.env.local` rather
+than overwriting a file that contains Privy or faucet secrets.
 
 The generator maps manifest keys to env names (`amm` -> `MARKET`, `cash` ->
 `UNDERLYING`), rejects a manifest whose `chainId` is missing or not 295/296,
@@ -75,7 +78,7 @@ bundle exactly as it was: the pages will keep reporting no configured market.
 Configuring a market therefore always means a rebuild and redeploy:
 
 ```bash
-pnpm gen:env ../../contracts/deployments/hedera-ats.json
+pnpm check:env ../../contracts/deployments/hedera-ats.json
 pnpm cf:deploy        # opennextjs-cloudflare build && deploy
 ```
 
@@ -83,26 +86,32 @@ To confirm the addresses reached the client, grep the emitted bundle for one of
 them. Absence means the build did not see the env file:
 
 ```bash
-grep -rl "0x<sy-address>" .next/static/chunks/
+rg -l "0x<sy-address>" .next/static/chunks/
 ```
 
 ## Testnet faucet
 
-On testnet the app offers a faucet for the market's cash denomination. The mock
-ERC-20 exposes a public `mint`, so `/api/faucet` prepares an unsigned
-`mint(recipient, amount)` request for the connected wallet to sign; the app never
-holds a key. It is enabled by default on testnet when an underlying is
-configured, and can be turned off with `NEXT_PUBLIC_FAUCET_ENABLED=0` (for a real
-non-mintable asset). `pnpm gen:env` always writes this variable explicitly, so a
-manifest-configured build never inherits that default. The amount is `NEXT_PUBLIC_FAUCET_AMOUNT` (whole tokens,
-default `1000`). The mint page surfaces it both inline (when the wallet is empty)
-and in the `BondWalkthrough` onboarding checklist.
+The current market uses sdUSD, a 6-decimal demonstration token, not USDC.
+The server verifies a Privy access token and linked embedded-wallet ownership,
+records a durable D1 allocation, grants ATS demo eligibility, and transfers
+1,000 sdUSD plus 20 HBAR by default. It does not return an unsigned public mint
+request. Completed requests return the same receipts; pending or failed
+allocations require reconciliation before another attempt.
+
+Configure `FAUCET_PRIVATE_KEY`, `PRIVY_APP_SECRET`, `NEXT_PUBLIC_PRIVY_APP_ID`,
+`NEXT_PUBLIC_FAUCET_ENABLED=1`, and the `FAUCET_DB` D1 binding. Local or Vercel
+execution needs the D1 HTTP API credentials described in [PRIVY.md](PRIVY.md).
+Missing authentication or storage configuration disables funding.
 
 ## Wallet
 
-The app connects to an injected EVM wallet (`window.ethereum`): MetaMask, or
-HashPack's EVM provider. Connections on the wrong Hedera chain are flagged by a
-network banner. The SDK never holds keys.
+The financial pages share a Privy embedded wallet. Sign in with email or Google,
+then close the wallet-creation success screen with **All Done**. The same
+address signs transactions on Invest, Mint, Trade, Book and Pool. Close each
+transaction success screen with **All Done** to advance a sequence.
+
+When no Privy app ID is configured, the app uses the injected EVM wallet
+provider. The SDK builds unsigned transactions and does not hold private keys.
 
 ## Test
 

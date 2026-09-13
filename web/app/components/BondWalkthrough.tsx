@@ -40,7 +40,7 @@ function StepChip({ state }: { state: StepState }) {
  */
 export function BondWalkthrough() {
   const cfg = useMemo(() => appConfig(), []);
-  const { address } = useWallet();
+  const { address, walletKind } = useWallet();
   const isTestnet = cfg.network === "testnet";
   const networkName = networkLabel(cfg.network, "lower");
 
@@ -90,7 +90,9 @@ export function BondWalkthrough() {
     {
       title: "Connect a wallet",
       state: address ? "done" : "todo",
-      detail: `An injected EVM wallet (MetaMask or HashPack) on Hedera ${networkName}. The walkthrough tracks this wallet's balances live.`,
+      detail: walletKind === "privy"
+        ? `Sign in with email or Google to use an embedded wallet on Hedera ${networkName}.`
+        : `Connect an EVM wallet on Hedera ${networkName}.`,
       live: address ? `Connected: ${address.slice(0, 6)}...${address.slice(-4)}` : "Not connected",
       action: address ? null : <WalletButton />,
     },
@@ -98,11 +100,11 @@ export function BondWalkthrough() {
       title: isTestnet ? "Get test cash" : "Fund the wallet",
       state: funded || deposited || tokenized ? "done" : "todo",
       detail: isTestnet
-        ? "The faucet mints the market's cash denomination to your wallet in one signature. It is a mock asset for testnet only."
+        ? "Demo funding supplies sdUSD, HBAR and issuer-controlled eligibility after authenticating your embedded wallet."
         : "Fund the connected wallet with the configured cash denomination before depositing. Sidereal only reads that exact asset for this market.",
       live:
         cashBalance !== null
-          ? `Wallet cash: ${formatTokenAmount(cashBalance, cfg.decimals)}`
+          ? `Wallet cash: ${formatTokenAmount(cashBalance, cfg.underlyingDecimals)}`
           : `Expected: ${cfg.yieldSource.underlyingAddress || "configured cash asset"}`,
       action: isTestnet ? (
         <FaucetButton onDone={refresh} />
@@ -116,11 +118,11 @@ export function BondWalkthrough() {
       title: "Deposit, then split",
       state: tokenized ? "done" : "todo",
       detail:
-        "The mint page approves the cash, deposits it into the SY vault, and splits the new SY into equal PT and YT with a second signature.",
+        "Mint approves and deposits cash, then approves SY and splits it into equal PT and YT face amounts. Each required transaction is confirmed separately.",
       live: tokenized
-        ? `Tokenized: ${formatTokenAmount(position!.ptBalance, cfg.decimals)} PT + ${formatTokenAmount(position!.ytBalance, cfg.decimals)} YT`
+        ? `Tokenized: ${formatTokenAmount(position!.ptBalance, cfg.shareDecimals)} PT + ${formatTokenAmount(position!.ytBalance, cfg.shareDecimals)} YT`
         : deposited
-          ? `In SY: ${formatTokenAmount(position!.syBalance, cfg.decimals)} (not split yet)`
+          ? `In SY: ${formatTokenAmount(position!.syBalance, cfg.shareDecimals)} (not split yet)`
           : "No SY, PT, or YT held yet",
       action: (
         <Link href="/mint" className={LINK_CLASS}>
@@ -155,7 +157,7 @@ export function BondWalkthrough() {
     <section className="panel-subtle p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="label-data">Manual walkthrough: tokenize a bond position</p>
+          <p className="label-data">Bond position checklist</p>
           <p className="mt-2 max-w-2xl text-sm text-smoke">
             Wallet signing stays manual. Each step verifies itself against the configured market as
             you complete it.

@@ -8,7 +8,7 @@ import { ExplorerTxLink } from "./ExplorerTxLink";
 
 /**
  * Renders the full lifecycle of an action from the tx phase: the pending step
- * (signing/confirming), the confirmed hash with a real HashScan link, or the
+ * (signing/confirming), the confirmed hash with a HashScan link, or the
  * rejected/failed reason. Nothing here fabricates success; a reverted receipt
  * arrives as an error because the SDK asserts receipt status.
  */

@@ -28,8 +28,8 @@ export default function AmmPage() {
         <h2>Why the standard formula fails here</h2>
         <p>
           The classic AMM formula (Uniswap&rsquo;s constant product) assumes the two assets have no
-          scheduled relationship over time. PT breaks that assumption: it <em>must</em> be worth
-          exactly 1 SY on maturity day, by construction. Put PT in a standard pool and one of two
+          scheduled relationship over time. PT has a scheduled principal claim. In asset units it approaches par at maturity;
+          in SY shares its redemption amount depends on the frozen exchange rate and backing. Put PT in a standard pool and one of two
           bad things happens. Either the pool keeps overpricing PT along the way and arbitrage
           traders steadily drain the LPs as the price converges, or the pool underprices PT and
           nobody mints it in the first place.

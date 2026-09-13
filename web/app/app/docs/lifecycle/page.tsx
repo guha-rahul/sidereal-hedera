@@ -47,22 +47,20 @@ export default function LifecyclePage() {
           PT&rsquo;s price climbs toward one dollar, and YT&rsquo;s remaining claim shrinks as the
           time window closes. In the background, the protocol keeps recording the exchange rate at
           every interaction. These recorded snapshots are called <strong>observations</strong>,
-          and they decide what happens at the boundary, below.
+          and support live accounting.
         </p>
 
         <h2>At maturity: the rate freezes</h2>
         <p>
-          Maturity is a timestamp fixed when the market is created. When it passes, the protocol{" "}
-          <strong>freezes</strong> the redemption rate to the last observation recorded at or
-          before the maturity instant, never to a reading taken afterwards. The freeze is what
-          keeps the split clean at the boundary: interest that arrives <em>after</em> maturity
-          belongs to nobody&rsquo;s YT, so it must not sneak into anybody&rsquo;s payout.
+          Maturity is fixed at deployment. After it passes, the tokenizer synchronizes
+          coupon cash, checks settlement readiness and freezes the terminal SY exchange
+          rate. Pending settlement must finish before redemption can proceed.
         </p>
         <p>From that instant:</p>
         <ul>
           <li>
-            <strong>PT pays out one-for-one.</strong> Each PT redeems for its dollar of principal,
-            priced at the frozen rate. There is no deadline; redemption stays open.
+            <strong>PT redeems through SY.</strong> Face amounts convert to SY shares at
+            the frozen rate, capped by the holder&rsquo;s pro-rata share of backing. There is no deadline; redemption stays open.
           </li>
           <li>
             <strong>YT stops earning.</strong> Interest built up before the freeze can still be
@@ -116,7 +114,7 @@ export default function LifecyclePage() {
               <tr>
                 <td>Redeem PT for principal</td>
                 <td>No</td>
-                <td>Yes, one-for-one at the frozen rate</td>
+                <td>Yes, through SY at the frozen rate, capped by backing</td>
               </tr>
               <tr>
                 <td>Trade / provide liquidity</td>
