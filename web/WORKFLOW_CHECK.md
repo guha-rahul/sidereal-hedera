@@ -18,6 +18,14 @@ The 22 workflow transactions were signed by the separate controlled demo account
 - `contracts/deployments/evidence/owned-workflow.json`
 - `contracts/deployments/evidence/owned-book-pool.json`
 
+## Automated checks
+
+- 188 application unit tests and 17 SDK unit tests passed.
+- Typecheck and the production Cloudflare build passed.
+- All 18 desktop/mobile browser checks passed on the final Cloudflare deployment, including real login-modal loading and live mint previews.
+- Public health and faucet configuration return HTTP 200; unauthenticated funding returns HTTP 401.
+- The production demo automation endpoint returns HTTP 403; the manual participant investment flow is the public demo.
+
 ## Issues found and corrected
 
 - Builds without an env file previously classified the deployed ATS yield source as mock. The checked-in deployment now defaults to bond.
@@ -26,7 +34,7 @@ The 22 workflow transactions were signed by the separate controlled demo account
 
 ## Not yet proven end to end
 
-- Real Privy login, authenticated funding and embedded-wallet investment need a successful user login and signing run. Opening the real modal alone is insufficient proof. The original Privy app blocked the Cloudflare origin in its iframe security policy; replacement credentials are being configured.
+- Real Privy login, authenticated funding and embedded-wallet investment need a successful user login and signing run. Opening the real modal alone is insufficient proof. The original Privy app blocked the Cloudflare origin in its iframe security policy; replacement credentials are deployed, backend authentication succeeds, and the new iframe permits the Cloudflare origin. The real user login/signing run remains pending.
 - The new market has a 90-day term. Its future coupon/maturity operations have not occurred live. Fork tests are separate evidence, not live maturity receipts.
 - Source verification for the new deployment remains outstanding. Historical verification records apply to older addresses.
 
