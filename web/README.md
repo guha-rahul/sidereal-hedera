@@ -1,5 +1,9 @@
 # sidereal web — Hedera (EVM) port
 
+New participants: follow the [user guide](USER_GUIDE.md). Presenters can use the
+[three-minute hackathon walkthrough](HACKATHON_DEMO.md). The Invest page also
+includes a five-step guide.
+
 Frontend and TypeScript SDK for Sidereal, yield tokenization on **Hedera**. The
 app drives the full protocol lifecycle (deposit, split, trade, provide
 liquidity, claim, redeem) against a Hedera EVM deployment and ships the in-app

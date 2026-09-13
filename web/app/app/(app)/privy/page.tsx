@@ -338,6 +338,28 @@ export default function PrivyPage() {
           </button>
         )}
       </header>
+      <details className="card p-6" open={!address}>
+        <summary className="cursor-pointer text-lg">
+          Start here: your five-step demo guide
+        </summary>
+        <p className="mt-4 text-sm text-smoke">
+          This demonstration uses Hedera testnet and free demo assets. sdUSD is
+          a demonstration token, separate from USDC.
+        </p>
+        <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-smoke">
+          <li><strong className="text-paper">Sign in with email.</strong> Complete the code sent to your inbox. Your embedded wallet follows you across the app.</li>
+          <li><strong className="text-paper">Fund your demo wallet.</strong> Click Fund demo wallet below after signing in. Wait for sdUSD to appear; funding also supplies HBAR for transaction fees and test-only eligibility.</li>
+          <li><strong className="text-paper">Choose an amount and exposure.</strong> Start with 100 sdUSD. Fixed principal keeps PT, your principal exposure. Variable yield keeps YT, your exposure to available yield until maturity.</li>
+          <li><strong className="text-paper">Invest and confirm.</strong> Click Invest and confirm each wallet request. Keep this page open until the sequence completes.</li>
+          <li><strong className="text-paper">Check your result.</strong> Compare the before and after balances, visit Portfolio, and download the investment receipts. Open the HashScan links to check confirmations.</li>
+        </ol>
+        <p className="mt-4 text-xs text-ash">
+          If a transaction fails or you cancel a confirmation, completed steps
+          remain onchain. Check your balances and receipts before investing
+          again. A pending or partial funding error needs operator
+          reconciliation; repeated requests will not resend funds.
+        </p>
+      </details>
       {address && (
         <div className="grid gap-8 lg:grid-cols-12">
           <section className="card space-y-6 p-6 lg:col-span-7">
