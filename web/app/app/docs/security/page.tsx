@@ -39,8 +39,8 @@ export default function SecurityPage() {
             that the escrow still covers what it owes.
           </li>
           <li>
-            <strong>Live testnet lifecycle:</strong> two ATS markets were issued through the real
-            factory and driven end to end on testnet — issuance, KYC, deposits, splits, a two-wallet
+            <strong>Live testnet lifecycle:</strong> ATS markets were issued through the real
+            factory and driven end to end on testnet: issuance, KYC, deposits, splits, a two-wallet
             trade, revocation, coupon, and maturity settlement. Receipts and balances are recorded
             under <code>contracts/deployments/evidence/</code>.
           </li>

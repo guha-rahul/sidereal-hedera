@@ -1,4 +1,7 @@
 {
   "privyAppId": "cmtzzb9mt00dj0cjmjzjitmg7",
-  "faucetEnabled": "1"
+  "faucetEnabled": "1",
+  "privyDelegatedSignerId": "guzd3s0wcpnw9q95nqf8sxhp",
+  "privyDelegatedPolicyId": "ocekag9mmwfuuwfbwyppen6c",
+  "privyDelegatedMaxPt": "10"
 }

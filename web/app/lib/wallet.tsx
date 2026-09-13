@@ -39,13 +39,22 @@ declare global {
 export interface WalletContextValue {
   walletKind?: "injected" | "privy";
   getAccessToken?: () => Promise<string | null>;
+  addDelegatedSigner?: () => Promise<void>;
+  removeDelegatedSigners?: () => Promise<void>;
   address: string | null;
   chainId: number | null;
   connecting: boolean;
   connect: () => Promise<void>;
   disconnect: () => void;
-  /** Sends a built request through the injected wallet, returning the tx hash. */
-  sendTransaction: (request: TransactionRequest) => Promise<string>;
+  /**
+   * Sends a built request, returning the tx hash. `silent` asks an embedded
+   * wallet to run a pre-approved multi-step sequence without a confirmation UI
+   * for every transaction; injected wallets always prompt and ignore it.
+   */
+  sendTransaction: (
+    request: TransactionRequest,
+    options?: { silent?: boolean },
+  ) => Promise<string>;
   /** Switches the wallet to the configured chain, adding it first if unknown. */
   switchNetwork: () => Promise<void>;
   /** True when the connected wallet is on a different chain than configured. */

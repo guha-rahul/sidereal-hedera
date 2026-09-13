@@ -101,4 +101,34 @@ describe("variableRateDisplay", () => {
       tone: "live",
     });
   });
+
+  it("measures the discount against cash-denominated par, not WAD", () => {
+    // Regression: valuePerUnit is cash base units (sdUSD, 6 decimals), so par
+    // is faceValuePerUnit. Treating it as WAD showed ~99.99% instead of ~5%.
+    expect(
+      variableRateDisplay({
+        address: "0xBOND",
+        name: "ATS bond",
+        symbol: "sBOND",
+        decimals: 6,
+        denomination: "0xUSD",
+        owner: "0xOWNER",
+        identityRegistry: "0xREGISTRY",
+        compliance: "0xCOMPLIANCE",
+        startDate: 1,
+        maturity: 2_000_000_000,
+        isMatured: false,
+        totalSupply: 1n,
+        valuePerUnit: 950_000n,
+        issuePricePerUnit: 950_000n,
+        faceValuePerUnit: 1_000_000n,
+        nominalValue: 1_000_000n,
+        couponValuePerUnit: 0n,
+        availableLiquidity: 0n,
+      }),
+    ).toMatchObject({
+      value: "5.00%",
+      tone: "live",
+    });
+  });
 });

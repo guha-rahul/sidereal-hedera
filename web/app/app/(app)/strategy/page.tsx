@@ -8,7 +8,7 @@ import { bondDiscountBps } from "@sidereal/sdk";
 import { LiveValue } from "@/components/LiveValue";
 import { ConfiguredMarketPill } from "@/components/MarketStatus";
 import { appConfig, deploymentStage, networkLabel } from "@/lib/config";
-import { bpsToPercent, formatMaturityDate, maturityStatus } from "@/lib/format";
+import { bpsToPercent, formatMaturityDate, formatTokenAmount, maturityStatus } from "@/lib/format";
 import { useBondInfo } from "@/lib/useBondInfo";
 import { useMarketStatus } from "@/lib/useMarket";
 import { fixedRateDisplay } from "@/lib/yieldChoice";
@@ -67,8 +67,15 @@ export default function StrategyPage() {
   const { bond } = useBondInfo();
   const fixed = fixedRateDisplay(market, cfg.decimals);
   const deploymentStatus = deploymentStage(cfg);
-  const bondDiscount = bond ? bpsToPercent(bondDiscountBps(bond.valuePerUnit)) : "";
-  const bondValue = bond ? (Number(bond.valuePerUnit) / 1e18).toFixed(4) : "";
+  // valuePerUnit is cash-denominated (sdUSD, 6 decimals), so par is the bond's
+  // face value per unit, not WAD. Falling back to 10**underlyingDecimals only
+  // matters before the adapter publishes a face value.
+  const bondPar =
+    bond && bond.faceValuePerUnit > 0n
+      ? bond.faceValuePerUnit
+      : 10n ** BigInt(cfg.underlyingDecimals);
+  const bondDiscount = bond ? bpsToPercent(bondDiscountBps(bond.valuePerUnit, bondPar)) : "";
+  const bondValue = bond ? formatTokenAmount(bond.valuePerUnit, cfg.underlyingDecimals, 4) : "";
   const sourceName = cfg.yieldSource.name || "Configured yield source";
   const selected = STRATEGIES.find((strategy) => strategy.id === selectedId) ?? STRATEGIES[0];
   const selectedIsLive = selected.id === "bond-usdc";

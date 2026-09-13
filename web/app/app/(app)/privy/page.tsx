@@ -8,6 +8,7 @@ import { useWallet } from "@/lib/wallet";
 import { hederaExplorerAccountUrl, hederaExplorerTxUrl } from "@/lib/explorer";
 import { requestFaucetFunds } from "@/lib/faucet";
 import { formatTokenAmount, parseTokenAmount } from "@/lib/format";
+import { delegatedSignerConfig } from "@/lib/privyConfig";
 import { makeClient } from "@/lib/sdk";
 import {
   buildTokenizeBondSteps,
@@ -19,13 +20,14 @@ type Balances = { cash: bigint; sy: bigint; pt: bigint; yt: bigint };
 type Receipt = {
   label: string;
   hash: string;
-  signer: "embedded-wallet" | "faucet";
+  signer: "embedded-wallet" | "privy-policy-signer" | "faucet";
   status: "submitted" | "confirmed" | "reverted";
   blockNumber?: string;
 };
 
 export default function PrivyPage() {
   const cfg = useMemo(() => appConfig(), []);
+  const delegated = useMemo(() => delegatedSignerConfig(), []);
   const client = useMemo(() => makeClient(cfg), [cfg]);
   const {
     address,
@@ -33,6 +35,8 @@ export default function PrivyPage() {
     connecting,
     connect,
     getAccessToken,
+    addDelegatedSigner,
+    removeDelegatedSigners,
     sendTransaction,
   } = useWallet();
   const { market } = useMarketStatus();
@@ -44,6 +48,8 @@ export default function PrivyPage() {
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [delegatedAmount, setDelegatedAmount] = useState("1");
+  const [delegatedReady, setDelegatedReady] = useState(false);
   const [investment, setInvestment] = useState<{
     amount: string;
     requestedAt: string;
@@ -190,7 +196,7 @@ export default function PrivyPage() {
           throw new Error(
             "Wallet changed. Remaining investment steps stopped.",
           );
-        const hash = await sendTransaction(request);
+        const hash = await sendTransaction(request, { silent: true });
         setReceipts((previous) => [
           ...previous,
           {
@@ -239,6 +245,146 @@ export default function PrivyPage() {
         setError(
           `${stage}: ${e instanceof Error ? e.message : String(e)}. Confirmed transactions remain in your wallet. Review Portfolio before starting another investment.`,
         );
+    } finally {
+      lock.current = false;
+      setProgress(null);
+    }
+  };
+
+  const authorizeDelegatedExit = async () => {
+    if (!address || !balances || !delegated || !addDelegatedSigner || lock.current)
+      return;
+    const holder = address;
+    lock.current = true;
+    setError(null);
+    let stage = "Authorizing bounded Privy signer";
+    try {
+      const selected = parseTokenAmount(delegatedAmount, cfg.shareDecimals);
+      const cap = parseTokenAmount(delegated.maxPt, cfg.shareDecimals);
+      if (selected <= 0n || selected > cap)
+        throw new Error(`Choose more than 0 and at most ${delegated.maxPt} PT`);
+      if (selected > balances.pt)
+        throw new Error("Insufficient PT. Complete a fixed-principal investment first");
+      setProgress(stage);
+      await addDelegatedSigner();
+
+      stage = "Approving exact PT exit amount";
+      setProgress(stage);
+      const approval = client.buildApprove({
+        token: cfg.contracts.pt,
+        spender: cfg.contracts.market,
+        amount: selected,
+      });
+      const hash = await sendTransaction(approval);
+      setReceipts((previous) => [
+        ...previous,
+        {
+          label: "Approve bounded PT exit",
+          hash,
+          signer: "embedded-wallet",
+          status: "submitted",
+        },
+      ]);
+      const receipt = await client.getReceipt(hash);
+      setReceipts((previous) =>
+        previous.map((item) =>
+          item.hash === hash
+            ? {
+                ...item,
+                status:
+                  receipt.status === "success" ? "confirmed" : "reverted",
+                blockNumber: receipt.blockNumber.toString(),
+              }
+            : item,
+        ),
+      );
+      if (receipt.status !== "success") throw new Error("PT approval reverted");
+      if (activeAddress.current === holder) setDelegatedReady(true);
+    } catch (e) {
+      if (activeAddress.current === holder)
+        setError(`${stage}: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      lock.current = false;
+      setProgress(null);
+    }
+  };
+
+  const executeDelegatedExit = async () => {
+    if (!address || !delegated || !delegatedReady || lock.current) return;
+    const holder = address;
+    lock.current = true;
+    setError(null);
+    setProgress("Privy policy signer is executing the PT exit");
+    try {
+      const token = await getAccessToken?.();
+      if (!token) throw new Error("Sign in again to refresh your Privy session");
+      const selected = parseTokenAmount(delegatedAmount, cfg.shareDecimals);
+      const response = await fetch("/api/privy/delegated-exit", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          address: holder,
+          amount: selected.toString(),
+          requestId: crypto.randomUUID(),
+        }),
+      });
+      const result = (await response.json()) as {
+        hash?: string;
+        error?: string;
+      };
+      if (!response.ok || !result.hash)
+        throw new Error(result.error ?? "Delegated PT exit failed");
+      const hash = result.hash;
+      setReceipts((previous) => [
+        ...previous,
+        {
+          label: "Policy-authorized PT exit",
+          hash,
+          signer: "privy-policy-signer",
+          status: "submitted",
+        },
+      ]);
+      const receipt = await client.getReceipt(hash);
+      setReceipts((previous) =>
+        previous.map((item) =>
+          item.hash === hash
+            ? {
+                ...item,
+                status:
+                  receipt.status === "success" ? "confirmed" : "reverted",
+                blockNumber: receipt.blockNumber.toString(),
+              }
+            : item,
+        ),
+      );
+      if (receipt.status !== "success") throw new Error("Delegated PT exit reverted");
+      const updated = await readBalances(holder);
+      if (activeAddress.current === holder) {
+        setBalances(updated);
+        setDelegatedReady(false);
+      }
+    } catch (e) {
+      if (activeAddress.current === holder)
+        setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      lock.current = false;
+      setProgress(null);
+    }
+  };
+
+  const revokeDelegatedExit = async () => {
+    if (!removeDelegatedSigners || lock.current) return;
+    lock.current = true;
+    setError(null);
+    setProgress("Revoking delegated signers");
+    try {
+      await removeDelegatedSigners();
+      setDelegatedReady(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       lock.current = false;
       setProgress(null);
@@ -350,14 +496,14 @@ export default function PrivyPage() {
           <li><strong className="text-paper">Sign in with email.</strong> Complete the code sent to your inbox, then click All Done on the wallet setup screen. Your embedded wallet follows you across the app.</li>
           <li><strong className="text-paper">Fund your demo wallet.</strong> Click Fund demo wallet below after signing in. Wait for sdUSD to appear; funding also supplies HBAR for transaction fees and test-only eligibility.</li>
           <li><strong className="text-paper">Choose an amount and exposure.</strong> Start with 100 sdUSD. Fixed principal keeps PT, your principal exposure. Variable yield keeps YT, your exposure to available yield until maturity.</li>
-          <li><strong className="text-paper">Invest and confirm.</strong> Click Invest and confirm each wallet request and click All Done on its success screen. Keep this page open until the sequence completes.</li>
+          <li><strong className="text-paper">Invest and confirm.</strong> Click Invest and approve the sequence once; Sidereal then submits the deposit, split and sale steps without prompting you for each one. Keep this page open until it completes.</li>
           <li><strong className="text-paper">Check your result.</strong> Compare the before and after balances, visit Portfolio, and download the investment receipts. Open the HashScan links to check confirmations.</li>
         </ol>
         <p className="mt-4 text-xs text-ash">
-          If a transaction fails or you cancel a confirmation, completed steps
-          remain onchain. Check your balances and receipts before investing
-          again. A pending or partial funding error needs operator
-          reconciliation; repeated requests will not resend funds.
+          If a step fails, the steps already confirmed remain onchain. Check
+          your balances and receipts before investing again. A pending or
+          partial funding error needs operator reconciliation; repeated requests
+          will not resend funds.
         </p>
       </details>
       {address && (
@@ -412,7 +558,7 @@ export default function PrivyPage() {
                   checked={mode === "fixed"}
                   onChange={() => setMode("fixed")}
                 />{" "}
-                Fixed principal — retain PT and sell the new YT
+                Fixed principal: retain PT and sell the new YT
               </label>
               <label className="block">
                 <input
@@ -421,7 +567,7 @@ export default function PrivyPage() {
                   checked={mode === "variable"}
                   onChange={() => setMode("variable")}
                 />{" "}
-                Variable yield — retain YT and sell the new PT
+                Variable yield: retain YT and sell the new PT
               </label>
             </fieldset>
             <p className="text-sm text-smoke">
@@ -453,10 +599,64 @@ export default function PrivyPage() {
             </div>
             <p className="text-xs text-ash">
               Hedera testnet only. Funding grants issuer-controlled demo
-              eligibility, sdUSD and HBAR. Privy authentication is not KYC. Each
-              transaction may require wallet confirmation; approvals are limited
-              to the amount used in this investment.
+              eligibility, sdUSD and HBAR. Privy authentication is not KYC.
+              Approve the investment once and the sequence runs unattended;
+              approvals are limited to the exact amount used here.
             </p>
+            {delegated && addDelegatedSigner && (
+              <details className="border-t border-white/10 pt-5">
+                <summary className="cursor-pointer text-sm font-medium text-paper">
+                  Optional: policy-authorized PT exit
+                </summary>
+                <p className="mt-3 text-sm text-smoke">
+                  Authorize Sidereal once, then execute a PT-to-SY exit without
+                  another wallet popup. Privy enforces the permission: Hedera
+                  testnet, this AMM, <code>swapPtForSy</code>, zero HBAR value,
+                  and at most {delegated.maxPt} PT. Every other action is denied.
+                </p>
+                <label className="mt-4 block text-sm">
+                  Exit amount (PT)
+                  <input
+                    className="field mt-2"
+                    inputMode="decimal"
+                    value={delegatedAmount}
+                    onChange={(event) => {
+                      setDelegatedAmount(event.target.value);
+                      setDelegatedReady(false);
+                    }}
+                    disabled={!!progress}
+                  />
+                </label>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    className="rounded-pill border border-white/30 px-4 py-2 disabled:opacity-50"
+                    disabled={!!progress || !balances}
+                    onClick={() => void authorizeDelegatedExit()}
+                  >
+                    Authorize exact exit
+                  </button>
+                  <button
+                    className="btn-solid"
+                    disabled={!!progress || !delegatedReady}
+                    onClick={() => void executeDelegatedExit()}
+                  >
+                    Execute with policy signer
+                  </button>
+                  {removeDelegatedSigners && (
+                    <button
+                      className="rounded-pill border border-white/30 px-4 py-2 disabled:opacity-50"
+                      disabled={!!progress}
+                      onClick={() => void revokeDelegatedExit()}
+                    >
+                      Revoke signer
+                    </button>
+                  )}
+                </div>
+                <p className="mt-3 break-all font-mono text-xs text-ash">
+                  Policy {delegated.policyId}
+                </p>
+              </details>
+            )}
             {completed && (
               <p role="status" className="text-sm text-amber">
                 Investment complete. Your{" "}
@@ -490,7 +690,9 @@ export default function PrivyPage() {
                         {r.label} · {r.status} ·{" "}
                         {r.signer === "faucet"
                           ? "demo faucet"
-                          : "your embedded wallet"}
+                          : r.signer === "privy-policy-signer"
+                            ? "Privy policy signer"
+                            : "your embedded wallet"}
                       </p>
                       <a
                         className="break-all font-mono text-xs text-amber underline"

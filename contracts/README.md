@@ -1,4 +1,4 @@
-# sidereal contracts — Hedera (EVM)
+# sidereal contracts: Hedera (EVM)
 
 Sidereal is a yield-tokenization protocol: it splits a yield-bearing position
 into a principal token (PT) and a yield token (YT), lets either trade, and
@@ -59,7 +59,7 @@ contracts/
 | 2 | `tokens/YieldToken.sol` | sYT, yield-basis accounting engine |
 | 3 | `AmmMarket.sol` | time-decay AMM, flash split/recombine YT routes, TWAP |
 | 3 | `Orderbook.sol` | PT/SY limit-order book, price-time priority |
-| — | `interfaces/`, `libraries/WadMath.sol` | shared interfaces and integer fixed-point math |
+| shared | `interfaces/`, `libraries/WadMath.sol` | shared interfaces and integer fixed-point math |
 
 ### Design notes
 
@@ -98,7 +98,7 @@ totalAssets = bond.valueOf(accountedBonds) + countedCash + attributedCouponRecei
 ```
 
 - `accountedBonds` and `countedCash` are tracked explicitly, so **donated**
-  bonds or cash never enter the valuation — the seam's anti-donation obligation.
+  bonds or cash never enter the valuation.
 - `deposit` pulls cash from the vault, buys bonds at `bond.valuePerUnit()`, and
   returns the measured increase in `totalAssets`.
 - `touch` claims funded, executed coupons and counts measured, attributed cash.
@@ -173,7 +173,7 @@ redemption (freeze, claim YT surplus, redeem PT, redeem SY for cash).
 export PRIVATE_KEY=0x...
 RPC=https://testnet.hashio.io/api
 
-# Phase A — deploys and exercises; writes deployments/erc3643-testnet.json.
+# Phase A: deploys and exercises; writes deployments/erc3643-testnet.json.
 forge script script/VerifyERC3643Testnet.s.sol:VerifyERC3643Testnet \
   --sig "deployAndExercise()" --rpc-url $RPC \
   --broadcast --slow --gas-estimate-multiplier 200
@@ -186,34 +186,15 @@ forge script script/VerifyERC3643Testnet.s.sol:VerifyERC3643Testnet \
 
 ## Public demo market (Hedera testnet, chain 296)
 
-This is the live, pre-maturity market the frontend judge journey targets. It is
-also the checked-in fallback in `web/app/lib/deployments.ts`, so the public demo
-runs without any access-request gate or manual environment setup.
-
-| Role | Address |
-|---|---|
-| cash (test ERC-20) | `0x02397939C3C08B62836BC818A7739a794aCb9546` |
-| identity registry | `0x36CA9a6Bc30C06ea8F50ca58bC6b359CB3E16717` |
-| compliance | `0x1224D8251b6E5C5aa3138d1dC4fBCeCBE74a6b0e` |
-| bond | `0x1eD9AeB2B3de5AEFb430E8b50B5E9F107e6A9E99` |
-| sy | `0xAA8Ff1f4846E44f89ee5aaA4105434798a26aC1c` |
-| strategy | `0x7e6DDFAE1Fb76818d3311D31371f56254D852c98` |
-| pt | `0x6E0Db9323429E1a11790e582266453C7e22Ea0be` |
-| yt | `0xdFeb6782465423f4EE6456cf78F14618c00142ce` |
-| tokenizer | `0x71aEC07C6E87f7956E3b8AF3EAa46a96a1639C0C` |
-| amm | `0xF5934B77545355028e61efBB2F2b036f9F1B5A18` |
-| orderbook | `0x82dB197F799C7c0edDDC22a53BBFeea011d5Bc4f` |
-
-Maturity `1797014421` (2026-12-11). At deployment the strategy held 536,841.57
-bond units worth 510,003 cash with 10,526.32 counted cash, the SY rate stood at
-`1.0211`, and two coupons were scheduled (one already realized into the vault,
-one funded and due). Two distinct identity-verified wallets were exercised:
-`0xAb76...1c43` (issuer/deployer) and `0x55C5...f52A` (investor), the latter
-depositing 10,000 cash for 3,793.80 SY and splitting 6,000 SY into 6,126.32 PT +
-6,126.32 YT.
-
-The earlier 8-minute integration-check deployment (matured 2026-09-12) is
-superseded; its addresses are no longer referenced by the app.
+The frontend judge journey reads the current ATS-issued market recorded in
+[`deployments/hedera-ats.json`](./deployments/hedera-ats.json). Its addresses are
+the checked-in fallback in `web/app/lib/deployments.ts`, so the public demo runs
+without an access-request gate or manual environment setup. See
+[`deployments/OWNED_MARKET.md`](./deployments/OWNED_MARKET.md) for the verified
+issuance and seed, and
+[`deployments/VERIFICATION_STATUS.md`](./deployments/VERIFICATION_STATUS.md) for
+the testnet lifecycle receipts. Earlier integration-check deployments and their
+addresses are superseded and no longer referenced by the app.
 
 ## License
 

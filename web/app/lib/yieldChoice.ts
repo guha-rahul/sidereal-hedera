@@ -56,8 +56,18 @@ export function variableRateDisplay(bond: BondInfo | null): YieldChoiceDisplay {
       tone: "idle",
     };
   }
+  // valuePerUnit is cash-denominated (base units of the bond's denomination),
+  // so the discount must be measured against the adapter's face value per unit
+  // rather than the WAD default that bondDiscountBps assumes.
+  if (bond.faceValuePerUnit <= 0n) {
+    return {
+      value: "—",
+      detail: "The bond adapter has not published a face value per unit yet.",
+      tone: "idle",
+    };
+  }
   return {
-    value: bpsToPercent(bondDiscountBps(bond.valuePerUnit)),
+    value: bpsToPercent(bondDiscountBps(bond.valuePerUnit, bond.faceValuePerUnit)),
     detail: "Current discount to par on the bond behind the SY vault.",
     tone: "live",
   };

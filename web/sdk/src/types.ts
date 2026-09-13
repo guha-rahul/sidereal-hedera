@@ -300,9 +300,14 @@ export interface BondInfo {
   maturity: number;
   isMatured: boolean;
   totalSupply: bigint;
-  /** Cash value of one bond unit right now, in cash base units (WAD-scaled). */
+  /**
+   * Cash value of one bond unit right now, in the bond's cash base units
+   * (for sdUSD, 6 decimals). This is NOT WAD-scaled: use `faceValuePerUnit` as
+   * the par when computing a discount, or `valuePerUnit` will look near zero.
+   */
   valuePerUnit: bigint;
   issuePricePerUnit: bigint;
+  /** Cash par of one bond unit, in cash base units. */
   faceValuePerUnit: bigint;
   couponValuePerUnit: bigint;
   nominalValue: bigint;

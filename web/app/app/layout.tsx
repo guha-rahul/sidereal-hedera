@@ -37,7 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen font-sans">
         <WalletProvider>{children}</WalletProvider>
-        <Analytics />
+        {/* @vercel/analytics serves /_vercel/insights/script.js, which only
+            exists on Vercel. Loading it on the Cloudflare Worker build 404s. */}
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );

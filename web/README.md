@@ -1,4 +1,4 @@
-# sidereal web — Hedera (EVM) port
+# sidereal web: Hedera (EVM) port
 
 New participants: follow the [user guide](USER_GUIDE.md). Presenters can use the
 [three-minute hackathon walkthrough](HACKATHON_DEMO.md). The Invest page also
@@ -80,7 +80,7 @@ pnpm cf:deploy        # opennextjs-cloudflare build && deploy
 ```
 
 To confirm the addresses reached the client, grep the emitted bundle for one of
-them — absence there means the build did not see the env file:
+them. Absence means the build did not see the env file:
 
 ```bash
 grep -rl "0x<sy-address>" .next/static/chunks/

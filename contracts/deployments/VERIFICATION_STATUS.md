@@ -4,11 +4,12 @@ The current application uses the user-controlled market in `hedera-ats.json`.
 See [OWNED_MARKET.md](OWNED_MARKET.md) for its verified deployment and seed.
 The lifecycle evidence below belongs to the previous and short markets.
 
-Checked on 2026-09-13 against repository revision
-`84c540b5089d8b6fb17916942e965e51858ecd4c`, plus the uncommitted regression,
-collector, and manifest changes in this checkout. This record covers two live
-Hedera testnet markets. See `../../update.md` for the plain-language summary and
-`evidence/` for block-pinned receipts and balances.
+Reviewed against repository revision
+`84c540b5089d8b6fb17916942e965e51858ecd4c`; later commits through `7f6b13b`
+add the user-controlled market deployment, the web wiring, and the Privy
+receipts. This record covers the live Hedera testnet markets, including the
+current application market in `hedera-ats.json`. See `../../update.md` for the
+plain-language summary and `evidence/` for block-pinned receipts and balances.
 
 ## Verified
 
@@ -76,11 +77,15 @@ PT-heavy and succeeded. No contract source changed.
 fresh-clone fallback. `web/app/scripts/manifest-to-env.mjs` emits
 `NEXT_PUBLIC_UNDERLYING_DECIMALS` from `cashDecimals`. `.env.local` was generated
 from `deployments/hedera-ats.json`, and `next build` inlines the new addresses.
-The public Worker still needs a rebuild and redeploy. All 156 app tests, 15 SDK
-tests, and the app typecheck pass.
+The public frontend has been rebuilt and redeployed (Vercel `sidereal-ats` and the
+Cloudflare Worker) so the live bundle references the current market. All 157 app
+tests, 15 SDK tests, and the app typecheck pass.
 
 ## Remaining work
 
-- Human owner: rebuild and redeploy the public frontend (needs Cloudflare access),
-  then record the demo and finish the submission text.
+- Source verification (Sourcify) for the current user-controlled market is still
+  outstanding. The existing `match` records cover the previous main market and
+  the short market (`source-verification.json`,
+  `short-source-verification.json`); the current manifests report
+  `sourceVerificationStatus: not-yet-verified-for-this-deployment`.
 - The no-uninitialized-window checklist item is not proven here.

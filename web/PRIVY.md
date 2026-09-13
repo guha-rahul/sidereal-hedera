@@ -15,8 +15,9 @@ An explicit empty `NEXT_PUBLIC_PRIVY_APP_ID` selects the injected-wallet provide
 
 `PrivyWalletBridge` exposes the embedded address, chain, signing, login/logout
 and access-token retrieval through `useWallet`. Each send switches to the
-configured chain and checks the provider account and chain before signing.
-Faucet buttons across the app forward the authenticated session token.
+configured chain and signs through Privy's `useSendTransaction` hook, which
+honors a per-call `showWalletUIs` override. Faucet buttons across the app forward
+the authenticated session token.
 
 Invest accepts an amount and exposure, then runs `buildTokenizeBondSteps`:
 
@@ -31,10 +32,29 @@ starting another investment. AMM liquidity is required for the final sale.
 PT represents asset-unit principal face and redeems through SY at maturity,
 subject to the exchange rate and backing; it is not a guaranteed cash payout.
 
-This is one investment action in the UI with sequential wallet-signed
-transactions. It does not claim a delegated signer, sponsored transactions,
-or atomic batching on Hedera. EIP-7702 batching and Privy server-signer policy
-enforcement on chain 296 require separate testnet verification before use.
+Invest is one UI action. After a single approval, the ordered transactions
+(approve, deposit, approve, split, approve, sell) are submitted with
+`showWalletUIs: false`, so the user is not prompted once per transaction; the
+page still lists each hash and its confirmation as it lands. The optional PT
+exit demonstrates a narrower server-side action:
+the user adds a Privy key quorum as an additional signer and approves an exact
+PT amount. The server can then submit the exit without another wallet popup.
+The attached Privy policy defaults to denial and allows only:
+
+- Hedera testnet (`chain_id = 296`)
+- the deployed Sidereal AMM
+- `swapPtForSy(ptIn, minSyOut)`
+- zero HBAR value
+- a positive amount no larger than 10 PT
+- a positive minimum output
+
+The API independently authenticates the user, derives the wallet ID from that
+user's linked embedded wallet, checks the PT balance, requires the onchain
+allowance to equal the requested amount, computes a fresh quote and applies
+0.5% slippage protection. The user's exact allowance caps the total amount that
+can move even if requests are repeated. The user can revoke all additional
+signers from the same screen. This does not claim sponsored transactions or
+atomic batching on Hedera.
 
 ## Configuration
 
@@ -44,6 +64,10 @@ Copy `app/.env.example` to the gitignored `app/.env.local` and set:
 |---|---|
 | `NEXT_PUBLIC_PRIVY_APP_ID` | Public app ID, inlined at build time |
 | `PRIVY_APP_SECRET` | Server-only Privy credential |
+| `NEXT_PUBLIC_PRIVY_DELEGATED_SIGNER_ID` | Public key-quorum ID shown in the consent request |
+| `NEXT_PUBLIC_PRIVY_DELEGATED_POLICY_ID` | Public deny-by-default policy ID attached to that signer |
+| `NEXT_PUBLIC_PRIVY_DELEGATED_MAX_PT` | Human-readable PT cap; must match the policy |
+| `PRIVY_AUTHORIZATION_PRIVATE_KEY` | Server-only P-256 PKCS8 key for the quorum |
 | `FAUCET_PRIVATE_KEY` | Dedicated funded testnet account with ATS grantKyc authority |
 | `CLOUDFLARE_ACCOUNT_ID` | Account containing the funding ledger |
 | `FAUCET_D1_DATABASE_ID` | Dedicated D1 funding database |
@@ -53,6 +77,14 @@ Register the local and deployed app origins and enable email/Google login in
 Privy's dashboard. Configure the same variables in the target deployment.
 Changing the public app ID requires rebuilding. Do not reuse production issuer
 credentials for the faucet.
+
+The checked-in deployment uses key quorum `guzd3s0wcpnw9q95nqf8sxhp` and policy
+`ocekag9mmwfuuwfbwyppen6c`. These IDs are public identifiers. The corresponding
+private authorization key exists only in the deployment secret store. When
+replacing the deployment, create a P-256 authorization key, register it in a
+1-of-1 key quorum, and create a policy whose contract, chain, ABI function and
+amount conditions match the new AMM. Never deploy the route with a broader
+policy or a mismatched client-side cap.
 
 `app/public-deployment.json` contains only the public app ID and funding-button
 default, never private credentials. Environment overrides take precedence.
@@ -105,6 +137,15 @@ complete the investment. Check all submitted hashes on HashScan. Visit Mint,
 Trade and Portfolio and confirm they show the same embedded address. Sign out
 and confirm it clears throughout the app.
 
+For the delegated proof, complete a fixed-principal investment, open
+**Optional: policy-authorized PT exit**, select up to 10 PT, and choose
+**Authorize exact exit**. This grants the scoped signer and records the exact PT
+approval. Choose **Execute with policy signer** and verify that the resulting
+`swapPtForSy` receipt succeeds without another wallet transaction prompt. Then
+choose **Revoke signer**. A complete evidence record must also include a rejected
+request outside the policy, because a successful transaction alone does not
+prove that Privy enforced the restrictions.
+
 Use **Download investment receipts** to export the full wallet address, chain,
 market, selected exposure, before/after balances, completion status, signer
 labels and HashScan links. Save the reviewed JSON under a submission evidence
@@ -116,13 +157,16 @@ investment on Hedera testnet. All nine receipts were independently verified,
 including six transactions signed by the embedded wallet. The final position
 and shared wallet checks are recorded in
 [`privy-investment.json`](../contracts/deployments/evidence/privy-investment.json).
-The repository is public and the demo is deployed on Cloudflare. Verification
-of the new deployment's contract sources and the submission video remain
-outstanding.
+The repository is public and the demo is deployed on Cloudflare and Vercel. The
+demo video is uploaded. Source verification for the current application market's
+contracts remains outstanding: its deployed bytecode does not match the repo
+source, unlike the earlier markets.
 
 ## References
 
 - [Privy connected wallets](https://docs.privy.io/wallets/wallets/get-a-wallet/get-connected-wallet)
 - [Privy viem integration](https://docs.privy.io/wallets/connectors/ethereum/integrations/viem)
 - [Privy access tokens](https://docs.privy.io/authentication/user-authentication/access-tokens)
+- [Privy user and server signers](https://docs.privy.io/recipes/wallets/user-and-server-signers)
+- [Privy policy engine](https://docs.privy.io/controls/policies/overview)
 - [Cloudflare D1 HTTP API](https://developers.cloudflare.com/d1/best-practices/query-d1/)

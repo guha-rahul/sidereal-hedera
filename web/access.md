@@ -1,6 +1,6 @@
 # Access-request setup for Polov
 
-Hi Polov — the request-access UI and Cloudflare storage are already built. The
+Hi Polov, the request-access UI and Cloudflare storage are already built. The
 site remains on your Vercel account; Cloudflare only runs the private API and
 stores requests in D1.
 

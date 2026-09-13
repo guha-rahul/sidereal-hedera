@@ -7,9 +7,9 @@ a bond issued through Hedera's [Asset Tokenization Studio](https://github.com/ha
 - a **Principal Token (PT)** that pays face value at maturity, and
 - a **Yield Token (YT)** that collects the bond's coupons along the way.
 
-ATS provides the compliant bond lifecycle — issuance, KYC, and coupon
-administration. Sidereal adds the missing pieces: a secondary market for the
-bond's claims, and the ability to separate principal from coupon exposure.
+ATS provides the compliant bond lifecycle: issuance, KYC, and coupon
+administration. Sidereal adds the parts ATS does not cover: a secondary market
+for the bond's claims, and a way to separate principal from coupon exposure.
 
 > This is the **ETHOnline 2026** build. It is a Hedera **testnet**
 > demonstration: the bond is issued through the real ATS factory, but the cash is
@@ -24,42 +24,49 @@ tokenized-bond market needs, and it is not something a custom ERC-20 can
 substitute. Sidereal wraps an ATS-issued bond through a standardized-yield vault
 and builds the market on top:
 
-- **Permissioned by construction.** The bond is an ERC-3643 security. The market
+- **Permissioned at the contract level.** The bond is an ERC-3643 security. The market
   reads its KYC/control state, so an ineligible wallet cannot deposit into SY or
   move PT/YT. Revocation is honored on every route.
 - **Coupons with real entitlements.** Yield is the issuer's cash coupon and
-  maturity cashflow, claimed through the bond's own entitlement mechanism, not
-  an imaginary per-unit rate.
-- **PT/YT on top.** `1 SY = 1 PT + 1 YT` at all times, so the two legs can be
-  priced and traded separately.
+  maturity cashflow, claimed through the bond's own entitlement mechanism rather
+  than a synthetic per-unit rate.
+- **PT/YT on top.** Each split mints equal PT and YT amounts, scaled by the live
+  SY exchange rate, so the two legs can be priced and traded separately and
+  recombined 1:1.
 
-Everything above the bond — the SY vault, PT/YT, the AMM, the orderbook — is
-inspired by [Pendle](https://pendle.finance) and is independent of which bond
-sits underneath.
+Everything above the bond (the SY vault, PT/YT, the AMM, and the orderbook) is
+inspired by [Pendle](https://pendle.finance) and works with any bond underneath.
 
 ## Live on Hedera testnet (chain 296)
 
-Two markets were issued through the real ATS factory
+Markets were issued through the real ATS factory
 (`0x5fA65CA30d1984701F10476664327f97c864A9D3`). Manifests and receipts are in
 [`contracts/deployments/`](contracts/deployments/); the full evidence is under
 [`contracts/deployments/evidence/`](contracts/deployments/evidence/).
 
-Main market — kept open for the demo (matures in ~90 days):
+The app reads the **user-controlled market** in
+[`contracts/deployments/hedera-ats.json`](contracts/deployments/hedera-ats.json)
+(administrator and faucet key are locally controlled testnet accounts). It is
+kept open for the demo; the bond matures in ~90 days.
 
 | Component | Address |
 |---|---|
-| ATS security (the bond) | `0xB8012a1c3227C454059Ee115Db2f1A7947903e22` |
-| Settlement adapter (BOND) | `0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06` |
-| Cash sdUSD (test only) | `0xedb4c1335780f192AA693147662Da3F4FD9C9ba9` |
-| SY / PT / YT | `0x5Cfb…F333C` / `0x603E…9dCf` / `0x6914…8ba2` |
-| Tokenizer / AMM / Orderbook | `0xA506…79Cc` / `0x777b…7640` / `0xB36F…78AD` |
+| ATS security (the bond) | `0x10810626c3D4b6DcD9EBD4e91bA64eb5FF8c50ff` |
+| Settlement adapter (BOND) | `0xF7e9a16E6820E1b1227B9C271307602f7d702a65` |
+| Cash sdUSD (test only) | `0x71311092Cf6486941Acb34d3631CF4aD8f442b07` |
+| SY / PT / YT | `0xfe820Cb2841b5cF694f29B6d22b0B73513313191` / `0x67F22b76E7Cb722394118Fc4805b45CC428BD8eF` / `0x0B28a594d5Af6f5C893B82DE3b8fF69B63f1D5cf` |
+| Tokenizer / AMM / Orderbook | `0xB51Ec9e8F0F0C2A57c42b50d61CC17505d8BCf6d` / `0xF816CEC720C78Af2870f323B6374aD6F3E41861E` / `0xD8de4ae33a0B05578381018B428fd4c72Fc51d48` |
 
-A second, short-maturity market demonstrates settlement after maturity:
+A separate short-maturity market demonstrates settlement after maturity:
 [`contracts/deployments/hedera-ats-short.json`](contracts/deployments/hedera-ats-short.json).
 
-Completed on testnet, with receipts: ATS issuance, KYC grants, a deposit, a split,
-a two-wallet trade (orderbook + AMM), revocation with a rejected redemption,
-reinstatement, coupon claim, and maturity settlement. See
+Earlier markets and their lifecycle receipts are preserved in
+`hedera-ats-previous.json` and the short manifest; the current app market's own
+issuance and seed receipts are in
+[`contracts/deployments/OWNED_MARKET.md`](contracts/deployments/OWNED_MARKET.md).
+Recorded on testnet, with receipts across these markets: ATS issuance, KYC grants,
+a deposit, a split, a two-wallet trade (orderbook + AMM), revocation with a
+rejected redemption, reinstatement, coupon claim, and maturity settlement. See
 [`contracts/deployments/VERIFICATION_STATUS.md`](contracts/deployments/VERIFICATION_STATUS.md).
 
 ## How it works
@@ -89,8 +96,8 @@ sidereal-hedera/
 │   └── deployments/           Manifests, receipts, and verification evidence
 │
 └── web/                       Frontend, SDK, and edge worker
-    ├── app/                   Next.js — marketing site, trading app, /docs, faucet
-    ├── sdk/                   @sidereal/sdk — viem TypeScript client
+    ├── app/                   Next.js: marketing site, trading app, /docs, faucet
+    ├── sdk/                   @sidereal/sdk: viem TypeScript client
     └── workers/               Cloudflare Worker for access requests
 ```
 
@@ -176,6 +183,22 @@ cd web && pnpm --filter @sidereal/sdk test
 pnpm --filter @sidereal/app test
 ```
 
+## Privy embedded-wallet investments
+
+Sign in with email or Google and use the same self-custodial embedded wallet
+throughout Sidereal. Invest offers fixed principal (retain PT, sell YT) or
+variable yield (retain YT, sell PT), with exact approvals, before/after balances
+and downloadable HashScan receipts. Authenticated test funding uses a durable
+D1 allocation ledger. See [Privy architecture and demo setup](web/PRIVY.md) for
+configuration, testing and submission evidence.
+
+An optional Privy policy signer supports a bounded PT-to-SY exit after explicit
+user consent and an exact PT approval. Privy's policy permits only the current
+AMM's `swapPtForSy` function on Hedera testnet, with zero HBAR value and a 10 PT
+cap. Every unmatched action is denied. The authenticated server derives the
+embedded wallet from the Privy user and applies a fresh slippage-protected quote
+before submitting the transaction.
+
 ## Links
 
 - GitHub: [github.com/guha-rahul/sidereal-hedera](https://github.com/guha-rahul/sidereal-hedera)
@@ -185,11 +208,3 @@ pnpm --filter @sidereal/app test
 ## License
 
 Apache-2.0. See [`contracts/LICENSE`](contracts/LICENSE).
-
-## Privy embedded-wallet investments
-
-Sign in with email or Google and use the same self-custodial embedded wallet
-throughout Sidereal. Invest offers fixed principal (retain PT, sell YT) or
-variable yield (retain YT, sell PT), with exact approvals, before/after balances
-and downloadable HashScan receipts. Authenticated test funding uses a durable
-D1 allocation ledger. See [Privy architecture and demo setup](web/PRIVY.md) for configuration, testing and submission evidence.
