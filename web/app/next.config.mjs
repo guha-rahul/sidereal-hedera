@@ -12,19 +12,9 @@ const nextConfig = {
         destination: "/portfolio",
         permanent: true,
       },
-      // The docs moved to their own deployment (sidereal-tech/docs), which
-      // serves them at the root. These keep every /docs link and bookmark
-      // alive; the app/docs route tree below them is no longer reachable.
-      {
-        source: "/docs",
-        destination: "https://docs.sidereal.tech",
-        permanent: true,
-      },
-      {
-        source: "/docs/:path*",
-        destination: "https://docs.sidereal.tech/:path*",
-        permanent: true,
-      },
+      // The in-app docs under /docs are served by this deployment. They were
+      // briefly redirected to a separate stale deployment; that redirect is
+      // removed so the Hedera/ATS docs ship with the app.
     ];
   },
 };

@@ -104,7 +104,7 @@ export default function QuickstartPage() {
 
       <div className="mt-8">
         <Callout label="Liquidity note" signal>
-          The mainnet market is newly seeded, so the trading pool is still small. Depositing,
+          The testnet market is newly seeded, so the trading pool is still small. Depositing,
           splitting, collecting and redeeming work at any size. Trades, however, move the price
           sharply while the pool is shallow, so check the quoted price impact before swapping. See{" "}
           <Link href="/docs/amm">AMM and YT routing</Link>.

@@ -20,7 +20,7 @@ export default function LifecyclePage() {
         <p>Every action in the protocol is available while the market is live:</p>
         <ul>
           <li>
-            <strong>Deposit / withdraw.</strong> Turn USDC into SY or back again, at the current
+            <strong>Deposit / withdraw.</strong> Turn cash into SY or back again, at the current
             exchange rate. Always open, in both directions.
           </li>
           <li>
@@ -77,7 +77,7 @@ export default function LifecyclePage() {
         <h2>After maturity: wind-down</h2>
         <p>
           The market becomes a settlement window: PT holders redeem, YT holders make their final
-          collections, and liquidity providers withdraw. The current mainnet market is a single
+          collections, and liquidity providers withdraw. The current testnet market is a single
           fixed cycle. When a successor market opens, moving into it means redeeming here and
           depositing there; nothing rolls over automatically.
         </p>
@@ -94,7 +94,7 @@ export default function LifecyclePage() {
             </thead>
             <tbody>
               <tr>
-                <td>Deposit / withdraw USDC ↔ SY</td>
+                <td>Deposit / withdraw cash ↔ SY</td>
                 <td>Yes</td>
                 <td>Yes</td>
               </tr>
@@ -130,7 +130,7 @@ export default function LifecyclePage() {
 
       <div className="mt-8">
         <Callout label="Current market" signal>
-          The live mainnet market runs a fixed cycle over a tokenized bond. The maturity timestamp
+          The live testnet market runs a fixed cycle over an ATS-issued bond. The maturity timestamp
           is set at deployment and shown in the app. Contract addresses and deployment records are
           in <Link href="/docs/contracts">Deployed contracts</Link>.
         </Callout>

@@ -84,7 +84,7 @@ export default function SettlementPage() {
             collectible through a grace window, paid at the frozen rate. Nothing new accrues.
           </li>
           <li>
-            <strong>SY withdrawal</strong>: unwrapping SY to USDC has no maturity attached. It
+            <strong>SY withdrawal</strong>: unwrapping SY to cash has no maturity attached. It
             works before, at, and after.
           </li>
           <li>

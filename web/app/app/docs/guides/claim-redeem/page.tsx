@@ -12,7 +12,7 @@ export default function ClaimRedeemGuidePage() {
       <DocsHeader
         kicker="Guides"
         title="Claim and redeem"
-        summary="Everything that pays out lives on the Portfolio page: collecting YT interest, recombining back to SY, redeeming PT after maturity, and unwrapping SY to USDC."
+        summary="Everything that pays out lives on the Portfolio page: collecting YT interest, recombining back to SY, redeeming PT after maturity, and unwrapping SY to cash."
       />
 
       <div className="docs-prose mt-8">
@@ -89,8 +89,8 @@ export default function ClaimRedeemGuidePage() {
               </tr>
               <tr>
                 <td>SY</td>
-                <td>Unwrap to USDC anytime</td>
-                <td>Unwrap to USDC anytime</td>
+                <td>Unwrap to cash anytime</td>
+                <td>Unwrap to cash anytime</td>
               </tr>
             </tbody>
           </table>

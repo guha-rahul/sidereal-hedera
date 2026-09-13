@@ -49,7 +49,7 @@ export default function MintGuidePage() {
         </p>
         <p>
           The amounts follow the rate: splitting <code>n</code> SY at exchange rate <code>R</code>{" "}
-          gives you <code>n × R</code> of each token, counted in USDC face value. The preview
+          gives you <code>n × R</code> of each token, counted in cash face value. The preview
           shows both amounts before you sign anything.
         </p>
 

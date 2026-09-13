@@ -18,13 +18,13 @@ export default function TokenizerPage() {
       <div className="docs-prose mt-8">
         <h2>PT and YT are counted in dollars, not shares</h2>
         <p>
-          PT and YT are denominated in USDC face value, not in SY tokens. This is what makes PT
+          PT and YT are denominated in cash face value, not in SY tokens. This is what makes PT
           interchangeable between people who split at different times: 1 PT is always a claim on
-          exactly 1 USDC of principal at maturity, no matter what the exchange rate was when it was
+          exactly 1 cash of principal at maturity, no matter what the exchange rate was when it was
           created. Splitting <code>n</code> SY when the rate is <code>R</code> creates
         </p>
         <pre>
-          <code>pt = yt = n × R    (equal amounts, in USDC face value)</code>
+          <code>pt = yt = n × R    (equal amounts, in cash face value)</code>
         </pre>
         <p>
           and locks the SY in the tokenizer&rsquo;s vault, called the <strong>escrow</strong>. At a
@@ -43,7 +43,7 @@ export default function TokenizerPage() {
           <code>sy_out = pt / R_maturity</code>
         </pre>
         <p>
-          SY from the escrow, which unwraps to exactly <code>pt</code> USDC. Here{" "}
+          SY from the escrow, which unwraps to exactly <code>pt</code> cash. Here{" "}
           <code>R_maturity</code> is the rate frozen at maturity, so nothing that happens to rates
           afterwards can change what PT pays (see{" "}
           <Link href="/docs/settlement">Settlement and maturity</Link>).
@@ -69,17 +69,17 @@ export default function TokenizerPage() {
         </p>
         <p>A worked example, end to end:</p>
         <ul>
-          <li>Deposit 100 USDC at rate 1.00, receive 100 SY, split into 100 PT + 100 YT.</li>
-          <li>Over the term, the rate rises to 1.02. The locked 100 SY is now worth 102 USDC.</li>
+          <li>Deposit 100 cash at rate 1.00, receive 100 SY, split into 100 PT + 100 YT.</li>
+          <li>Over the term, the rate rises to 1.02. The locked 100 SY is now worth 102 cash.</li>
           <li>
             The YT holder collects <code>100 × (1/1.00 − 1/1.02) = 1.96 SY</code>, which unwraps
-            to <strong>2.00 USDC</strong>: the interest.
+            to <strong>2.00 cash</strong>: the interest.
           </li>
           <li>
             The PT holder redeems <code>100 / 1.02 = 98.04 SY</code>, which unwraps to{" "}
-            <strong>100.00 USDC</strong>: the principal.
+            <strong>100.00 cash</strong>: the principal.
           </li>
-          <li>Paid out: 102.00 USDC. Exactly what the escrow held. Nothing counted twice, nothing stranded.</li>
+          <li>Paid out: 102.00 cash. Exactly what the escrow held. Nothing counted twice, nothing stranded.</li>
         </ul>
 
         <h2>Transfers settle first</h2>
@@ -98,8 +98,8 @@ export default function TokenizerPage() {
         </pre>
         <p>
           The locked SY, valued at the current rate, always covers every PT at full face value plus
-          every YT holder&rsquo;s uncollected interest. The property is verified by a 10,000-step
-          randomized test that hammers the contracts with random splits, transfers, collections,
+          every YT holder&rsquo;s uncollected interest. The property is checked by randomized
+          invariant tests that hammer the contracts with random splits, transfers, collections,
           recombines and redemptions under changing rates. And the numbers needed to re-check it
           against the live deployment (escrow size, exchange rate, PT supply) are all publicly
           readable on-chain.

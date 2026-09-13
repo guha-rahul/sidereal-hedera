@@ -42,13 +42,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <Wordmark />
             <div className="flex flex-wrap items-center gap-6">
               <RollingLink
-                href="https://github.com/sidereal-tech"
+                href="https://github.com/guha-rahul/sidereal-hedera"
                 className="label-data transition hover:text-paper"
               >
                 GitHub
               </RollingLink>
               <RollingLink
-                href="https://docs.sidereal.tech"
+                href="/docs"
                 className="label-data transition hover:text-paper"
               >
                 Docs

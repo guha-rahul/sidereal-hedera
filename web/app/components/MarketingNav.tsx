@@ -11,7 +11,7 @@ import { useConductor } from "@/lib/useConductor";
 const LINKS = [
   { href: "#protocol", label: "Protocol" },
   { href: "#how-it-works", label: "How it works" },
-  { href: "https://docs.sidereal.tech", label: "Docs" },
+  { href: "/docs", label: "Docs" },
 ];
 
 // Marketing top bar. Transparent over the hero, then a solid ink backdrop once

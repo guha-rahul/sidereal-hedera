@@ -44,13 +44,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <p className="label-data">© 2026 Sidereal Protocol</p>
           <div className="flex flex-wrap items-center gap-6">
             <a
-              href="https://docs.sidereal.tech"
+              href="/docs"
               className="label-data transition hover:text-paper"
             >
               Docs
             </a>
             <a
-              href="https://github.com/sidereal-tech"
+              href="https://github.com/guha-rahul/sidereal-hedera"
               className="label-data transition hover:text-paper"
             >
               GitHub

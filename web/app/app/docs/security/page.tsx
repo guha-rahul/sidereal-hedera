@@ -150,15 +150,12 @@ export default function SecurityPage() {
 
         <h2>Reporting a vulnerability</h2>
         <p>
-          Report security findings <strong>privately</strong> via GitHub&rsquo;s{" "}
-          <a href="https://github.com/sidereal-tech/contracts/security">
-            Report a vulnerability
-          </a>{" "}
-          flow, not as a public issue. See{" "}
-          <a href="https://github.com/sidereal-tech/contracts/blob/main/SECURITY.md">
-            SECURITY.md
-          </a>{" "}
-          for the policy.
+          Report security findings <strong>privately</strong> through GitHub&rsquo;s security
+          advisory flow in the{" "}
+          <a href="https://github.com/guha-rahul/sidereal-hedera/security">
+            project repository
+          </a>
+          , not as a public issue.
         </p>
       </div>
 
