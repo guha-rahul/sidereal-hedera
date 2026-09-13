@@ -37,11 +37,11 @@ The final position held 900 sdUSD, approximately 4.50123559 SY, 99.999999 PT, an
 - Builds without an env file previously classified the deployed ATS yield source as mock. The checked-in deployment now defaults to bond.
 - Hedera latest-state reads briefly lagged confirmed transactions. The SDK now reads at least the most recent successful receipt block after confirmation.
 - Temporary RPC `FAIL_INVALID` view failures are retried, and unavailable market reads recover without navigating away.
-- The original Privy app blocked the Cloudflare origin. Replacement credentials are deployed and the new app allows it. Participant guides now explain dismissing wallet setup and transaction success screens with All Done, and saving receipts before navigation.
+- The original Privy app blocked the Cloudflare origin. Replacement credentials are deployed and the new app allows it. Participant guides now explain the single-approval investment sequence and saving receipts before navigation.
 
 ## Not yet proven end to end
 
 - The new market has a 90-day term. Its future coupon/maturity operations have not occurred live. Fork tests are separate evidence, not live maturity receipts.
-- Source verification for the new deployment remains outstanding. Historical verification records apply to older addresses.
+- All nine contracts of the new deployment are verified on Sourcify (chain 296). See `contracts/deployments/evidence/source-verification-owned.json`.
 
 For the interactive walkthrough, use `web/USER_GUIDE.md`. For the recording sequence and submission checklist, use `web/HACKATHON_DEMO.md`.

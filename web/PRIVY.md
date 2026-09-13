@@ -158,9 +158,10 @@ including six transactions signed by the embedded wallet. The final position
 and shared wallet checks are recorded in
 [`privy-investment.json`](../contracts/deployments/evidence/privy-investment.json).
 The repository is public and the demo is deployed on Cloudflare and Vercel. The
-demo video is uploaded. Source verification for the current application market's
-contracts remains outstanding: its deployed bytecode does not match the repo
-source, unlike the earlier markets.
+demo video is uploaded. All nine contracts of the current application market are
+verified on Sourcify (chain 296), and the deployment reproduces from the pinned
+sources with OpenZeppelin `v5.7.0`. Evidence:
+`contracts/deployments/evidence/source-verification-owned.json`.
 
 ## References
 

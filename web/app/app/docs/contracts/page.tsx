@@ -151,8 +151,9 @@ export default function ContractsPage() {
         <p>
           The contracts are built reproducibly from the Foundry project. Dependencies are pinned in{" "}
           <code>contracts/dependencies.lock.json</code>, and the build inputs are recorded with the
-          deployment evidence. Source verification for this new deployment is still outstanding;
-          earlier verification records apply to historical addresses. To verify a contract, run:
+          deployment evidence. All nine contracts of this deployment are verified on Sourcify
+          (chain 296); earlier verification records apply to historical addresses. To verify a
+          contract, run:
         </p>
         <pre>
           <code>{`forge verify-contract <address> <path/to/Contract.sol:Contract> \\

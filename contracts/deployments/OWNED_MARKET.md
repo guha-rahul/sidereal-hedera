@@ -19,7 +19,8 @@ earlier lifecycle evidence belongs to that deployment. A real Privy wallet compl
 [privy-investment.json](evidence/privy-investment.json). Fixed/variable protocol
 flows and order-book/liquidity checks are in [owned-workflow.json](evidence/owned-workflow.json)
 and [owned-book-pool.json](evidence/owned-book-pool.json). Future 90-day maturity
-has not occurred, and source verification remains outstanding.
+has not occurred. All nine contracts are verified on Sourcify; see
+[source-verification-owned.json](evidence/source-verification-owned.json).
 
 ## Bytecode reproduction
 
@@ -31,7 +32,10 @@ set during construction. The default **Paris** profile produces different code.
 See [owned-bytecode.json](evidence/owned-bytecode.json) for addresses, creation
 transactions, compiler settings, source hashes and constructor arguments.
 
+The build uses OpenZeppelin `v5.7.0`, pinned in `dependencies.lock.json`.
+
 Run `FOUNDRY_PROFILE=hedera_live forge build`, followed by
 `python3 scripts/check-deployed-bytecode.py --out /tmp/sidereal-bytecode-check.json`
-from `contracts/` to repeat the read-only check. This does not verify sources on
-HashScan and does not cover the upstream ATS factory, resolver or security.
+from `contracts/` to repeat the read-only check. Separately, all nine contracts
+are verified on Sourcify, which HashScan reads. Neither check covers the upstream
+ATS factory, resolver or security.

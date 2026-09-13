@@ -54,6 +54,7 @@ Completed phases: deploy, seed, trade, coupon, settle (issuer), settle (buyer).
 - Addresses and transaction hashes: `contracts/deployments/hedera-ats.json` and `contracts/deployments/hedera-ats-short.json`.
 - All nine Sidereal contracts in the short market show `match` on Sourcify. Evidence: `short-source-verification.json`.
 - The main-market contracts also show `match` on Sourcify. Evidence: `source-verification.json`.
+- The current application market's nine contracts reproduce from the pinned sources (OpenZeppelin `v5.7.0`) and show `match` on Sourcify. Evidence: `source-verification-owned.json`.
 
 ## Tests
 
@@ -85,8 +86,7 @@ Verified end to end: a fresh address received KYC, 1,000 sdUSD, and 20 HBAR.
 
 ## Remaining work
 
-- Make the GitHub repository public (it is still private) and confirm the submission link points at the new Vercel deployment.
-- Record the demo video and finish the submission text. Owner: human owner.
+- The current market's 90-day maturity has not occurred, so live maturity receipts come from the separate short-maturity market.
 - `docs.sidereal.tech` is a separate deployment that still contains older Stellar/mainnet copy; it is no longer linked from this app. Owner: human owner.
 
 Done since the first draft: the faucet no longer uses the issuer/admin key. A

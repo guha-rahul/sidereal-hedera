@@ -6,11 +6,12 @@ completed Privy investment.
 The lifecycle evidence below belongs to the previous and short markets.
 
 Reviewed against repository revision
-`84c540b5089d8b6fb17916942e965e51858ecd4c`; later commits through `7f6b13b`
-add the user-controlled market deployment, the web wiring, and the Privy
-receipts. This record covers the live Hedera testnet markets, including the
-current application market in `hedera-ats.json`. See `../../update.md` for the
-plain-language summary and `evidence/` for block-pinned receipts and balances.
+`84c540b5089d8b6fb17916942e965e51858ecd4c`; later commits through `bcbefda`
+add the user-controlled market deployment, the web wiring, the Privy receipts,
+and the current market's Sourcify verification. This record covers the live
+Hedera testnet markets, including the current application market in
+`hedera-ats.json`. See `../../update.md` for the plain-language summary and
+`evidence/` for block-pinned receipts and balances.
 
 ## Verified
 
@@ -29,6 +30,20 @@ plain-language summary and `evidence/` for block-pinned receipts and balances.
 - `python3 -m unittest discover -s scripts/tests -v`: six receipt-validation tests
   passed.
 - `git diff --check`: passed.
+
+## Current application market
+
+Manifest: `hedera-ats.json` (status `deployed-and-seeded-receipts-verified`).
+
+- All nine Sidereal contracts are verified on Sourcify with `match` records on
+  Hedera testnet (chain 296): adapter, cash, strategy, SY, PT, YT, tokenizer,
+  AMM, orderbook. Evidence: `evidence/source-verification-owned.json`.
+- The deployment reproduces from the repository sources with solc 0.8.28,
+  optimizer 200, via-IR, `bytecode_hash = "none"`, Cancun, and OpenZeppelin
+  `v5.7.0` (pinned in `dependencies.lock.json`). Creation inputs and runtime
+  programs match; see `evidence/owned-bytecode.json` and
+  `scripts/check-deployed-bytecode.py`.
+- The market's 90-day maturity has not occurred.
 
 ## Historical main market
 
@@ -84,9 +99,4 @@ tests, 15 SDK tests, and the app typecheck pass.
 
 ## Remaining work
 
-- Source verification (Sourcify) for the current user-controlled market is still
-  outstanding. The existing `match` records cover the previous main market and
-  the short market (`source-verification.json`,
-  `short-source-verification.json`); the current manifests report
-  `sourceVerificationStatus: not-yet-verified-for-this-deployment`.
 - The no-uninitialized-window checklist item is not proven here.

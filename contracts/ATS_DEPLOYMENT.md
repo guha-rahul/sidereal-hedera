@@ -9,7 +9,7 @@ confirmed receipts. See [OWNED_MARKET.md](deployments/OWNED_MARKET.md).
 
 Historical coupon, revocation and maturity receipts belong to
 `hedera-ats-previous.json` and `hedera-ats-short.json`. The new market's future
-maturity and source verification remain outstanding.
+maturity has not occurred; all nine of its contracts are verified on Sourcify.
 
 The fork tests below prove the same phases without a broadcast and need no key.
 Run them before any change to `src/**` or `script/**`.

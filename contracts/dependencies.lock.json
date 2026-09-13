@@ -1,7 +1,7 @@
 {
   "solc": "0.8.28",
   "dependencies": [
-    {"path": "lib/openzeppelin-contracts", "url": "https://github.com/OpenZeppelin/openzeppelin-contracts.git", "ref": "v5.0.2", "commit": "dbb6104ce834628e473d2173bbc9d47f81a9eec3"},
+    {"path": "lib/openzeppelin-contracts", "url": "https://github.com/OpenZeppelin/openzeppelin-contracts.git", "ref": "v5.7.0", "commit": "cab19933c33c2ad1d4c7a84864a3601dddfd16f3"},
     {"path": "lib/forge-std", "url": "https://github.com/foundry-rs/forge-std.git", "ref": "v1.9.7", "commit": "77041d2ce690e692d6e03cc812b57d1ddaa4d505"}
   ]
 }

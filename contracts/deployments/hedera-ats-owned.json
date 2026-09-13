@@ -37,6 +37,7 @@
     "0x292a5db741d06ab2aa3f4ce42612f13dd5a73222f8a90657080d75a4f47fe532",
     "0x876992fc088f6e5d4a1aca8a56114e425222ebb687fa6f7b4c878051b01a75af"
   ],
-  "sourceVerificationStatus": "not-yet-verified-for-this-deployment",
+  "sourceVerificationStatus": "verified",
+  "sourceVerification": "evidence/source-verification-owned.json",
   "issuanceTransactionHash": "0xdabf42ebab6b71bc94e37551e13f002e98f146dd90a555ce8ace98e6d982ef7a"
 }

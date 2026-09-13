@@ -69,9 +69,9 @@ Earlier markets and their lifecycle receipts are preserved in
 issuance and seed receipts are in
 [`contracts/deployments/OWNED_MARKET.md`](contracts/deployments/OWNED_MARKET.md).
 Their coupon, compliance-revocation, maturity and source-verification records
-remain under [verification status](contracts/deployments/VERIFICATION_STATUS.md);
-the new market's future maturity has not occurred and its source verification
-is still outstanding.
+remain under [verification status](contracts/deployments/VERIFICATION_STATUS.md).
+The current app market's nine contracts reproduce from the pinned sources and are
+verified on Sourcify; its future maturity has not occurred yet.
 
 ## How it works
 

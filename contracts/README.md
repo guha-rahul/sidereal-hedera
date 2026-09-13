@@ -127,8 +127,10 @@ The checker compares creation bytecode against live deployment transactions and
 runtime code outside compiler-declared immutable slots. It exits unsuccessfully
 on a mismatch. It excludes the upstream ATS factory, resolver and security.
 See [owned-bytecode.json](deployments/evidence/owned-bytecode.json) for the
-nine-contract match recorded on 2026-09-13. This is a bytecode comparison, not
-HashScan source verification.
+nine-contract match recorded on 2026-09-13. The build uses OpenZeppelin
+`v5.7.0`, pinned in `dependencies.lock.json`. All nine contracts are also
+verified on Sourcify (`deployments/evidence/source-verification-owned.json`),
+which HashScan reads.
 
 The suite covers the protocol lifecycle (deposit → split → trade → claim →
 recombine → redeem), the AMM curve and both YT flash routes, the orderbook's
@@ -230,8 +232,8 @@ Live deployment, seed, protocol workflow and real Privy investment evidence are
 linked from [OWNED_MARKET.md](deployments/OWNED_MARKET.md) and
 [WORKFLOW_CHECK.md](../web/WORKFLOW_CHECK.md). Earlier ERC-3643 and short-market
 manifests are historical; their balances, coupons and maturity receipts must not
-be attributed to this market. Source verification of the new deployment remains
-outstanding.
+be attributed to this market. All nine contracts of the new deployment are
+verified on Sourcify.
 
 ## License
 
