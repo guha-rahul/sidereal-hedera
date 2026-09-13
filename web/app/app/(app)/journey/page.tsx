@@ -12,7 +12,7 @@ type BuildStep = {
 import { appConfig } from "@/lib/config";
 import type { ErrorContext } from "@/lib/errors";
 import { hederaExplorerAccountUrl, hederaExplorerContractUrl } from "@/lib/explorer";
-import { fetchFaucetRequest } from "@/lib/faucet";
+import { requestFaucetFunds } from "@/lib/faucet";
 import {
   amountError,
   bpsToPercent,
@@ -139,6 +139,12 @@ export default function JourneyPage() {
   const [active, setActive] = useState<Action | null>(null);
   const [history, setHistory] = useState<{ label: string; hash: string }[]>([]);
   const seenHash = useRef<string | null>(null);
+
+  // The faucet runs server-side (sdUSD has no public mint), so it has its own
+  // status instead of the wallet `phase`.
+  const [faucetBusy, setFaucetBusy] = useState(false);
+  const [faucetError, setFaucetError] = useState<string | null>(null);
+  const [faucetDone, setFaucetDone] = useState(false);
 
   const [depositAmount, setDepositAmount] = useState("");
   const [splitAmount, setSplitAmount] = useState("");
@@ -435,19 +441,33 @@ export default function JourneyPage() {
               <button
                 type="button"
                 className="rounded-pill border border-white/30 px-4 py-2 text-[13px] uppercase tracking-[0.12em] text-paper transition hover:bg-paper hover:text-ink disabled:opacity-50"
-                disabled={!address || busy || !cfg.faucetEnabled}
-                onClick={() =>
-                  void run("faucet", async () => {
-                    if (!address) throw new Error("connect a wallet first");
-                    return fetchFaucetRequest(address);
-                  })
-                }
+                disabled={!address || faucetBusy || !cfg.faucetEnabled}
+                onClick={() => {
+                  if (!address) return;
+                  void (async () => {
+                    setFaucetBusy(true);
+                    setFaucetError(null);
+                    try {
+                      await requestFaucetFunds(address);
+                      setFaucetDone(true);
+                      journey.refresh();
+                    } catch (err) {
+                      setFaucetError(err instanceof Error ? err.message : String(err));
+                    } finally {
+                      setFaucetBusy(false);
+                    }
+                  })();
+                }}
               >
-                Get {cfg.faucetAmount} test cash
+                {faucetBusy
+                  ? "Funding wallet..."
+                  : faucetDone
+                    ? "Request more test cash"
+                    : `Get ${cfg.faucetAmount} test cash`}
               </button>
               <span className="text-sm text-smoke">Cash in wallet: {fmtCash(cash)}</span>
             </div>
-            {active === "faucet" ? <TxStatus phase={phase} context={CONTEXT.faucet} /> : null}
+            {faucetError ? <p className="mt-2 text-xs text-red-400">{faucetError}</p> : null}
             <AmountField
               label="Cash to deposit"
               value={depositAmount}

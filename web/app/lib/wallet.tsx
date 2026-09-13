@@ -13,7 +13,7 @@ import {
 } from "react";
 import { createPublicClient, createWalletClient, custom, http } from "viem";
 import type { TransactionRequest } from "@sidereal/sdk";
-import { appConfig } from "./config";
+import { appConfig, evmChainParams } from "./config";
 
 type Hex = `0x${string}`;
 
@@ -38,6 +38,8 @@ interface WalletContextValue {
   disconnect: () => void;
   /** Sends a built request through the injected wallet, returning the tx hash. */
   sendTransaction: (request: TransactionRequest) => Promise<string>;
+  /** Switches the wallet to the configured chain, adding it first if unknown. */
+  switchNetwork: () => Promise<void>;
   /** True when the connected wallet is on a different chain than configured. */
   networkMismatch: boolean;
 }
@@ -124,6 +126,32 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setChainId(null);
   }, []);
 
+  const switchNetwork = useCallback(async () => {
+    const provider = injectedProvider();
+    if (!provider) {
+      throw new Error("No EVM wallet detected. Install MetaMask or HashPack.");
+    }
+    const target = `0x${cfg.chainId.toString(16)}` as Hex;
+    try {
+      await provider.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: target }],
+      });
+    } catch (error) {
+      const code = (error as { code?: number } | null)?.code;
+      // 4902 means the wallet does not know the chain yet. Some wallets return
+      // -32603 for the same case, so add the chain instead of failing.
+      if (code === 4902 || code === -32603) {
+        await provider.request({
+          method: "wallet_addEthereumChain",
+          params: [evmChainParams(cfg)],
+        });
+        return;
+      }
+      throw error;
+    }
+  }, [cfg]);
+
   const sendTransaction = useCallback(
     async (request: TransactionRequest): Promise<string> => {
       const provider = injectedProvider();
@@ -157,9 +185,19 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       connect,
       disconnect,
       sendTransaction,
+      switchNetwork,
       networkMismatch,
     }),
-    [address, chainId, connecting, connect, disconnect, sendTransaction, networkMismatch],
+    [
+      address,
+      chainId,
+      connecting,
+      connect,
+      disconnect,
+      sendTransaction,
+      switchNetwork,
+      networkMismatch,
+    ],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

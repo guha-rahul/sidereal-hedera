@@ -55,14 +55,18 @@ export default function MintPage() {
   const preview = useMemo(() => {
     if (!amount || market === null || market.exchangeRate <= 0n) return null;
     try {
-      const amountBase = parseTokenAmount(amount, cfg.decimals);
-      const syOut = (amountBase * WAD) / market.exchangeRate;
+      // The vault normalizes a lower-decimal cash (sdUSD is 6) to 18-decimal SY
+      // shares with `assetScale`; the on-chain previewDeposit applies the same
+      // factor. Mirroring it here keeps the preview aligned with the contract.
+      const assetScale = 10n ** BigInt(cfg.shareDecimals - cfg.underlyingDecimals);
+      const amountBase = parseTokenAmount(amount, cfg.underlyingDecimals);
+      const syOut = (amountBase * WAD * assetScale) / market.exchangeRate;
       const splitOut = (syOut * market.exchangeRate) / WAD;
       return { syOut, splitOut };
     } catch {
       return null;
     }
-  }, [amount, market, cfg.decimals]);
+  }, [amount, market, cfg.shareDecimals, cfg.underlyingDecimals]);
 
   useEffect(() => {
     if (!address || market === null || !market.underlying) {
@@ -88,12 +92,13 @@ export default function MintPage() {
     };
   }, [address, cfg, market, refreshNonce]);
 
-  const amtError = balanceError ?? amountError(amount, cfg.decimals, underlyingBalance ?? undefined);
+  const amtError =
+    balanceError ?? amountError(amount, cfg.underlyingDecimals, underlyingBalance ?? undefined);
   const canSubmit = address !== null && preview !== null && !amtError && phase.kind !== "working";
 
   async function onSubmit() {
     if (!address || preview === null || market === null) return;
-    const underlyingAmount = parseTokenAmount(amount, cfg.decimals);
+    const underlyingAmount = parseTokenAmount(amount, cfg.underlyingDecimals);
     const steps: {
       label: string;
       build: () => TransactionRequest | Promise<TransactionRequest>;
@@ -193,7 +198,7 @@ export default function MintPage() {
         <YieldChoiceCard
           market={market}
           bond={bond}
-          decimals={cfg.decimals}
+          decimals={cfg.underlyingDecimals}
           fixedHref="#mint-form"
           fixedCtaLabel="Use mint form"
         />
@@ -207,7 +212,7 @@ export default function MintPage() {
               label="Amount (underlying)"
               value={amount}
               onChange={setAmount}
-              decimals={cfg.decimals}
+              decimals={cfg.underlyingDecimals}
               error={amtError}
               max={underlyingBalance ?? undefined}
               dataTour="mint-amount"
@@ -219,7 +224,7 @@ export default function MintPage() {
                 underlyingBalance === null ? (
                   <span aria-hidden className="skeleton w-12" />
                 ) : (
-                  balanceError ?? formatTokenAmount(underlyingBalance, cfg.decimals)
+                  balanceError ?? formatTokenAmount(underlyingBalance, cfg.underlyingDecimals)
                 )
               ) : (
                 "connect wallet"

@@ -1,24 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { decodeFunctionData } from "viem";
 import { GET, POST } from "../app/api/faucet/route";
-
-const MINT_ABI = [
-  {
-    type: "function",
-    name: "mint",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "to", type: "address" },
-      { name: "amount", type: "uint256" },
-    ],
-    outputs: [],
-  },
-] as const;
 
 const UNDERLYING = "0x0d1318B31aF2e540e83f5c7BD58C138E9962bE9a";
 const WALLET = "0xAb76e285b5C458638846c474FdA8E51EbBb81c43";
+// A well-known Anvil test key. Not a secret and never funded on Hedera.
+const FAUCET_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 
 function post(body: unknown) {
   return new Request("https://app.example/api/faucet", {
@@ -32,43 +20,47 @@ beforeEach(() => {
   vi.unstubAllEnvs();
   vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", "296");
   vi.stubEnv("NEXT_PUBLIC_UNDERLYING_ADDRESS", UNDERLYING);
-  vi.stubEnv("NEXT_PUBLIC_FAUCET_ENABLED", "");
+  vi.stubEnv("NEXT_PUBLIC_FAUCET_ENABLED", "1");
   vi.stubEnv("NEXT_PUBLIC_FAUCET_AMOUNT", "1000");
-  vi.stubEnv("NEXT_PUBLIC_TOKEN_DECIMALS", "18");
+  vi.stubEnv("NEXT_PUBLIC_UNDERLYING_DECIMALS", "6");
+  vi.stubEnv("FAUCET_PRIVATE_KEY", FAUCET_KEY);
 });
 
 afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("POST /api/faucet", () => {
-  it("returns an unsigned mint request for a valid address", async () => {
-    const response = await POST(post({ address: WALLET }));
+describe("GET /api/faucet", () => {
+  it("describes the enabled server faucet", async () => {
+    const response = await GET();
     expect(response.status).toBe(200);
-    const body = (await response.json()) as {
-      to: string;
-      data: string;
-      value: string;
-      amount: string;
-    };
-
-    expect(body.to).toBe(UNDERLYING);
-    expect(body.value).toBe("0");
-    expect(body.amount).toBe((1000n * 10n ** 18n).toString());
-
-    const decoded = decodeFunctionData({ abi: MINT_ABI, data: body.data as `0x${string}` });
-    expect(decoded.functionName).toBe("mint");
-    expect((decoded.args?.[0] as string).toLowerCase()).toBe(WALLET.toLowerCase());
-    expect(decoded.args?.[1]).toBe(1000n * 10n ** 18n);
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({
+        enabled: true,
+        token: UNDERLYING,
+        amount: "1000",
+        decimals: 6,
+        hbar: "20",
+        chainId: 296,
+      }),
+    );
   });
 
+  it("reports disabled when no funded key is configured", async () => {
+    vi.stubEnv("FAUCET_PRIVATE_KEY", "");
+    const body = (await (await GET()).json()) as { enabled: boolean };
+    expect(body.enabled).toBe(false);
+  });
+});
+
+describe("POST /api/faucet", () => {
   it("rejects a non-address", async () => {
     const response = await POST(post({ address: "not-an-address" }));
     expect(response.status).toBe(400);
   });
 
-  it("is disabled when the faucet is turned off", async () => {
-    vi.stubEnv("NEXT_PUBLIC_FAUCET_ENABLED", "0");
+  it("is disabled when no funded key is configured", async () => {
+    vi.stubEnv("FAUCET_PRIVATE_KEY", "");
     const response = await POST(post({ address: WALLET }));
     expect(response.status).toBe(403);
   });
@@ -77,21 +69,5 @@ describe("POST /api/faucet", () => {
     vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", "295");
     const response = await POST(post({ address: WALLET }));
     expect(response.status).toBe(403);
-  });
-});
-
-describe("GET /api/faucet", () => {
-  it("describes the faucet", async () => {
-    const response = await GET();
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual(
-      expect.objectContaining({
-        enabled: true,
-        token: UNDERLYING,
-        amount: "1000",
-        decimals: 18,
-        chainId: 296,
-      }),
-    );
   });
 });

@@ -90,6 +90,37 @@ export function hederaNetworkKey(chainId: number): AppNetwork {
   return "custom";
 }
 
+/** Hedera testnet faucet that funds an EVM wallet with 100 testnet HBAR. */
+export const HEDERA_TESTNET_FAUCET_URL = "https://portal.hedera.com/faucet";
+
+export interface EvmChainParams {
+  /** Hex chain id, as `wallet_addEthereumChain` expects. */
+  chainId: `0x${string}`;
+  chainName: string;
+  nativeCurrency: { name: string; symbol: string; decimals: number };
+  rpcUrls: string[];
+  blockExplorerUrls: string[];
+}
+
+/**
+ * Chain parameters for `wallet_addEthereumChain`, so a wallet that does not yet
+ * know Hedera can add it in one prompt. HBAR is the native gas token; the market's
+ * sdUSD cash is a separate ERC-20 that the faucet does not mint.
+ */
+export function evmChainParams(cfg: AppConfig): EvmChainParams {
+  const mainnet = cfg.chainId === MAINNET_CHAIN_ID;
+  const explorer = mainnet
+    ? "https://hashscan.io/mainnet"
+    : "https://hashscan.io/testnet";
+  return {
+    chainId: `0x${cfg.chainId.toString(16)}`,
+    chainName: mainnet ? "Hedera Mainnet" : "Hedera Testnet",
+    nativeCurrency: { name: "HBAR", symbol: "HBAR", decimals: 18 },
+    rpcUrls: [cfg.rpcUrl, ...cfg.rpcFallbackUrls].filter(Boolean),
+    blockExplorerUrls: [explorer],
+  };
+}
+
 function networkDescriptor(network: AppNetwork): string {
   if (network === "mainnet") return MAINNET_NETWORK;
   if (network === "testnet") return TESTNET_NETWORK;

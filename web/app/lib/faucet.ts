@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import type { TransactionRequest } from "@sidereal/sdk";
+export interface FaucetHash {
+  kind: string;
+  hash: string;
+}
 
-export interface FaucetRequest extends TransactionRequest {
-  /** Base-unit amount the faucet mints. */
-  amount: bigint;
+export interface FaucetResult {
+  ok: true;
+  /** Transaction hashes the server sent: kyc, cash, and hbar. */
+  hashes: FaucetHash[];
 }
 
 interface FaucetResponse {
-  to?: string;
-  data?: string;
-  value?: string;
-  amount?: string;
+  ok?: boolean;
+  hashes?: Array<{ kind?: unknown; hash?: unknown }>;
   error?: string;
 }
 
@@ -24,10 +26,11 @@ function responseMessage(body: unknown, fallback: string): string {
 }
 
 /**
- * Fetches the unsigned `mint` request from the same-origin `/api/faucet` route.
- * The caller signs and sends it, so the wallet stays the only signer.
+ * Asks the same-origin `/api/faucet` route to fund the connected wallet. The
+ * server holds the funded key and sends a KYC grant, test sdUSD, and a little
+ * HBAR for gas; the browser wallet never signs for the faucet.
  */
-export async function fetchFaucetRequest(address: string): Promise<FaucetRequest> {
+export async function requestFaucetFunds(address: string): Promise<FaucetResult> {
   const response = await fetch("/api/faucet", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -35,14 +38,15 @@ export async function fetchFaucetRequest(address: string): Promise<FaucetRequest
   });
   const body = (await response.json().catch(() => null)) as FaucetResponse | null;
 
-  if (!response.ok || !body || !body.to || !body.data || !body.amount) {
+  if (!response.ok || !body?.ok || !Array.isArray(body.hashes)) {
     throw new Error(responseMessage(body, `Faucet request failed (${response.status})`));
   }
 
   return {
-    to: body.to,
-    data: body.data,
-    value: body.value ? BigInt(body.value) : 0n,
-    amount: BigInt(body.amount),
+    ok: true,
+    hashes: body.hashes.map((entry) => ({
+      kind: String(entry.kind ?? ""),
+      hash: String(entry.hash ?? ""),
+    })),
   };
 }

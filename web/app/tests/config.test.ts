@@ -5,6 +5,7 @@ import {
   appConfig,
   configuredMarketCount,
   deploymentStage,
+  evmChainParams,
   hederaNetworkKey,
   isDeployed,
   marketStatusLabel,
@@ -198,6 +199,22 @@ describe("appConfig", () => {
   });
 });
 
+describe("evmChainParams", () => {
+  it("builds Hedera testnet params for wallet_addEthereumChain", () => {
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(TESTNET_CHAIN_ID));
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_RPC_URL", "");
+    const cfg = appConfig();
+
+    expect(evmChainParams(cfg)).toEqual({
+      chainId: "0x128",
+      chainName: "Hedera Testnet",
+      nativeCurrency: { name: "HBAR", symbol: "HBAR", decimals: 18 },
+      rpcUrls: [TESTNET_RPC],
+      blockExplorerUrls: ["https://hashscan.io/testnet"],
+    });
+  });
+});
+
 describe("hederaNetworkKey", () => {
   it("maps chain ids to app networks", () => {
     expect(hederaNetworkKey(TESTNET_CHAIN_ID)).toBe("testnet");
@@ -218,13 +235,16 @@ describe("market status", () => {
   // One source for every status label. The regression these cover is the
   // homepage advertising an active market while the app banner reported none.
   it("reports preview and zero markets when no addresses are configured", () => {
+    // Mainnet has no checked-in fallback, so an empty config must stay Preview.
+    // A testnet build with empty addresses is covered by the fallback test above.
     stubYieldSourceEnv();
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(MAINNET_CHAIN_ID));
     for (const name of Object.keys(contractEnv)) vi.stubEnv(name, "");
     const cfg = appConfig();
 
     expect(isDeployed(cfg)).toBe(false);
     expect(deploymentStage(cfg)).toBe("Preview");
-    expect(marketStatusLabel(cfg)).toBe("Preview · Testnet");
+    expect(marketStatusLabel(cfg)).toBe("Preview · Mainnet");
     expect(configuredMarketCount(cfg)).toBe(0);
   });
 
@@ -253,12 +273,14 @@ describe("market status", () => {
   });
 
   it("stays in preview when only some addresses are configured", () => {
+    // Mainnet: no fallback fills the missing market, so the status stays Preview.
     stubYieldSourceEnv();
+    vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", String(MAINNET_CHAIN_ID));
     for (const [name, value] of Object.entries(contractEnv)) vi.stubEnv(name, value);
     vi.stubEnv("NEXT_PUBLIC_MARKET_ADDRESS", "");
     const cfg = appConfig();
 
     expect(configuredMarketCount(cfg)).toBe(0);
-    expect(marketStatusLabel(cfg)).toBe("Preview · Testnet");
+    expect(marketStatusLabel(cfg)).toBe("Preview · Mainnet");
   });
 });
