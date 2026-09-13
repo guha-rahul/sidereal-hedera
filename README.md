@@ -1,116 +1,117 @@
 # Sidereal
 
-**Yield tokenization on Hedera.** Sidereal takes a tokenized bond and splits it
-into two separate, tradeable claims:
+**A compliance-enforced secondary market for an ATS-issued bond.** Sidereal takes
+a bond issued through Hedera's [Asset Tokenization Studio](https://github.com/hashgraph/asset-tokenization-studio)
+(ATS) and splits it into two separate, tradeable claims:
 
-- a **Principal Token (PT)** that pays its face value at maturity, and
+- a **Principal Token (PT)** that pays face value at maturity, and
 - a **Yield Token (YT)** that collects the bond's coupons along the way.
 
-A fixed-income instrument becomes two liquid markets — one for a fixed rate, one
-for a floating rate — and anyone can choose the side they want.
+ATS provides the compliant bond lifecycle — issuance, KYC, and coupon
+administration. Sidereal adds the missing pieces: a secondary market for the
+bond's claims, and the ability to separate principal from coupon exposure.
 
-```
-        deposit cash
-             │
-             ▼
-        ┌─────────┐   split    ┌───────────────┐
-        │   SY    │───────────►│ 1 PT + 1 YT   │
-        │ (wrapped│            └───────┬───────┘
-        │  bond)  │◄───────────┐       │
-        └────┬────┘  recombine │       ├─ PT  → fixed principal, redeems at par
-             │                 │       │
-             ▼                 │       └─ YT  → floating yield, tradeable now
-          redeem cash          │
-                               └── trade either leg on the AMM or orderbook
-```
+> This is the **ETHOnline 2026** build. It is a Hedera **testnet**
+> demonstration: the bond is issued through the real ATS factory, but the cash is
+> test-only `sdUSD` and no real funds are involved. It is unaudited. Earlier,
+> unrelated Sidereal work on other networks is not part of this repository.
 
-The core identity is exactly this, always:
+## Why ATS
 
-```
-1 SY = 1 PT + 1 YT
-```
+Hedera's ATS gives a bond a regulated lifecycle: role-based controls, an identity
+registry, KYC, and coupon entitlements. That is exactly the foundation a
+tokenized-bond market needs, and it is not something a custom ERC-20 can
+substitute. Sidereal wraps an ATS-issued bond through a standardized-yield vault
+and builds the market on top:
 
-Splitting changes nothing about what you own; it only makes the two halves
-sellable separately. If `PT + YT` ever drifts from `SY`, anyone can split or
-recombine for an instant profit, and that trade pulls the prices back together.
+- **Permissioned by construction.** The bond is an ERC-3643 security. The market
+  reads its KYC/control state, so an ineligible wallet cannot deposit into SY or
+  move PT/YT. Revocation is honored on every route.
+- **Coupons with real entitlements.** Yield is the issuer's cash coupon and
+  maturity cashflow, claimed through the bond's own entitlement mechanism, not
+  an imaginary per-unit rate.
+- **PT/YT on top.** `1 SY = 1 PT + 1 YT` at all times, so the two legs can be
+  priced and traded separately.
 
-## What makes this different
+Everything above the bond — the SY vault, PT/YT, the AMM, the orderbook — is
+inspired by [Pendle](https://pendle.finance) and is independent of which bond
+sits underneath.
 
-Most yield-tokenization systems wrap a DeFi lending position. Sidereal's **Layer 1
-wraps a real security: an [ERC-3643 (T-REX)](https://eips.ethereum.org/EIPS/eip-3643)
-tokenized bond.** The yield source is the issuer's **cash coupon and maturity
-cashflow**, not a lending pool. That means:
+## Live on Hedera testnet (chain 296)
 
-- **Permissioned by default.** The bond is an ERC-3643 token: every non-mint,
-  non-burn transfer requires both parties to be verified and compliant.
-- **Yield is realized as cash.** Coupons are scheduled and funded by the issuer,
-  then claimed. Nothing is capitalized into an imaginary per-unit rate.
-- **Built for regulated RWA.** Identity registry and compliance modules are seams
-  the issuer controls; the protocol only reads the bond's valuation.
+Two markets were issued through the real ATS factory
+(`0x5fA65CA30d1984701F10476664327f97c864A9D3`). Manifests and receipts are in
+[`contracts/deployments/`](contracts/deployments/); the full evidence is under
+[`contracts/deployments/evidence/`](contracts/deployments/evidence/).
 
-Everything above Layer 1 — the SY vault, PT/YT, the AMM, the orderbook — is
-inspired by the [Pendle](https://pendle.finance) design and is unchanged by which
-asset sits underneath.
+Main market — kept open for the demo (matures in ~90 days):
+
+| Component | Address |
+|---|---|
+| ATS security (the bond) | `0xB8012a1c3227C454059Ee115Db2f1A7947903e22` |
+| Settlement adapter (BOND) | `0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06` |
+| Cash sdUSD (test only) | `0xedb4c1335780f192AA693147662Da3F4FD9C9ba9` |
+| SY / PT / YT | `0x5Cfb…F333C` / `0x603E…9dCf` / `0x6914…8ba2` |
+| Tokenizer / AMM / Orderbook | `0xA506…79Cc` / `0x777b…7640` / `0xB36F…78AD` |
+
+A second, short-maturity market demonstrates settlement after maturity:
+[`contracts/deployments/hedera-ats-short.json`](contracts/deployments/hedera-ats-short.json).
+
+Completed on testnet, with receipts: ATS issuance, KYC grants, a deposit, a split,
+a two-wallet trade (orderbook + AMM), revocation with a rejected redemption,
+reinstatement, coupon claim, and maturity settlement. See
+[`contracts/deployments/VERIFICATION_STATUS.md`](contracts/deployments/VERIFICATION_STATUS.md).
 
 ## How it works
 
 | Step | What happens |
 |---|---|
-| **Deposit** | Cash goes into the SY vault. The vault custodies the bond through a strategy and mints SY at the current exchange rate. |
-| **Split** | The Tokenizer burns SY and mints an equal amount of PT and YT. |
-| **Trade** | PT and YT trade on a time-decay AMM or the PT/SY orderbook. PT tends toward par as maturity approaches; YT is a leveraged bet on the floating rate. |
-| **Claim** | YT holders collect the yield accrued so far at any time before maturity. |
-| **Recombine** | Equal PT + YT are burned to return SY (and cash, via redeem). |
-| **Redeem** | At maturity the rate freezes; PT redeems at par and SY redeems for cash. |
+| **Deposit** | Cash goes into the SY vault. The vault custodies the ATS bond through a strategy and mints SY at the current exchange rate. |
+| **Split** | The Tokenizer locks SY and mints equal PT and YT. |
+| **Trade** | PT and YT trade on a time-decay AMM or the PT/SY orderbook. |
+| **Claim** | YT holders collect the coupon yield accrued so far. |
+| **Recombine** | Equal PT + YT are burned to return SY. |
+| **Redeem** | At maturity the rate freezes; PT redeems at face value and SY unwraps to cash. |
 
-The protocol preserves its original design invariants: escrow coverage, a
-pro-rata shortfall cap, PT-senior / YT-surplus ordering, a maturity rate freeze,
-and a TWAP anti-manipulation rule on the AMM.
-
-Read the full explanation in the in-app docs at `/docs`, or start with
-[`web/app/app/docs/concepts/page.tsx`](web/app/app/docs/concepts/page.tsx).
+The protocol preserves its invariants: escrow coverage, a pro-rata shortfall cap,
+PT-senior / YT-surplus ordering, a maturity rate freeze, and a TWAP
+anti-manipulation rule on the AMM. Read the in-app docs at `/docs`.
 
 ## Repository layout
 
 ```
-sidereal.hedera/
-├── contracts/                 Solidity protocol (Foundry), the on-chain core
-│   ├── src/
-│   │   ├── sy/                Layer 1 — StandardizedYieldVault, ERC-3643 bond + strategy
-│   │   ├── Tokenizer.sol      Layer 2 — split / recombine / redeem / claim
-│   │   ├── AmmMarket.sol      Layer 3 — time-decay AMM, flash YT routes, TWAP
-│   │   ├── Orderbook.sol      Layer 3 — PT/SY limit-order book
-│   │   ├── tokens/            PT and YT (tokenizer-gated ERC-20s)
-│   │   ├── libraries/         WadMath — WAD fixed point, integer ln/exp/sqrt
-│   │   └── interfaces/        Protocol + ERC-3643 / IBond3643 seams
-│   ├── test/                  Unit, fuzz and lifecycle suites (doubles in test/mocks/)
-│   └── script/Deploy.s.sol    Deploys a market around an existing bond
+sidereal-hedera/
+├── contracts/                 Solidity protocol (Foundry)
+│   ├── src/                   SY vault, ATS adapter, strategy, Tokenizer, AMM, Orderbook
+│   ├── script/DeployATS.s.sol Deploys a market around an ATS-issued bond
+│   ├── script/ATSLifecycle.s.sol  Runs one lifecycle phase (seed, trade, coupon, …)
+│   ├── test/                  Unit, fuzz, invariant, and live ATS fork tests
+│   └── deployments/           Manifests, receipts, and verification evidence
 │
-└── web/                       Frontend, SDK and edge worker
-    ├── app/                   Next.js — marketing site, trading app, /docs
+└── web/                       Frontend, SDK, and edge worker
+    ├── app/                   Next.js — marketing site, trading app, /docs, faucet
     ├── sdk/                   @sidereal/sdk — viem TypeScript client
-    └── workers/               Cloudflare Worker for access requests (D1)
+    └── workers/               Cloudflare Worker for access requests
 ```
-
-Deeper reading: [`contracts/README.md`](contracts/README.md),
-[`web/README.md`](web/README.md), [`web/sdk/README.md`](web/sdk/README.md).
 
 ## Quickstart
 
 ### Contracts
 
-Requires [Foundry](https://book.getfoundry.sh/) (solc 0.8.28, `via_ir` enabled).
+Requires [Foundry](https://book.getfoundry.sh/) (solc 0.8.28, `via_ir`) and the
+pinned dependencies:
 
 ```bash
 cd contracts
+python3 scripts/install-deps.py   # clones the pinned refs; never resets a dirty checkout
 forge build
-forge test
-forge test --gas-report
+forge test                        # offline suite
+RUN_ATS_LIVE=true forge test      # adds the live ATS fork checks (read-only)
 ```
 
 ### Web app and SDK
 
-Requires Node 20.x and [pnpm](https://pnpm.io/).
+Requires Node 20+ and [pnpm](https://pnpm.io/).
 
 ```bash
 cd web
@@ -119,116 +120,55 @@ pnpm --filter @sidereal/sdk build
 pnpm --filter @sidereal/app dev
 ```
 
-The app runs without a configured market and shows a "no market configured"
-banner. Point it at a deployment with `NEXT_PUBLIC_*` variables; copy
-[`web/app/.env.example`](web/app/.env.example) to `.env.local` and fill in the
-addresses.
-
-Key variables:
-
-| Variable | Purpose |
-|---|---|
-| `NEXT_PUBLIC_HEDERA_CHAIN_ID` | `296` testnet, `295` mainnet |
-| `NEXT_PUBLIC_HEDERA_RPC_URL` | `https://testnet.hashio.io/api` |
-| `NEXT_PUBLIC_SY_ADDRESS`, `NEXT_PUBLIC_PT_ADDRESS`, `NEXT_PUBLIC_YT_ADDRESS` | SY, PT, YT |
-| `NEXT_PUBLIC_TOKENIZER_ADDRESS`, `NEXT_PUBLIC_MARKET_ADDRESS`, `NEXT_PUBLIC_ORDERBOOK_ADDRESS` | Core protocol contracts |
-| `NEXT_PUBLIC_BOND_ADDRESS`, `NEXT_PUBLIC_STRATEGY_ADDRESS`, `NEXT_PUBLIC_UNDERLYING_ADDRESS` | ERC-3643 bond, strategy, cash asset |
-
-On testnet the app also exposes a faucet for a mintable cash asset. See
-[`web/README.md`](web/README.md).
-
-### SDK
+Point the app at a deployment by generating env from a manifest:
 
 ```bash
-pnpm add @sidereal/sdk viem
+cd web/app
+pnpm gen:env ../../contracts/deployments/hedera-ats.json
 ```
-
-```ts
-import { SiderealClient } from "@sidereal/sdk";
-
-const client = new SiderealClient({
-  rpcUrl: "https://testnet.hashio.io/api",
-  chainId: 296,
-  contracts: { sy, pt, yt, tokenizer, market, orderbook, bond, strategy, underlying },
-});
-
-const request = client.buildSwap({ /* SwapArgs */ }); // unsigned { to, data, value }
-const hash = await client.send(wallet, request);
-```
-
-The SDK never holds keys: it builds unsigned transactions and hands them to a
-wallet to sign. See [`web/sdk/README.md`](web/sdk/README.md) for the full API.
 
 ## Deploy
 
-### Contracts to Hedera
-
-The deployer wraps an **existing** ERC-3643 bond; it never deploys a mock.
+The deployer issues the bond through the real ATS factory and builds the market
+around it; it never deploys a mock bond.
 
 ```bash
 cd contracts
-export PRIVATE_KEY=0x...
-export CASH_ASSET=0x...   # bond denomination (ERC-20)
-export BOND=0x...         # deployed ERC-3643 bond
-export MATURITY=$(date -v+90d +%s)
+export PRIVATE_KEY=0x...          # issuer / ATS admin (testnet only)
+export BUYER_ADDRESS=0x...        # a second funded account
+export MANIFEST_PATH=deployments/hedera-ats.json
+export FOUNDRY_PROFILE=hedera_live
 
-forge script script/Deploy.s.sol:Deploy \
+forge script script/DeployATS.s.sol:DeployATS \
   --rpc-url https://testnet.hashio.io/api \
   --broadcast --slow --gas-estimate-multiplier 200
 ```
 
-`--slow` avoids a nonce race (Hedera's JSON-RPC can report a stale nonce while a
-burst of transactions is still being ordered), and
-`--gas-estimate-multiplier 200` gives headroom because Hedera's gas schedule
-differs from Ethereum's.
+Then run lifecycle phases with `script/ATSLifecycle.s.sol`. See
+[`contracts/ATS_DEPLOYMENT.md`](contracts/ATS_DEPLOYMENT.md) for timing rules,
+including the PT-heavy first seed the AMM requires.
 
-| Network | Chain ID | JSON-RPC |
-|---|---|---|
-| Mainnet | `295` | `https://mainnet.hashio.io/api` |
-| Testnet | `296` | `https://testnet.hashio.io/api` |
+### Test-cash faucet
 
-### Web
-
-- **Cloudflare Workers** — deploy the Next.js app through OpenNext. Settings live
-  in `web/README.md`; the root [`wrangler.jsonc`](wrangler.jsonc) also deploys
-  the generated worker and assets.
-- **Vercel** — set the Root Directory to `app`; the build runs the SDK build
-  followed by `next build`.
+`sdUSD` has no public `mint`, so the app's [`/api/faucet`](web/app/app/api/faucet/route.ts)
+route uses a server-side funded key to grant ATS KYC and transfer test cash plus a
+little HBAR. Configure `FAUCET_PRIVATE_KEY`, `FAUCET_CASH_AMOUNT`, and
+`FAUCET_HBAR_AMOUNT` (see [`web/app/.env.example`](web/app/.env.example)). Never
+use a mainnet key.
 
 ## Test
 
 ```bash
-# Contracts
 cd contracts && forge test
-
-# SDK
-cd web && pnpm --filter @sidereal/sdk run typecheck && pnpm --filter @sidereal/sdk test
-
-# App
-pnpm --filter @sidereal/app run typecheck && pnpm --filter @sidereal/app test
-pnpm --filter @sidereal/app run test:e2e   # Playwright smoke
+cd web && pnpm --filter @sidereal/sdk test
+pnpm --filter @sidereal/app test
 ```
-
-The contracts also carry a live testnet integration harness that proves the
-ERC-3643 path end to end; see
-[`contracts/README.md`](contracts/README.md#testnet-integration-check-erc-3643-end-to-end).
-
-## Design notes
-
-- **Decimals.** All protocol tokens are 18-decimal; `WAD = 1e18`. Constants like
-  `MINIMUM_SHARES` and `MINIMUM_LIQUIDITY` are scaled to match.
-- **Access control.** Cross-contract privileges (mint/burn PT and YT, settle the
-  YT ledger) are gated on `msg.sender == tokenizer`; admin powers are separate.
-- **Fixed point only.** `WadMath` implements integer `ln`, `exp` and `sqrt`.
-  There is no floating point on-chain.
-- **No mocks in production.** `contracts/src` ships only real integrations.
-  Test doubles live under `contracts/test/`.
 
 ## Links
 
-- Docs: [docs.sidereal.tech](https://docs.sidereal.tech)
-- In-app reference: `/docs` in the running web app
-- GitHub: [github.com/sidereal-tech](https://github.com/sidereal-tech)
+- GitHub: [github.com/guha-rahul/sidereal-hedera](https://github.com/guha-rahul/sidereal-hedera)
+- In-app docs: `/docs` in the running web app
+- ATS: [Asset Tokenization Studio](https://github.com/hashgraph/asset-tokenization-studio)
 
 ## License
 
