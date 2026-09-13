@@ -6,7 +6,8 @@ import { GET, POST } from "../app/api/faucet/route";
 const UNDERLYING = "0x0d1318B31aF2e540e83f5c7BD58C138E9962bE9a";
 const WALLET = "0xAb76e285b5C458638846c474FdA8E51EbBb81c43";
 // A well-known Anvil test key. Not a secret and never funded on Hedera.
-const FAUCET_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
+const FAUCET_KEY =
+  "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 
 function post(body: unknown) {
   return new Request("https://app.example/api/faucet", {
@@ -24,6 +25,11 @@ beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_FAUCET_AMOUNT", "1000");
   vi.stubEnv("NEXT_PUBLIC_UNDERLYING_DECIMALS", "6");
   vi.stubEnv("FAUCET_PRIVATE_KEY", FAUCET_KEY);
+  vi.stubEnv("NEXT_PUBLIC_PRIVY_APP_ID", "app_test");
+  vi.stubEnv("PRIVY_APP_SECRET", "test-secret");
+  vi.stubEnv("CLOUDFLARE_ACCOUNT_ID", "test-account");
+  vi.stubEnv("FAUCET_D1_DATABASE_ID", "test-database");
+  vi.stubEnv("FAUCET_D1_API_TOKEN", "test-storage-token");
 });
 
 afterEach(() => {
@@ -69,5 +75,31 @@ describe("POST /api/faucet", () => {
     vi.stubEnv("NEXT_PUBLIC_HEDERA_CHAIN_ID", "295");
     const response = await POST(post({ address: WALLET }));
     expect(response.status).toBe(403);
+  });
+
+  it("requires a Privy session token when identity binding is configured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRIVY_APP_ID", "app_test");
+    vi.stubEnv("PRIVY_APP_SECRET", "test-secret");
+    const response = await POST(post({ address: WALLET }));
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      error: "A Privy session token is required to fund this wallet",
+    });
+  });
+});
+
+describe("faucet authentication configuration", () => {
+  it("fails closed when the app secret is missing", async () => {
+    vi.stubEnv("PRIVY_APP_SECRET", "");
+    expect((await POST(post({ address: WALLET }))).status).toBe(503);
+    expect((await (await GET()).json()).enabled).toBe(false);
+  });
+  it("fails closed when the app id is missing", async () => {
+    vi.stubEnv("NEXT_PUBLIC_PRIVY_APP_ID", "");
+    expect((await POST(post({ address: WALLET }))).status).toBe(503);
+  });
+  it("reports disabled without durable storage", async () => {
+    vi.stubEnv("FAUCET_D1_API_TOKEN", "");
+    expect((await (await GET()).json()).enabled).toBe(false);
   });
 });

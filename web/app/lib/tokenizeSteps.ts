@@ -12,7 +12,7 @@ import {
 } from "@sidereal/sdk";
 import { applySlippage, DEFAULT_SLIPPAGE_BPS } from "./slippage";
 
-export type TokenizeBondMode = "keep" | "fixed";
+export type TokenizeBondMode = "keep" | "fixed" | "variable";
 
 export interface TokenizeBondStep {
   label: string;
@@ -27,6 +27,7 @@ export interface TokenizeBondContracts {
   tokenizer: string;
   market: string;
   yt: string;
+  pt?: string;
 }
 
 /**
@@ -46,16 +47,25 @@ export interface TokenizeBondClient {
 
 /**
  * Estimates the PT and YT face minted by splitting a deposit. PT and YT are
- * minted at the asset-unit face, so this equals the SY the deposit mints.
+ * minted at asset-unit face: deposited SY shares multiplied by the exchange rate.
  */
 export function estimateBondTokenizationFace(
   market: Pick<MarketState, "exchangeRate"> | null,
   underlyingAmount: bigint,
+  underlyingDecimals = 18,
 ): { faceAmount: bigint } {
   if (market === null || underlyingAmount <= 0n || market.exchangeRate <= 0n) {
     return { faceAmount: 0n };
   }
-  return { faceAmount: (underlyingAmount * WAD) / market.exchangeRate };
+  if (
+    !Number.isInteger(underlyingDecimals) ||
+    underlyingDecimals < 0 ||
+    underlyingDecimals > 18
+  )
+    throw new Error("Invalid underlying decimals");
+  const assetAmount = underlyingAmount * 10n ** BigInt(18 - underlyingDecimals);
+  const syShares = (assetAmount * WAD) / market.exchangeRate;
+  return { faceAmount: (syShares * market.exchangeRate) / WAD };
 }
 
 async function needsApproval(
@@ -84,6 +94,7 @@ export async function buildTokenizeBondSteps({
   market,
   underlyingAmount,
   mode,
+  approvalMode = "unlimited",
 }: {
   client: TokenizeBondClient;
   marketId: string;
@@ -92,14 +103,29 @@ export async function buildTokenizeBondSteps({
   market: Pick<MarketState, "underlying" | "exchangeRate">;
   underlyingAmount: bigint;
   mode: TokenizeBondMode;
+  approvalMode?: "unlimited" | "exact";
 }): Promise<TokenizeBondStep[]> {
   if (underlyingAmount <= 0n) {
     throw new Error("deposit amount must be positive");
   }
 
+  if (approvalMode === "exact" || mode === "variable") {
+    return buildExactInvestmentSteps({
+      client,
+      marketId,
+      contracts,
+      address,
+      market,
+      underlyingAmount,
+      mode,
+    });
+  }
+
   const syPreview = await client.previewDeposit(underlyingAmount);
   const initialYtBalance =
-    mode === "fixed" ? (await client.getPosition(address, marketId)).ytBalance : 0n;
+    mode === "fixed"
+      ? (await client.getPosition(address, marketId)).ytBalance
+      : 0n;
 
   const steps: TokenizeBondStep[] = [];
 
@@ -191,5 +217,146 @@ export async function buildTokenizeBondSteps({
     });
   }
 
+  return steps;
+}
+
+/** Exact approvals and balance deltas keep existing holdings out of a new investment. */
+async function buildExactInvestmentSteps({
+  client,
+  marketId,
+  contracts,
+  address,
+  market,
+  underlyingAmount,
+  mode,
+}: {
+  client: TokenizeBondClient;
+  marketId: string;
+  contracts: TokenizeBondContracts;
+  address: string;
+  market: Pick<MarketState, "underlying" | "exchangeRate">;
+  underlyingAmount: bigint;
+  mode: TokenizeBondMode;
+}): Promise<TokenizeBondStep[]> {
+  if (mode === "variable" && !contracts.pt)
+    throw new Error("PT contract is required for variable exposure");
+  let initial: Position | null = null;
+  let previewCap = 0n;
+  const mintedSy = async () => {
+    if (!initial) throw new Error("Deposit must confirm before splitting");
+    const held = await client.getPosition(address, marketId);
+    const delta = held.syBalance - initial.syBalance;
+    if (delta <= 0n)
+      throw new Error(
+        "No new SY received; check the confirmed deposit before retrying",
+      );
+    return delta < previewCap ? delta : previewCap;
+  };
+  let splitAmount = 0n;
+  let tradeAmount = 0n;
+  const soldAsset = mode === "variable" ? ("PT" as const) : ("YT" as const);
+  const soldToken = mode === "variable" ? contracts.pt! : contracts.yt;
+  const newTokens = async () => {
+    if (!initial) throw new Error("Deposit has not started");
+    const held = await client.getPosition(address, marketId);
+    const delta =
+      soldAsset === "PT"
+        ? held.ptBalance - initial.ptBalance
+        : held.ytBalance - initial.ytBalance;
+    if (delta <= 0n)
+      throw new Error(`No new ${soldAsset} available to sell after split`);
+    return delta;
+  };
+  const steps: TokenizeBondStep[] = [];
+  if (
+    (await client.getAllowance(market.underlying, address, contracts.sy)) <
+    underlyingAmount
+  ) {
+    steps.push({
+      label: "Approve underlying",
+      build: () =>
+        client.buildApprove({
+          token: market.underlying,
+          spender: contracts.sy,
+          amount: underlyingAmount,
+        }),
+    });
+  }
+  steps.push({
+    label: "Deposit",
+    build: async () => {
+      initial = await client.getPosition(address, marketId);
+      const preview = await client.previewDeposit(underlyingAmount);
+      previewCap = preview;
+      if (preview <= 0n) throw new Error("Deposit is too small");
+      return client.buildDeposit({
+        marketId,
+        from: address,
+        underlyingAmount,
+        minSyOut: applySlippage(preview, DEFAULT_SLIPPAGE_BPS),
+      });
+    },
+  });
+  steps.push({
+    label: "Approve SY",
+    build: async () => {
+      splitAmount = await mintedSy();
+      return client.buildApprove({
+        token: contracts.sy,
+        spender: contracts.tokenizer,
+        amount: splitAmount,
+      });
+    },
+  });
+  steps.push({
+    label: "Split",
+    build: async () => {
+      const received = await mintedSy();
+      if (received < splitAmount)
+        throw new Error(
+          "SY balance changed; check your wallet before continuing",
+        );
+      return client.buildSplit({ from: address, syAmount: splitAmount });
+    },
+  });
+  if (mode !== "keep") {
+    steps.push({
+      label: `Approve ${soldAsset}`,
+      build: async () => {
+        tradeAmount = await newTokens();
+        return client.buildApprove({
+          token: soldToken,
+          spender: contracts.market,
+          amount: tradeAmount,
+        });
+      },
+    });
+    steps.push({
+      label: `Sell ${soldAsset}`,
+      build: async () => {
+        if ((await newTokens()) < tradeAmount)
+          throw new Error(
+            "Token balance changed; check your wallet before continuing",
+          );
+        const args: SwapArgs = {
+          marketId,
+          from: address,
+          assetIn: soldAsset,
+          assetOut: "SY",
+          amountIn: tradeAmount,
+          minAmountOut: 0n,
+        };
+        const quote = await client.quoteSwap(args);
+        if (quote.amountOut <= 0n)
+          throw new Error(
+            "No liquidity for this exposure; your PT and YT remain in Portfolio",
+          );
+        return client.buildSwap({
+          ...args,
+          minAmountOut: applySlippage(quote.amountOut, DEFAULT_SLIPPAGE_BPS),
+        });
+      },
+    });
+  }
   return steps;
 }

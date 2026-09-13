@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useWallet } from "@/lib/wallet";
 import { useSidereal } from "@/lib/useSidereal";
 import { requestFaucetFunds } from "@/lib/faucet";
 
@@ -24,6 +25,8 @@ export function FaucetButton({
   onDone?: () => void;
 }) {
   const { cfg, address } = useSidereal();
+  const { getAccessToken } = useWallet();
+  const submitting = useRef(false);
   const [state, setState] = useState<FaucetState>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +40,7 @@ export function FaucetButton({
       : state === "error"
         ? "Retry test cash"
         : state === "done"
-          ? "Request more test cash"
+          ? "Demo wallet funded"
           : `Get ${cfg.faucetAmount} test cash`;
 
   return (
@@ -45,19 +48,22 @@ export function FaucetButton({
       <button
         type="button"
         className={className ?? BUTTON_CLASS}
-        disabled={busy || !address}
+        disabled={busy || !address || state === "done"}
         onClick={() => {
-          if (!address) return;
+          if (!address || submitting.current) return;
+          submitting.current = true;
           void (async () => {
             setState("working");
             setError(null);
             try {
-              await requestFaucetFunds(address);
+              await requestFaucetFunds(address, await getAccessToken?.());
               setState("done");
               onDone?.();
             } catch (err) {
               setError(err instanceof Error ? err.message : String(err));
               setState("error");
+            } finally {
+              submitting.current = false;
             }
           })();
         }}

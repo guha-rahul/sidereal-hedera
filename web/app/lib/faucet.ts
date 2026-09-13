@@ -30,10 +30,17 @@ function responseMessage(body: unknown, fallback: string): string {
  * server holds the funded key and sends a KYC grant, test sdUSD, and a little
  * HBAR for gas; the browser wallet never signs for the faucet.
  */
-export async function requestFaucetFunds(address: string): Promise<FaucetResult> {
+export async function requestFaucetFunds(
+  address: string,
+  accessToken?: string | null,
+): Promise<FaucetResult> {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  // When the caller is a Privy user, bind the funding to that identity; the
+  // route verifies the token and checks the address is one of its linked wallets.
+  if (accessToken) headers.authorization = `Bearer ${accessToken}`;
   const response = await fetch("/api/faucet", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify({ address }),
   });
   const body = (await response.json().catch(() => null)) as FaucetResponse | null;

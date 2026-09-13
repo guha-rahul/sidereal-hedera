@@ -141,7 +141,7 @@ export default function JourneyPage() {
   const bondAddress = cfg.contracts.bond ?? "";
 
   const { client, address, phase, submit, submitSequence } = useSidereal();
-  const { connect } = useWallet();
+  const { connect, getAccessToken } = useWallet();
   const journey = useJourney(address, phase.kind === "done" ? phase.hash : 0);
 
   const [active, setActive] = useState<Action | null>(null);
@@ -462,7 +462,7 @@ export default function JourneyPage() {
                     setFaucetBusy(true);
                     setFaucetError(null);
                     try {
-                      await requestFaucetFunds(address);
+                      await requestFaucetFunds(address, await getAccessToken?.());
                       setFaucetDone(true);
                       journey.refresh();
                     } catch (err) {
