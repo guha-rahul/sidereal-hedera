@@ -1,5 +1,9 @@
 # ATS verification status
 
+The current application uses the user-controlled market in `hedera-ats.json`.
+See [OWNED_MARKET.md](OWNED_MARKET.md) for its verified deployment and seed.
+The lifecycle evidence below belongs to the previous and short markets.
+
 Checked on 2026-09-13 against repository revision
 `84c540b5089d8b6fb17916942e965e51858ecd4c`, plus the uncommitted regression,
 collector, and manifest changes in this checkout. This record covers two live
@@ -26,7 +30,7 @@ Hedera testnet markets. See `../../update.md` for the plain-language summary and
 
 ## Live main market
 
-Manifest: `hedera-ats.json` (status `deployed-lifecycle-verified`).
+Historical manifest: `hedera-ats-previous.json` (status `deployed-lifecycle-verified`).
 
 - The real ATS factory `0x5fA65CA30d1984701F10476664327f97c864A9D3` issued the
   bond. Issuance receipt is in `evidence/main-deploy.json`.

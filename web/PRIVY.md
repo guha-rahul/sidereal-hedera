@@ -9,8 +9,9 @@ ATS demo eligibility remains issuer-controlled; Privy authentication is not KYC.
 
 `AppWalletProvider` loads the Privy client only inside the working app route
 layout. Marketing and documentation do not import the Privy React SDK. A
-lightweight configuration module controls the Invest tab. Without an app ID,
-the app uses the existing injected-wallet provider.
+lightweight configuration module controls the Invest tab. Public deployment
+defaults supply the app ID and funding button for CI builds without `.env.local`.
+An explicit empty `NEXT_PUBLIC_PRIVY_APP_ID` selects the injected-wallet provider.
 
 `PrivyWalletBridge` exposes the embedded address, chain, signing, login/logout
 and access-token retrieval through `useWallet`. Each send switches to the
@@ -52,6 +53,9 @@ Register the local and deployed app origins and enable email/Google login in
 Privy's dashboard. Configure the same variables in the target deployment.
 Changing the public app ID requires rebuilding. Do not reuse production issuer
 credentials for the faucet.
+
+`app/public-deployment.json` contains only the public app ID and funding-button
+default, never private credentials. Environment overrides take precedence.
 
 ## Durable faucet setup
 

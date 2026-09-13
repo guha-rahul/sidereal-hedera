@@ -17,6 +17,12 @@ test.describe("Privy entry", () => {
       page.getByRole("heading", { name: "Email to investment" }),
     ).toBeVisible({ timeout: 45_000 });
     await expect(
+      page.getByText("Start here: your five-step demo guide", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Sign in with email.", { exact: true }),
+    ).toBeVisible();
+    await expect(
       page
         .locator("header")
         .getByRole("button", { name: "Connect wallet", exact: true }),

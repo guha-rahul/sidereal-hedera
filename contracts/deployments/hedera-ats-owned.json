@@ -19,9 +19,24 @@
   "resolver": "0xEFEF4CAe9642631Cfc6d997D6207Ee48fa78fe42",
   "security": "0x10810626c3D4b6DcD9EBD4e91bA64eb5FF8c50ff",
   "startingDate": 1789312367,
-  "status": "addresses-only-until-receipts-verified",
+  "status": "deployed-and-seeded-receipts-verified",
   "strategy": "0xC5c69cd67F2Fc189d7e4085FA3A090651c490675",
   "sy": "0xfe820Cb2841b5cF694f29B6d22b0B73513313191",
   "tokenizer": "0xB51Ec9e8F0F0C2A57c42b50d61CC17505d8BCf6d",
-  "yt": "0x0B28a594d5Af6f5C893B82DE3b8fF69B63f1D5cf"
+  "yt": "0x0B28a594d5Af6f5C893B82DE3b8fF69B63f1D5cf",
+  "deploymentEvidence": "evidence/owned-deploy.json",
+  "seedEvidence": "evidence/owned-seed.json",
+  "seedTransactionHashes": [
+    "0x945129c2f015d9d8d0f74b2c91b2acad5ad4e5126edb120694d7a8a98c833834",
+    "0x88209d9b06866cb7cfc2bdd4127eb8b3538992b0996eb1b9df770ec96eb323c1",
+    "0xc25c1d08995cb96ff3250f5f6c84280e3badd5845802f9e2d75406f06ea9deaa",
+    "0x049816e4037fae9e113c975af03d9d18ab19f21d21f534ae1dc301c3a6075029",
+    "0x41a2b8a84c2bcb2cfeafcf2fac97574c4e0ecac77452677862341127c339ba18",
+    "0xe0c60f669a3affa20f320c27eb55081b7f0f4b65b75ef9cb561b1707bf6d3dfc",
+    "0xbab346bf4c6225dfea575042ed874ebbe1d4f314d01458ce3a6e78d9f61a1d14",
+    "0x292a5db741d06ab2aa3f4ce42612f13dd5a73222f8a90657080d75a4f47fe532",
+    "0x876992fc088f6e5d4a1aca8a56114e425222ebb687fa6f7b4c878051b01a75af"
+  ],
+  "sourceVerificationStatus": "not-yet-verified-for-this-deployment",
+  "issuanceTransactionHash": "0xdabf42ebab6b71bc94e37551e13f002e98f146dd90a555ce8ace98e6d982ef7a"
 }
