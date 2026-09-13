@@ -44,8 +44,8 @@ Generate the env file from the manifest rather than transcribing addresses:
 
 ```bash
 cd app
-pnpm check:env ../../contracts/deployments/hedera-testnet.json   # print, write nothing
-pnpm gen:env   ../../contracts/deployments/hedera-testnet.json   # write app/.env.local
+pnpm check:env ../../contracts/deployments/hedera-ats.json   # print, write nothing
+pnpm gen:env   ../../contracts/deployments/hedera-ats.json   # write app/.env.local
 ```
 
 The generator maps manifest keys to env names (`amm` -> `MARKET`, `cash` ->
@@ -55,7 +55,9 @@ rejects malformed and zero addresses, fails when the result would leave
 stops describing the yield source as simulated. It writes
 `NEXT_PUBLIC_FAUCET_ENABLED` from the manifest's `cashMintable` flag, defaulting
 to off: `Deploy.s.sol` takes a real ERC-3643 bond and real denomination, and
-`mint` reverts on those.
+`mint` reverts on those. For an ATS manifest it also writes
+`NEXT_PUBLIC_UNDERLYING_DECIMALS` from `cashDecimals`, because the demo cash is
+6-decimal sdUSD while SY/PT/YT are 18-decimal.
 
 ### These values are build-time, not runtime
 
@@ -69,7 +71,7 @@ bundle exactly as it was: the pages will keep reporting no configured market.
 Configuring a market therefore always means a rebuild and redeploy:
 
 ```bash
-pnpm gen:env ../../contracts/deployments/hedera-testnet.json
+pnpm gen:env ../../contracts/deployments/hedera-ats.json
 pnpm cf:deploy        # opennextjs-cloudflare build && deploy
 ```
 
