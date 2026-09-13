@@ -52,9 +52,10 @@ Completed phases: deploy, seed, trade, coupon, settle (issuer), settle (buyer).
 
 ## Tests
 
-- 51 offline Solidity tests pass.
+- 59 Solidity tests pass with `RUN_ATS_LIVE=true` (51 offline + 8 ATS fork checks).
+- 157 app tests and 15 SDK tests pass.
 - 6 receipt-validator tests pass.
-- Live fork checks passed in the first pass.
+- App typecheck and production build pass.
 
 ## Finding and fix: AMM first seed
 
@@ -66,19 +67,27 @@ Fix: the seed phase now seeds 1200 PT and 800 SY, a 60/40 split. This clears the
 
 ## Web app
 
-The app now reads the new main market. `web/app/lib/deployments.ts` holds the ATS addresses as the fresh-clone fallback. `web/app/scripts/manifest-to-env.mjs` also writes `NEXT_PUBLIC_UNDERLYING_DECIMALS` from the manifest, so 6-decimal sdUSD formats correctly. `web/app/.env.local` was generated from `hedera-ats.json`, and the production build inlines the new addresses. The public Worker still needs a rebuild and redeploy.
+The app reads the live ATS main market. `web/app/lib/deployments.ts` holds the ATS addresses as the fresh-clone fallback, and `web/app/scripts/manifest-to-env.mjs` writes `NEXT_PUBLIC_UNDERLYING_DECIMALS` from the manifest so 6-decimal sdUSD formats correctly.
 
-## Verification
+Deployed to a separate Vercel project at **https://sidereal-ats.vercel.app** (the old `www.sidereal.tech` build is left untouched). The deploy also:
 
-- 59 Solidity tests pass with `RUN_ATS_LIVE=true`.
-- 156 app tests pass.
-- 15 SDK tests pass.
-- App typecheck and production build pass.
+- adds an "Add / switch to Hedera Testnet" prompt and a testnet HBAR faucet link in the wallet-network banner;
+- enables a server-side `/api/faucet` route that grants ATS KYC and sends 1,000 sdUSD plus 20 HBAR to a fresh wallet, so a judge can self-serve;
+- fixes the mint page to use the 6-decimal underlying and the vault `assetScale`;
+- removes the `/docs` redirect to the stale external docs, so the app now serves its own Hedera/ATS docs.
+
+Verified end to end: a fresh address received KYC, 1,000 sdUSD, and 20 HBAR.
 
 ## Remaining work
 
-- Rebuild and redeploy the public frontend from the new manifest. Owner: human owner. This needs Cloudflare access.
+- Make the GitHub repository public (it is still private) and confirm the submission link points at the new Vercel deployment.
 - Record the demo video and finish the submission text. Owner: human owner.
+- `docs.sidereal.tech` is a separate deployment that still contains older Stellar/mainnet copy; it is no longer linked from this app. Owner: human owner.
+
+Done since the first draft: the faucet no longer uses the issuer/admin key. A
+dedicated testnet account (`contracts/faucet.env`, gitignored) holds the KYC and
+issuer roles plus its own HBAR and sdUSD, and `FAUCET_PRIVATE_KEY` now points at
+it. Verified end to end with a fresh address.
 
 ## Plan checklist
 
@@ -99,9 +108,9 @@ Acceptance checklist:
 - [x] Receipts, source revision, deployment inputs, and contract verification agree.
 - [x] Main demo stays usable for judges. The settlement record uses a separate market.
 - [ ] No uninitialized deployment window permits arbitrary initialization.
-- [ ] SDK ABI and UI reflect the deployed contracts.
-- [ ] README separates earlier Sidereal work from event work.
-- [ ] Repo, application, and video are accessible without team accounts.
+- [x] SDK ABI and UI reflect the deployed contracts.
+- [x] README separates earlier Sidereal work from event work.
+- [ ] Repo, application, and video are accessible without team accounts. (App is public; the repo is still private and the video is not recorded.)
 - [ ] Submission is saved before the final recovery hour.
 
 Minimum convincing demonstration:
