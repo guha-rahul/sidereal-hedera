@@ -1,0 +1,200 @@
+{
+  "status": "observed-state-and-supplied-receipts-only",
+  "limitations": "Does not prove source verification, factory issuance provenance, or an entire lifecycle. Inspect transaction inputs/events and capture each phase separately.",
+  "chainId": 296,
+  "blockNumber": 40457663,
+  "blockHash": "0x5ff77b284ab0bb7e263d782c0153fbf4a59e95c1dc68786c11910f0e28917138",
+  "timestamp": 1789289371,
+  "phase": "reinstate",
+  "manifest": {
+    "adapter": "0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06",
+    "amm": "0x777b0DB3AA93e52e376f68bdE5092C1678Ac7640",
+    "bond": "0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06",
+    "bondDecimals": 6,
+    "buyer": "0xa51944c14BB90070B8642cb4BEe04DA9aDD820E3",
+    "cash": "0xedb4c1335780f192AA693147662Da3F4FD9C9ba9",
+    "cashDecimals": 6,
+    "cashLabel": "sdUSD: testnet demonstration token, not USDC",
+    "chainId": 296,
+    "executionDate": 1789286565,
+    "factory": "0x5fA65CA30d1984701F10476664327f97c864A9D3",
+    "issuer": "0xbDC25Ce69f8921eb15ceb9a1EC6e807DAf3078bA",
+    "maturity": 1797058665,
+    "network": "hedera-testnet",
+    "orderbook": "0xB36FAb30226f2fB7F1136Edd8bE7c958E7e378AD",
+    "pt": "0x603EaBD246B82c4cB4386Dc72d83CB1B15d19dCf",
+    "recordDate": 1789286265,
+    "resolver": "0xEFEF4CAe9642631Cfc6d997D6207Ee48fa78fe42",
+    "security": "0xB8012a1c3227C454059Ee115Db2f1A7947903e22",
+    "startingDate": 1789283265,
+    "status": "deployed-receipts-verified",
+    "strategy": "0x578422A2824408c4d7ac56Fc68D9F3a150f6f3E3",
+    "sy": "0x5Cfb3Da5B8AbAaF8e94DE7ED37462674445F333C",
+    "tokenizer": "0xA506DcabcfE9a435373E08511876827599c579Cc",
+    "yt": "0x691415D1aD9E6443d7f5d1682C249306c8E88ba2",
+    "issuanceTransactionHash": "0x4ab1105568c026e632d9d38ac2f05f82cb240d8e8255220db3731e062f9fc9e0",
+    "deploymentEvidence": "evidence/main-deploy.json",
+    "sourceVerification": "evidence/source-verification.json",
+    "buildInputs": "evidence/build-inputs.json"
+  },
+  "balancesRaw": {
+    "cash": {
+      "issuer": "88000000000",
+      "buyer": "4000000000",
+      "adapter": "8000000000",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "0",
+      "orderbook": "0"
+    },
+    "security": {
+      "issuer": "0",
+      "buyer": "0",
+      "adapter": "4736849863",
+      "strategy": "5263150137",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "0",
+      "orderbook": "0"
+    },
+    "sy": {
+      "issuer": "1098097899000000000000",
+      "buyer": "901894631804288863830",
+      "adapter": "0",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "2000000000000000000000",
+      "amm": "1000000000000000002232",
+      "orderbook": "0"
+    },
+    "pt": {
+      "issuer": "900000000000000000000",
+      "buyer": "100000000000000002229",
+      "adapter": "0",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "999999999999999997771",
+      "orderbook": "0"
+    },
+    "yt": {
+      "issuer": "2000000000000000000000",
+      "buyer": "0",
+      "adapter": "0",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "0",
+      "orderbook": "0"
+    }
+  },
+  "decimals": {
+    "cash": 6,
+    "security": 6,
+    "sy": 18,
+    "pt": 18,
+    "yt": 18
+  },
+  "runtimeCodeSha256": {
+    "cash": "fa4314a8f7fe86a5a31be2c5b5e0bb6cc519f2fbb6073139322d9c30b78b385c",
+    "security": "19e449beaa3aa14383308d5b02f494b869d558c5bf840f0fc4911e732864ef24",
+    "sy": "d1935baef20d0135162cf6205dcfa93d4ce6d340307f2f2b4fbfa4b3eb956230",
+    "pt": "9eb2d9a767605850ec757dacb6f64d94fb50276eb849dc474ae773a4b141ba6d",
+    "yt": "ef18ae0ab00ffba6c749ca106bfaee0f4102132b56956c1bfff3ff13c6f1d503",
+    "adapter": "89917cbdf93c8efdfb7d61709f4afee8118594c44782ffebf2be32c7ff84e9e4",
+    "strategy": "85333e0817d2771905b820966f2b33151bf7e6531b857776c2035ccbf8c7dc90",
+    "tokenizer": "00d05bffdb23d57b1a48aaf4a020d22671a57bf622bd3ed864ad6c29d38bcd16",
+    "amm": "a36c3806a3cd164d1956d40a11e454ce724457f5517953b0be66ae02a50df804",
+    "orderbook": "41ce8c92cce011d575d9c867a7b10fabae582544ccf7595e9810d431cf96671b",
+    "factory": "f931ee4e0986d3675f5eef5b6bae4ed8bcbe18a2a3e3e6f9cd9911388232eb97",
+    "resolver": "f931ee4e0986d3675f5eef5b6bae4ed8bcbe18a2a3e3e6f9cd9911388232eb97"
+  },
+  "receipts": [
+    {
+      "receipt": {
+        "blockHash": "0x5da467ee6f8deb2454867f7a82337ae0eeb22f7680e2c3475692622ee5e93028",
+        "blockNumber": "0x26955b7",
+        "from": "0xbdc25ce69f8921eb15ceb9a1ec6e807daf3078ba",
+        "to": "0xb8012a1c3227c454059ee115db2f1a7947903e22",
+        "cumulativeGasUsed": "0x2c8b0",
+        "gasUsed": "0x2c8b0",
+        "contractAddress": "0xb8012a1c3227c454059ee115db2f1a7947903e22",
+        "logs": [
+          {
+            "address": "0xb8012a1c3227c454059ee115db2f1a7947903e22",
+            "blockHash": "0x5da467ee6f8deb2454867f7a82337ae0eeb22f7680e2c3475692622ee5e93028",
+            "blockNumber": "0x26955b7",
+            "blockTimestamp": "0x6aa6638b",
+            "data": "0x",
+            "logIndex": "0x0",
+            "removed": false,
+            "topics": [
+              "0x0cc42ba172587888529a0b89cc75bd6914b337cf10757fd80e3246330e55ad94",
+              "0x000000000000000000000000a51944c14bb90070b8642cb4bee04da9add820e3",
+              "0x000000000000000000000000bdc25ce69f8921eb15ceb9a1ec6e807daf3078ba"
+            ],
+            "transactionHash": "0x2300eb832603f8c5a0f74f162cce38608d21402052f5d69e52a36ab9a2645155",
+            "transactionIndex": "0x0"
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000400000000400004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000002000000000000000000000000020000000000000000000000000000000000020000000000000000000000000100000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000002000000000000000000000000000000000000000000000000040000000000000000000000000000000000000080000",
+        "transactionHash": "0x2300eb832603f8c5a0f74f162cce38608d21402052f5d69e52a36ab9a2645155",
+        "transactionIndex": "0x0",
+        "effectiveGasPrice": "0x107193fa400",
+        "root": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "status": "0x1",
+        "type": "0x2"
+      },
+      "from": "0xbdc25ce69f8921eb15ceb9a1ec6e807daf3078ba",
+      "to": "0xb8012a1c3227c454059ee115db2f1a7947903e22",
+      "input": "0x81bea54d000000000000000000000000a51944c14bb90070b8642cb4bee04da9add820e300000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006cfe23e9000000000000000000000000bdc25ce69f8921eb15ceb9a1ec6e807daf3078ba0000000000000000000000000000000000000000000000000000000000000018746573746e65742d64656d6f2d656c69676962696c6974790000000000000000",
+      "explorer": "https://hashscan.io/testnet/transaction/0x2300eb832603f8c5a0f74f162cce38608d21402052f5d69e52a36ab9a2645155"
+    }
+  ],
+  "accountingRaw": {
+    "adapter.principalReserve()": "6500000000",
+    "adapter.couponReserve(uint256)": "1500000000",
+    "adapter.couponFunding(uint256)": "1500000000",
+    "adapter.couponClaimed(uint256)": "0",
+    "strategy.accountedBonds()": "5263150137",
+    "strategy.countedCash()": "0",
+    "strategy.totalAssets()": "5526512906",
+    "sy.exchangeRate()": "1105304210240609120",
+    "sy.totalSupply()": "4999992630804288866062",
+    "pt.totalSupply()": "2000000000000000000000",
+    "yt.totalSupply()": "2000000000000000000000",
+    "amm.reservePt()": "999999999999999997771",
+    "amm.reserveSy()": "1000000000000000002232"
+  },
+  "localSourceCommitAtCollection": "84c540b5089d8b6fb17916942e965e51858ecd4c",
+  "localContractsDirtyAtCollection": true,
+  "dependencyLock": {
+    "solc": "0.8.28",
+    "dependencies": [
+      {
+        "path": "lib/openzeppelin-contracts",
+        "url": "https://github.com/OpenZeppelin/openzeppelin-contracts.git",
+        "ref": "v5.0.2",
+        "commit": "dbb6104ce834628e473d2173bbc9d47f81a9eec3"
+      },
+      {
+        "path": "lib/forge-std",
+        "url": "https://github.com/foundry-rs/forge-std.git",
+        "ref": "v1.9.7",
+        "commit": "77041d2ce690e692d6e03cc812b57d1ddaa4d505"
+      }
+    ]
+  },
+  "compilerSettingsAtCollection": "[profile.default]\nsrc = \"src\"\nout = \"out\"\nlibs = [\"lib\"]\ntest = \"test\"\nscript = \"script\"\nsolc = \"0.8.28\"\noptimizer = true\noptimizer_runs = 200\nvia_ir = true\nbytecode_hash = \"none\"\nevm_version = \"paris\"\nfs_permissions = [{ access = \"read-write\", path = \"./deployments\" }]\n\n[profile.default.fuzz]\nruns = 1024\n\n[profile.default.invariant]\nruns = 64\ndepth = 48\nfail_on_revert = false\n\n[fmt]\nline_length = 100\ntab_width = 4\nbracket_spacing = false\n\n# Current ATS factory bytecode requires Cancun execution during live simulation.\n[profile.hedera_live]\nevm_version = \"cancun\"\n"
+}

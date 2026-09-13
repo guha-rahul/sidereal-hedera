@@ -1,0 +1,12 @@
+{
+  "finding": "AmmMarket.addLiquidity reverts ExchangeRateBelowOne when SY exchangeRate != exactly 1 WAD at first seed",
+  "market": "deployments/evidence/short-abandoned-market-manifest.json (abandoned)",
+  "phase": "seed",
+  "failedTransaction": "0x49a30da7e53c93e79d11c159c5fc31708af54c464fe2f1134d257f8c24da23e1",
+  "revertSelector": "0x012526b3 (ExchangeRateBelowOne)",
+  "syExchangeRateAtFailureAfter": "1106430891276607722",
+  "cause": "Short (1800s) bond accrues valuePerUnit every second; seed ran 263s after startingDate because START_DELAY_SECONDS=120 elapsed during the ~380s deploy broadcast. AMM initialization sets rateAnchor=initialAnchor(1e18) and _getExchangeRateOrPanic reverts on exchangeRate<WAD, so any positive SY rate drift makes the first addLiquidity revert.",
+  "mainMarketWhyItPassed": "90-day term: valuePerUnit/coupon change by 0 within the seconds between deposit and addLiquidity, so syRate stayed exactly 1.",
+  "workaroundUsed": "Redeploy with START_DELAY_SECONDS large enough that seed completes before startingDate.",
+  "contractOwner": "Codex 1 (AMM anchor should scale with syRate; this is an integration finding, not patched here)."
+}

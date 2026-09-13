@@ -1,0 +1,56 @@
+{
+  "adapter": {
+    "address": "0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [ATSBondAdapter] \"0x1D905accd0d7b2F24a99Bcec2A34a3f80Ac61F06\".\nSubmitted contract for verification:\n\tVerification Job ID: `cb87f21e-47bd-479f-ab3d-ea2f221bb2c7`\n\tURL: https://sourcify.dev/server/v2/verify/cb87f21e-47bd-479f-ab3d-ea2f221bb2c7\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "cash": {
+    "address": "0xedb4c1335780f192AA693147662Da3F4FD9C9ba9",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0xedb4c1335780f192AA693147662Da3F4FD9C9ba9` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [DemoCash] \"0xedb4c1335780f192AA693147662Da3F4FD9C9ba9\".\nSubmitted contract for verification:\n\tVerification Job ID: `a1c61ae2-4a53-4861-b58c-99d1826c4449`\n\tURL: https://sourcify.dev/server/v2/verify/a1c61ae2-4a53-4861-b58c-99d1826c4449\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "strategy": {
+    "address": "0x578422A2824408c4d7ac56Fc68D9F3a150f6f3E3",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0x578422A2824408c4d7ac56Fc68D9F3a150f6f3E3` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [ERC3643BondStrategy] \"0x578422A2824408c4d7ac56Fc68D9F3a150f6f3E3\".\nSubmitted contract for verification:\n\tVerification Job ID: `3957fa23-039a-44dc-be67-3364eae84fb5`\n\tURL: https://sourcify.dev/server/v2/verify/3957fa23-039a-44dc-be67-3364eae84fb5\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "sy": {
+    "address": "0x5Cfb3Da5B8AbAaF8e94DE7ED37462674445F333C",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0x5Cfb3Da5B8AbAaF8e94DE7ED37462674445F333C` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [StandardizedYieldVault] \"0x5Cfb3Da5B8AbAaF8e94DE7ED37462674445F333C\".\nSubmitted contract for verification:\n\tVerification Job ID: `d2b76c3a-db05-4257-a19d-3c4ef3ad0c7d`\n\tURL: https://sourcify.dev/server/v2/verify/d2b76c3a-db05-4257-a19d-3c4ef3ad0c7d\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "pt": {
+    "address": "0x603EaBD246B82c4cB4386Dc72d83CB1B15d19dCf",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0x603EaBD246B82c4cB4386Dc72d83CB1B15d19dCf` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [PrincipalToken] \"0x603EaBD246B82c4cB4386Dc72d83CB1B15d19dCf\".\nSubmitted contract for verification:\n\tVerification Job ID: `080d2eb2-ef95-4ba0-94f9-4e3a43e3c490`\n\tURL: https://sourcify.dev/server/v2/verify/080d2eb2-ef95-4ba0-94f9-4e3a43e3c490\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "yt": {
+    "address": "0x691415D1aD9E6443d7f5d1682C249306c8E88ba2",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0x691415D1aD9E6443d7f5d1682C249306c8E88ba2` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [YieldToken] \"0x691415D1aD9E6443d7f5d1682C249306c8E88ba2\".\nSubmitted contract for verification:\n\tVerification Job ID: `7ad80ca4-cc31-403f-b32c-2e63bf5e4a33`\n\tURL: https://sourcify.dev/server/v2/verify/7ad80ca4-cc31-403f-b32c-2e63bf5e4a33\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "tokenizer": {
+    "address": "0xA506DcabcfE9a435373E08511876827599c579Cc",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0xA506DcabcfE9a435373E08511876827599c579Cc` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [Tokenizer] \"0xA506DcabcfE9a435373E08511876827599c579Cc\".\nSubmitted contract for verification:\n\tVerification Job ID: `36c6a1e4-aab6-4355-b538-754fc13209e8`\n\tURL: https://sourcify.dev/server/v2/verify/36c6a1e4-aab6-4355-b538-754fc13209e8\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "amm": {
+    "address": "0x777b0DB3AA93e52e376f68bdE5092C1678Ac7640",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0x777b0DB3AA93e52e376f68bdE5092C1678Ac7640` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [AmmMarket] \"0x777b0DB3AA93e52e376f68bdE5092C1678Ac7640\".\nSubmitted contract for verification:\n\tVerification Job ID: `540c6476-1462-4368-8a84-255d0eec5c8b`\n\tURL: https://sourcify.dev/server/v2/verify/540c6476-1462-4368-8a84-255d0eec5c8b\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  },
+  "orderbook": {
+    "address": "0xB36FAb30226f2fB7F1136Edd8bE7c958E7e378AD",
+    "status": "match",
+    "verifier": "Sourcify",
+    "log": "Start verifying contract `0xB36FAb30226f2fB7F1136Edd8bE7c958E7e378AD` deployed on 296\nAttempting to verify on Sourcify. Pass the --etherscan-api-key <API_KEY> to verify on Etherscan, or use the --verifier flag to verify on another provider.\n\nSubmitting verification for [Orderbook] \"0xB36FAb30226f2fB7F1136Edd8bE7c958E7e378AD\".\nSubmitted contract for verification:\n\tVerification Job ID: `fe4244be-46d8-490e-b6f9-bb922a9a2e5e`\n\tURL: https://sourcify.dev/server/v2/verify/fe4244be-46d8-490e-b6f9-bb922a9a2e5e\nWarning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)\nContract successfully verified:\nStatus: `match`\n"
+  }
+}

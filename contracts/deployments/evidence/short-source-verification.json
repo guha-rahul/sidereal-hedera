@@ -1,0 +1,65 @@
+{
+  "cash": {
+    "address": "0x69c01567a4573230C022a06c9b3eB42D1AC74945",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "aa48533f-a388-4096-a65f-8c2a0b8f0028",
+    "url": "https://sourcify.dev/server/v2/verify/aa48533f-a388-4096-a65f-8c2a0b8f0028"
+  },
+  "adapter": {
+    "address": "0x41FFE2972603aE71664eCE2D83ef1f5Cf97b3244",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "1f0a2c8e-9ba2-49e0-ae6e-2a5af3e70620",
+    "url": "https://sourcify.dev/server/v2/verify/1f0a2c8e-9ba2-49e0-ae6e-2a5af3e70620"
+  },
+  "strategy": {
+    "address": "0xB2f281a6682290F23501AAFd4979f0d68275c28c",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "8f0210d5-a170-4e52-9f3a-8586a23bb667",
+    "url": "https://sourcify.dev/server/v2/verify/8f0210d5-a170-4e52-9f3a-8586a23bb667"
+  },
+  "sy": {
+    "address": "0x152f6475A1527feA8DA1a6F6dD7f95f625b9e071",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "50de9801-d9bf-4cdf-b40b-f24778542b33",
+    "url": "https://sourcify.dev/server/v2/verify/50de9801-d9bf-4cdf-b40b-f24778542b33"
+  },
+  "pt": {
+    "address": "0x7b9F4be75858341D5E5d7471F7EE59990c68D214",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "ebd7630b-d640-4aad-9c9a-a9495822a453",
+    "url": "https://sourcify.dev/server/v2/verify/ebd7630b-d640-4aad-9c9a-a9495822a453"
+  },
+  "yt": {
+    "address": "0x4D8725639c3e98bD362633085f80C8193691a9c4",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "b281d242-fb5c-4278-a465-8c8837b470b3",
+    "url": "https://sourcify.dev/server/v2/verify/b281d242-fb5c-4278-a465-8c8837b470b3"
+  },
+  "tokenizer": {
+    "address": "0xDf880e39323f26e1FD2DE12eaE0245C12B20B049",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "a0bf5c4a-baa3-46a0-ae63-b4f58bad3644",
+    "url": "https://sourcify.dev/server/v2/verify/a0bf5c4a-baa3-46a0-ae63-b4f58bad3644"
+  },
+  "amm": {
+    "address": "0x59a43fbDC983a2997846A1a4ef6C9B984835c428",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "c71d1c93-f407-443c-86c0-6bc0e607e70c",
+    "url": "https://sourcify.dev/server/v2/verify/c71d1c93-f407-443c-86c0-6bc0e607e70c"
+  },
+  "orderbook": {
+    "address": "0x7a3b6a85c6a9354Af4fD5E754198772Fb7215207",
+    "status": "match",
+    "verifier": "Sourcify",
+    "jobId": "bd81daf9-39eb-491c-b934-c28e19e5d43f",
+    "url": "https://sourcify.dev/server/v2/verify/bd81daf9-39eb-491c-b934-c28e19e5d43f"
+  }
+}

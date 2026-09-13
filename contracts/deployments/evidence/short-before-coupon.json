@@ -1,0 +1,155 @@
+{
+  "status": "observed-state-and-supplied-receipts-only",
+  "limitations": "Does not prove source verification, factory issuance provenance, or an entire lifecycle. Inspect transaction inputs/events and capture each phase separately.",
+  "chainId": 296,
+  "blockNumber": 40458993,
+  "blockHash": "0x0bfd0e59fb73b0dabe2070985924d4a27952de0b8b0b5440ddfc98714e09f388",
+  "timestamp": 1789292202,
+  "phase": "before-coupon",
+  "manifest": {
+    "adapter": "0x41FFE2972603aE71664eCE2D83ef1f5Cf97b3244",
+    "amm": "0x59a43fbDC983a2997846A1a4ef6C9B984835c428",
+    "bond": "0x41FFE2972603aE71664eCE2D83ef1f5Cf97b3244",
+    "bondDecimals": 6,
+    "buyer": "0xa51944c14BB90070B8642cb4BEe04DA9aDD820E3",
+    "cash": "0x69c01567a4573230C022a06c9b3eB42D1AC74945",
+    "cashDecimals": 6,
+    "cashLabel": "sdUSD: testnet demonstration token, not USDC",
+    "chainId": 296,
+    "executionDate": 1789292139,
+    "factory": "0x5fA65CA30d1984701F10476664327f97c864A9D3",
+    "issuer": "0xbDC25Ce69f8921eb15ceb9a1EC6e807DAf3078bA",
+    "maturity": 1789292439,
+    "network": "hedera-testnet",
+    "orderbook": "0x7a3b6a85c6a9354Af4fD5E754198772Fb7215207",
+    "pt": "0x7b9F4be75858341D5E5d7471F7EE59990c68D214",
+    "recordDate": 1789291839,
+    "resolver": "0xEFEF4CAe9642631Cfc6d997D6207Ee48fa78fe42",
+    "security": "0xccb573299ac29bD52D7ad330542906326e5b3FB1",
+    "startingDate": 1789291539,
+    "status": "addresses-only-until-receipts-verified",
+    "strategy": "0xB2f281a6682290F23501AAFd4979f0d68275c28c",
+    "sy": "0x152f6475A1527feA8DA1a6F6dD7f95f625b9e071",
+    "tokenizer": "0xDf880e39323f26e1FD2DE12eaE0245C12B20B049",
+    "yt": "0x4D8725639c3e98bD362633085f80C8193691a9c4"
+  },
+  "balancesRaw": {
+    "cash": {
+      "issuer": "88000000000",
+      "buyer": "4000000000",
+      "adapter": "8000000000",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "0",
+      "orderbook": "0"
+    },
+    "security": {
+      "issuer": "0",
+      "buyer": "0",
+      "adapter": "4740460649",
+      "strategy": "5259539351",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "0",
+      "orderbook": "0"
+    },
+    "sy": {
+      "issuer": "1098097899000000000000",
+      "buyer": "898464384462837773164",
+      "adapter": "0",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "2000000000000000000000",
+      "amm": "1000000000000001447698",
+      "orderbook": "0"
+    },
+    "pt": {
+      "issuer": "900000000000000000000",
+      "buyer": "100000000000001453016",
+      "adapter": "0",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "999999999999998546984",
+      "orderbook": "0"
+    },
+    "yt": {
+      "issuer": "2000000000000000000000",
+      "buyer": "0",
+      "adapter": "0",
+      "strategy": "0",
+      "sy": "0",
+      "pt": "0",
+      "yt": "0",
+      "tokenizer": "0",
+      "amm": "0",
+      "orderbook": "0"
+    }
+  },
+  "decimals": {
+    "cash": 6,
+    "security": 6,
+    "sy": 18,
+    "pt": 18,
+    "yt": 18
+  },
+  "runtimeCodeSha256": {
+    "cash": "fa4314a8f7fe86a5a31be2c5b5e0bb6cc519f2fbb6073139322d9c30b78b385c",
+    "security": "19e449beaa3aa14383308d5b02f494b869d558c5bf840f0fc4911e732864ef24",
+    "sy": "d1935baef20d0135162cf6205dcfa93d4ce6d340307f2f2b4fbfa4b3eb956230",
+    "pt": "9eb2d9a767605850ec757dacb6f64d94fb50276eb849dc474ae773a4b141ba6d",
+    "yt": "ef18ae0ab00ffba6c749ca106bfaee0f4102132b56956c1bfff3ff13c6f1d503",
+    "adapter": "403b74697565e444a996c23564be89843911a090dd1f436c4dadd544d2e14874",
+    "strategy": "856ef9631acc0a2c3d778348e43e52faa806856ecc006cf38e2df54894da4725",
+    "tokenizer": "00d05bffdb23d57b1a48aaf4a020d22671a57bf622bd3ed864ad6c29d38bcd16",
+    "amm": "a36c3806a3cd164d1956d40a11e454ce724457f5517953b0be66ae02a50df804",
+    "orderbook": "41ce8c92cce011d575d9c867a7b10fabae582544ccf7595e9810d431cf96671b",
+    "factory": "f931ee4e0986d3675f5eef5b6bae4ed8bcbe18a2a3e3e6f9cd9911388232eb97",
+    "resolver": "f931ee4e0986d3675f5eef5b6bae4ed8bcbe18a2a3e3e6f9cd9911388232eb97"
+  },
+  "receipts": [],
+  "accountingRaw": {
+    "adapter.principalReserve()": "6500000000",
+    "adapter.couponReserve(uint256)": "1500000000",
+    "adapter.couponFunding(uint256)": "1500000000",
+    "adapter.couponClaimed(uint256)": "0",
+    "strategy.accountedBonds()": "5259539351",
+    "strategy.countedCash()": "0",
+    "strategy.totalAssets()": "5716240931",
+    "sy.exchangeRate()": "1144034736746024902",
+    "sy.totalSupply()": "4996562383462839220862",
+    "pt.totalSupply()": "2000000000000000000000",
+    "yt.totalSupply()": "2000000000000000000000",
+    "amm.reservePt()": "999999999999998546984",
+    "amm.reserveSy()": "1000000000000001447698"
+  },
+  "localSourceCommitAtCollection": "84c540b5089d8b6fb17916942e965e51858ecd4c",
+  "localContractsDirtyAtCollection": true,
+  "dependencyLock": {
+    "solc": "0.8.28",
+    "dependencies": [
+      {
+        "path": "lib/openzeppelin-contracts",
+        "url": "https://github.com/OpenZeppelin/openzeppelin-contracts.git",
+        "ref": "v5.0.2",
+        "commit": "dbb6104ce834628e473d2173bbc9d47f81a9eec3"
+      },
+      {
+        "path": "lib/forge-std",
+        "url": "https://github.com/foundry-rs/forge-std.git",
+        "ref": "v1.9.7",
+        "commit": "77041d2ce690e692d6e03cc812b57d1ddaa4d505"
+      }
+    ]
+  },
+  "compilerSettingsAtCollection": "[profile.default]\nsrc = \"src\"\nout = \"out\"\nlibs = [\"lib\"]\ntest = \"test\"\nscript = \"script\"\nsolc = \"0.8.28\"\noptimizer = true\noptimizer_runs = 200\nvia_ir = true\nbytecode_hash = \"none\"\nevm_version = \"paris\"\nfs_permissions = [{ access = \"read-write\", path = \"./deployments\" }]\n\n[profile.default.fuzz]\nruns = 1024\n\n[profile.default.invariant]\nruns = 64\ndepth = 48\nfail_on_revert = false\n\n[fmt]\nline_length = 100\ntab_width = 4\nbracket_spacing = false\n\n# Current ATS factory bytecode requires Cancun execution during live simulation.\n[profile.hedera_live]\nevm_version = \"cancun\"\n"
+}
