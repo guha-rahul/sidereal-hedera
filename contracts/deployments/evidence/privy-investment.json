@@ -1,0 +1,135 @@
+{
+  "chainId": 296,
+  "wallet": "0xC928081396247d27D9d50109fBf51830348D6430",
+  "walletType": "privy",
+  "marketId": "hedera-bond-q4",
+  "exposure": "fixed",
+  "investment": {
+    "amount": "100",
+    "requestedAt": "2026-09-13T15:49:34.501Z"
+  },
+  "completed": true,
+  "before": {
+    "cash": "1000000000",
+    "sy": "0",
+    "pt": "0",
+    "yt": "0"
+  },
+  "after": {
+    "cash": "900000000",
+    "sy": "4501235593627922002",
+    "pt": "99999998999999999999",
+    "yt": "0"
+  },
+  "units": "base units",
+  "underlyingDecimals": 6,
+  "shareDecimals": 18,
+  "receipts": [
+    {
+      "label": "Demo kyc",
+      "hash": "0xe274437f9c49a9de5b0b34d454f6ec480c3176175c5ce6e2b6a89f63a57c93bd",
+      "signer": "faucet",
+      "status": "success",
+      "explorer": "https://hashscan.io/testnet/transaction/0xe274437f9c49a9de5b0b34d454f6ec480c3176175c5ce6e2b6a89f63a57c93bd",
+      "blockNumber": "40469374",
+      "from": "0xab76e285b5c458638846c474fda8e51ebbb81c43",
+      "to": "0x10810626c3d4b6dcd9ebd4e91ba64eb5ff8c50ff"
+    },
+    {
+      "label": "Demo cash",
+      "hash": "0xe1c58157851f233a9d4e0efffef2d6a870025d3a50fcc21897e95a0b3a6f7611",
+      "signer": "faucet",
+      "status": "success",
+      "explorer": "https://hashscan.io/testnet/transaction/0xe1c58157851f233a9d4e0efffef2d6a870025d3a50fcc21897e95a0b3a6f7611",
+      "blockNumber": "40469377",
+      "from": "0xab76e285b5c458638846c474fda8e51ebbb81c43",
+      "to": "0x71311092cf6486941acb34d3631cf4ad8f442b07"
+    },
+    {
+      "label": "Demo hbar",
+      "hash": "0x1fb5886d8d0f8984cf7885005f4be5176eb71c119e54915664d0bedd2ea5e43b",
+      "signer": "faucet",
+      "status": "success",
+      "explorer": "https://hashscan.io/testnet/transaction/0x1fb5886d8d0f8984cf7885005f4be5176eb71c119e54915664d0bedd2ea5e43b",
+      "blockNumber": "40469380",
+      "from": "0xab76e285b5c458638846c474fda8e51ebbb81c43",
+      "to": "0xc928081396247d27d9d50109fbf51830348d6430"
+    },
+    {
+      "label": "Approve underlying",
+      "hash": "0x05c4ea34aa6d32dc3b332c3069a62be384ce3d5a2edae687dcda7bfde5c1748d",
+      "signer": "embedded-wallet",
+      "status": "success",
+      "blockNumber": "40469431",
+      "explorer": "https://hashscan.io/testnet/transaction/0x05c4ea34aa6d32dc3b332c3069a62be384ce3d5a2edae687dcda7bfde5c1748d",
+      "from": "0xc928081396247d27d9d50109fbf51830348d6430",
+      "to": "0x71311092cf6486941acb34d3631cf4ad8f442b07"
+    },
+    {
+      "label": "Deposit",
+      "hash": "0xc6e020c8a7751495030f48e058ff8795edd4811299a545a22c99d2661b5f9f37",
+      "signer": "embedded-wallet",
+      "status": "success",
+      "blockNumber": "40469501",
+      "explorer": "https://hashscan.io/testnet/transaction/0xc6e020c8a7751495030f48e058ff8795edd4811299a545a22c99d2661b5f9f37",
+      "from": "0xc928081396247d27d9d50109fbf51830348d6430",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191"
+    },
+    {
+      "label": "Approve SY",
+      "hash": "0x3d541d4f40d0c673eb064966ab1b119a5c94df731344746f151496692f2aa8a5",
+      "signer": "embedded-wallet",
+      "status": "success",
+      "blockNumber": "40469549",
+      "explorer": "https://hashscan.io/testnet/transaction/0x3d541d4f40d0c673eb064966ab1b119a5c94df731344746f151496692f2aa8a5",
+      "from": "0xc928081396247d27d9d50109fbf51830348d6430",
+      "to": "0xfe820cb2841b5cf694f29b6d22b0b73513313191"
+    },
+    {
+      "label": "Split",
+      "hash": "0x94c6f84b94a2001285bd8cbae7b1ce0fe03f7b6e6da13f88fb4cd5890f902a04",
+      "signer": "embedded-wallet",
+      "status": "success",
+      "blockNumber": "40469555",
+      "explorer": "https://hashscan.io/testnet/transaction/0x94c6f84b94a2001285bd8cbae7b1ce0fe03f7b6e6da13f88fb4cd5890f902a04",
+      "from": "0xc928081396247d27d9d50109fbf51830348d6430",
+      "to": "0xb51ec9e8f0f0c2a57c42b50d61cc17505d8bcf6d"
+    },
+    {
+      "label": "Approve YT",
+      "hash": "0x1c6a68359c2283d227b36bd7c1bad5a7cf491718e6dfb51d448234a40b9b650c",
+      "signer": "embedded-wallet",
+      "status": "success",
+      "blockNumber": "40469561",
+      "explorer": "https://hashscan.io/testnet/transaction/0x1c6a68359c2283d227b36bd7c1bad5a7cf491718e6dfb51d448234a40b9b650c",
+      "from": "0xc928081396247d27d9d50109fbf51830348d6430",
+      "to": "0x0b28a594d5af6f5c893b82de3b8ff69b63f1d5cf"
+    },
+    {
+      "label": "Sell YT",
+      "hash": "0xe5d4ffe11b9874fe42512ece44973146b6a76f505b5215dabb5ebf43a8ce8f72",
+      "signer": "embedded-wallet",
+      "status": "success",
+      "blockNumber": "40469567",
+      "explorer": "https://hashscan.io/testnet/transaction/0xe5d4ffe11b9874fe42512ece44973146b6a76f505b5215dabb5ebf43a8ce8f72",
+      "from": "0xc928081396247d27d9d50109fbf51830348d6430",
+      "to": "0xf816cec720c78af2870f323b6374ad6f3e41861e"
+    }
+  ],
+  "receiptBlockBalancesVerified": true,
+  "exactAllowancesConsumed": true,
+  "browser": {
+    "address": "0xC928081396247d27D9d50109fBf51830348D6430",
+    "authenticated": true,
+    "funded": true,
+    "investmentComplete": true,
+    "sharedWalletRoutes": [
+      "Portfolio",
+      "Mint",
+      "Trade",
+      "Book",
+      "Pool",
+      "Journey"
+    ]
+  }
+}

@@ -111,10 +111,14 @@ labels and HashScan links. Save the reviewed JSON under a submission evidence
 folder and link it from the submission. Submitted hashes alone are not proof of
 successful completion: check HashScan and the final balances.
 
-No live Privy investment receipts are fabricated or included with this change.
-A fresh-account run requires email/Google authentication, the faucet key and
-funding ledger setup. Source access and a working deployed demo still need to
-be arranged before submission.
+A real email-authenticated Privy wallet completed funding and a 100 sdUSD fixed
+investment on Hedera testnet. All nine receipts were independently verified,
+including six transactions signed by the embedded wallet. The final position
+and shared wallet checks are recorded in
+[`privy-investment.json`](../contracts/deployments/evidence/privy-investment.json).
+The repository is public and the demo is deployed on Cloudflare. Verification
+of the new deployment's contract sources and the submission video remain
+outstanding.
 
 ## References
 

@@ -7,7 +7,8 @@ testnet demo using free demonstration assets; no real USDC is required.
 ## 1. Sign in
 
 Click **Continue with email**, enter your email, and complete the verification
-code sent to your inbox. Privy creates an embedded wallet. Its address appears
+code sent to your inbox. Privy creates an embedded wallet. Click **All Done**
+on the wallet-creation success screen. Its address appears
 at the top and stays the same when you visit Mint, Trade or Portfolio. Do not
 share verification codes or private keys.
 
@@ -35,16 +36,17 @@ are demo assets and illustrative exposures, not guaranteed financial returns.
 
 ## 4. Confirm the investment
 
-Click **Invest 100 sdUSD**. Confirm each wallet transaction as it appears. The
+Click **Invest 100 sdUSD**. Confirm each wallet transaction as it appears and
+click **All Done** on its success screen to let the next request open. The
 sequence approves the required amounts, deposits, separates principal and yield,
 and trades the exposure you are not keeping. Multiple confirmations are expected.
 Keep the page open until it reports **Investment complete**.
 
 ## 5. Verify and save your result
 
-Compare the sdUSD, SY, PT and YT balances with their starting values. Open
-**Portfolio** to inspect the same wallet. Return to Invest and click
-**Download investment receipts**. The JSON contains your public wallet address,
+Compare the sdUSD, SY, PT and YT balances with their starting values. Before
+navigating away, click **Download investment receipts**. Then open **Portfolio**
+to inspect the same wallet. The JSON contains your public wallet address,
 balances, exposure and transaction status; check its HashScan links for successful
 confirmations. Save this file before navigating away or refreshing, because the
 investment page's receipt list is held for the current session.
@@ -54,7 +56,7 @@ investment page's receipt list is held for the current session.
 | What you see | What to do |
 |---|---|
 | No verification email | Check spam and the entered address, then use the login dialog's resend option. |
-| Preparing wallet | Wait for wallet initialization; do not start another investment. |
+| Preparing wallet | Finish any Privy setup dialog with All Done. If initialization remains stuck, refresh and sign in again; do not start another investment. |
 | Empty or loading balances | Wait for the Hedera RPC reads to finish. |
 | Insufficient sdUSD | Request your initial demo allocation or choose a smaller amount within your balance. |
 | Funding disabled or failing | Contact the demo operator; account funding, permissions or deployment configuration may need repair. USDC does not replace sdUSD. |
