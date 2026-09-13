@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { TransactionRequest } from "@sidereal/sdk";
 
 export type TxPhase =
@@ -28,8 +28,14 @@ export interface TxSequenceStep extends TxSteps {
  */
 export function useTxFlow() {
   const [phase, setPhase] = useState<TxPhase>({ kind: "idle" });
+  // Guards against a second submission starting before React re-renders the
+  // button as disabled. A double-click would otherwise send approve + deposit,
+  // then a second deposit that reverts once the balance is spent.
+  const busy = useRef(false);
 
   const run = useCallback(async (steps: TxSteps) => {
+    if (busy.current) return;
+    busy.current = true;
     try {
       setPhase({ kind: "working", step: "Building transaction" });
       const request = await steps.build();
@@ -40,6 +46,8 @@ export function useTxFlow() {
       setPhase({ kind: "done", hash });
     } catch (err) {
       setPhase({ kind: "error", error: err });
+    } finally {
+      busy.current = false;
     }
   }, []);
 
@@ -50,6 +58,8 @@ export function useTxFlow() {
    * builds after the deposit it spends has landed).
    */
   const runSequence = useCallback(async (steps: TxSequenceStep[]) => {
+    if (busy.current) return;
+    busy.current = true;
     let failedStep: string | undefined;
     try {
       let hash = "";
@@ -68,6 +78,8 @@ export function useTxFlow() {
       setPhase({ kind: "done", hash });
     } catch (err) {
       setPhase({ kind: "error", error: err, step: failedStep });
+    } finally {
+      busy.current = false;
     }
   }, []);
 
